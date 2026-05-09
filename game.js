@@ -301,6 +301,7 @@ function saveGame() {
     enemiesPerWave: game.enemiesPerWave,
     towers: game.towers.map(t => ({
       x: t.x, y: t.y, role: t.role, tier: t.tier, xp: t.xp,
+      totalDamage: t.totalDamage || 0,
     })),
   };
   try {
@@ -344,6 +345,7 @@ function loadGame(data) {
         x: td.x, y: td.y, role: td.role, tier: td.tier,
         range: cfg.range, fireRate: cfg.fireRate, damage: cfg.damage,
         cooldown: 0, angle: 0, xp: td.xp || 0,
+        totalDamage: td.totalDamage || 0,
       };
     });
 }
@@ -426,6 +428,7 @@ function placeTower(x, y) {
     cooldown: 0,
     angle: 0,
     xp: 0,
+    totalDamage: 0,
   });
   game.gold -= TOWER.cost;
   return true;
@@ -503,9 +506,12 @@ function updateProjectile(p, dt) {
   if (move >= dist) {
     const dealt = Math.min(p.damage, p.target.hp);
     p.target.hp -= p.damage;
-    if (p.shooter && canPromote(p.shooter)) {
-      const next = Math.round((p.shooter.xp + dealt) * 10) / 10;
-      p.shooter.xp = Math.min(next, xpMaxFor(p.shooter));
+    if (p.shooter) {
+      p.shooter.totalDamage = Math.round(((p.shooter.totalDamage || 0) + dealt) * 10) / 10;
+      if (canPromote(p.shooter)) {
+        const next = Math.round((p.shooter.xp + dealt) * 10) / 10;
+        p.shooter.xp = Math.min(next, xpMaxFor(p.shooter));
+      }
     }
     if (p.target.hp <= 0) {
       p.target.dead = true;
@@ -658,14 +664,20 @@ function drawTowerInfoPanel(t) {
   ctx.fillStyle = '#cdd';
   const sx = towerInfoPanel.x + 14;
   const sy = towerInfoPanel.y + 50;
-  ctx.fillText(`데미지: ${t.damage}`, sx, sy);
-  ctx.fillText(`사거리: ${t.range}`, sx + 110, sy);
-  ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)} / 초`, sx, sy + 20);
+  const dps = Math.round(t.damage * t.fireRate * 10) / 10;
+  const total = Math.round((t.totalDamage || 0) * 10) / 10;
+  const atkLabels = { ground: '지상', air: '공중' };
+  const atkText = (cfg.attackTypes || []).map(a => atkLabels[a] || a).join('/');
+  ctx.fillText(`데미지: ${t.damage} (${dps}/초)`, sx, sy);
+  ctx.fillText(`사거리: ${t.range}`, sx + 160, sy);
+  ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)}/초`, sx, sy + 18);
+  ctx.fillText(`공격 대상: ${atkText}`, sx + 160, sy + 18);
+  ctx.fillText(`누적 데미지: ${total}`, sx, sy + 36);
 
   if (canPromote(t)) {
     const xpMax = xpMaxFor(t);
     const bx = sx;
-    const by = sy + 40;
+    const by = sy + 44;
     const bw = 240;
     const bh = 8;
     const ratio = xpMax > 0 ? t.xp / xpMax : 0;
