@@ -43,16 +43,43 @@ const TOWER = {
   cost: 50,
   radius: 14,
   projectileSpeed: 280,
-  promotionCost: 80,
-  xpMax: 10,
-  maxTier: 1, // Tier 0 → 1만 구현됨. 추후 명세 받으면 3까지 확장 예정
+  promotionCosts: [100, 250, 1000], // [t0→t1, t1→t2, t2→t3]
+  xpThresholds:   [20,  40,  200],  // 같은 인덱스
+  buffRates:      [0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t1, t2, t3)에 적용 (Step 5 예정)
+  maxTier: 1, // Step 1에서는 t0→t1까지만 구현
 };
 
 const TOWER_ROLES = {
-  base:   { name: '타워',   color: '#3498db', color2: '#1a5680', range: 90,  fireRate: 1.2, damage: 1 },
-  sniper: { name: '저격수', color: '#9b59b6', color2: '#5b3470', range: 150, fireRate: 0.8, damage: 4 },
-  gunner: { name: '기관총', color: '#e67e22', color2: '#7e3a06', range: 70,  fireRate: 3.0, damage: 1 },
+  base: {
+    name: '기본', tagline: '균형형 · 지상 단일',
+    color: '#3498db', color2: '#1a5680',
+    range: 90, fireRate: 1.2, damage: 1.2,
+    attackTypes: ['ground'], splash: 0,
+    promotions: ['bunker', 'scout'],
+  },
+  bunker: {
+    name: '벙커', tagline: '단발 고화력 · 지상 전담',
+    color: '#5d6d7e', color2: '#212f3d',
+    range: 100, fireRate: 1, damage: 3,
+    attackTypes: ['ground'], splash: 0,
+    promotions: [], // Step 3에서 ['tank', 'base_buff'] 추가 예정
+  },
+  scout: {
+    name: '스카웃', tagline: '원거리 다목적 · 지상/공중',
+    color: '#16a085', color2: '#0e6655',
+    range: 140, fireRate: 1.2, damage: 1.6,
+    attackTypes: ['ground', 'air'], splash: 0,
+    promotions: [], // Step 3에서 ['eagle', 'filder'] 추가 예정
+  },
 };
+
+function xpMaxFor(t) {
+  return TOWER.xpThresholds[t.tier] || 0;
+}
+
+function promotionCostFor(t) {
+  return TOWER.promotionCosts[t.tier] || 0;
+}
 
 const PATH_WIDTH = 28;
 const ENEMY_KILL_REWARD = 8;
@@ -302,22 +329,25 @@ function placeTower(x, y) {
 }
 
 function canPromote(t) {
-  return t.tier < TOWER.maxTier;
+  return t.tier < TOWER.maxTier && TOWER_ROLES[t.role].promotions.length > 0;
 }
 
 function isPromotionReady(t) {
-  return canPromote(t) && t.xp >= TOWER.xpMax;
+  return canPromote(t) && t.xp >= xpMaxFor(t);
 }
 
-function canAffordPromotion() {
-  return game.gold >= TOWER.promotionCost;
+function canAffordPromotion(t) {
+  return game.gold >= promotionCostFor(t);
 }
 
 function promoteTower(t, role) {
   if (!isPromotionReady(t)) return false;
-  if (!canAffordPromotion()) return false;
+  if (!canAffordPromotion(t)) return false;
+  if (!TOWER_ROLES[t.role].promotions.includes(role)) return false;
   const cfg = TOWER_ROLES[role];
   if (!cfg) return false;
+
+  game.gold -= promotionCostFor(t);
   t.role = role;
   t.tier += 1;
   t.range = cfg.range;
@@ -325,7 +355,6 @@ function promoteTower(t, role) {
   t.damage = cfg.damage;
   t.cooldown = 0;
   t.xp = 0;
-  game.gold -= TOWER.promotionCost;
   return true;
 }
 
@@ -372,7 +401,8 @@ function updateProjectile(p, dt) {
     const dealt = Math.min(p.damage, p.target.hp);
     p.target.hp -= p.damage;
     if (p.shooter && canPromote(p.shooter)) {
-      p.shooter.xp = Math.min(p.shooter.xp + dealt, TOWER.xpMax);
+      const next = Math.round((p.shooter.xp + dealt) * 10) / 10;
+      p.shooter.xp = Math.min(next, xpMaxFor(p.shooter));
     }
     if (p.target.hp <= 0) {
       p.target.dead = true;
@@ -416,7 +446,8 @@ function drawTower(t) {
   ctx.restore();
 
   if (canPromote(t)) {
-    const ratio = t.xp / TOWER.xpMax;
+    const xpMax = xpMaxFor(t);
+    const ratio = xpMax > 0 ? t.xp / xpMax : 0;
     const bw = 24, bh = 3;
     const bx = t.x - bw / 2;
     const by = t.y + TOWER.radius + 5;
@@ -445,10 +476,10 @@ const infoCloseButton = { x: 308, y: 504, w: 28, h: 28 };
 const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
-const promotionCards = {
-  sniper: { x: 24, y: 432, w: 312, h: 84 },
-  gunner: { x: 24, y: 526, w: 312, h: 84 },
-};
+const promotionCardSlots = [
+  { x: 24, y: 432, w: 312, h: 84 },
+  { x: 24, y: 526, w: 312, h: 84 },
+];
 
 function drawCloseX(btn) {
   ctx.fillStyle = '#c0392b';
@@ -467,8 +498,10 @@ function drawCloseX(btn) {
 
 function drawPromotionButton(t) {
   const ready = isPromotionReady(t);
-  const afford = canAffordPromotion();
+  const afford = canAffordPromotion(t);
   const active = ready && afford;
+  const cost = promotionCostFor(t);
+  const xpMax = xpMaxFor(t);
 
   ctx.globalAlpha = active ? 1 : 0.55;
   if (active) {
@@ -489,9 +522,9 @@ function drawPromotionButton(t) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   let label;
-  if (!ready) label = `전직 (XP ${t.xp} / ${TOWER.xpMax})`;
-  else if (!afford) label = `전직 (${TOWER.promotionCost}G · 골드 부족)`;
-  else label = `전직 (${TOWER.promotionCost}G)`;
+  if (!ready) label = `전직 (XP ${t.xp} / ${xpMax})`;
+  else if (!afford) label = `전직 (${cost}G · 골드 부족)`;
+  else label = `전직 (${cost}G)`;
   ctx.fillText(label, infoPromotionButton.x + infoPromotionButton.w / 2, infoPromotionButton.y + infoPromotionButton.h / 2);
   ctx.textBaseline = 'alphabetic';
 }
@@ -527,20 +560,22 @@ function drawTowerInfoPanel(t) {
   ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)} / 초`, sx, sy + 20);
 
   if (canPromote(t)) {
+    const xpMax = xpMaxFor(t);
     const bx = sx;
     const by = sy + 40;
     const bw = 240;
     const bh = 8;
+    const ratio = xpMax > 0 ? t.xp / xpMax : 0;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = t.xp >= TOWER.xpMax ? '#f1c40f' : '#5dade2';
-    ctx.fillRect(bx, by, bw * (t.xp / TOWER.xpMax), bh);
+    ctx.fillStyle = t.xp >= xpMax ? '#f1c40f' : '#5dade2';
+    ctx.fillRect(bx, by, bw * ratio, bh);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 1;
     ctx.strokeRect(bx, by, bw, bh);
     ctx.fillStyle = '#fff';
     ctx.font = '10px sans-serif';
-    ctx.fillText(`XP ${t.xp} / ${TOWER.xpMax}`, bx + bw + 8, by + bh - 1);
+    ctx.fillText(`XP ${t.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
 
     drawPromotionButton(t);
   }
@@ -548,14 +583,13 @@ function drawTowerInfoPanel(t) {
   drawCloseX(infoCloseButton);
 }
 
-function drawPromotionCard(card, role) {
+function drawPromotionCard(slot, role, cost) {
   const cfg = TOWER_ROLES[role];
-  const cost = TOWER.promotionCost;
   const canAfford = game.gold >= cost;
 
   ctx.globalAlpha = 0.95;
   ctx.fillStyle = canAfford ? '#222d40' : '#1a1f28';
-  roundRect(card.x, card.y, card.w, card.h, 10);
+  roundRect(slot.x, slot.y, slot.w, slot.h, 10);
   ctx.fill();
   ctx.globalAlpha = 1;
   ctx.strokeStyle = canAfford ? cfg.color : '#444';
@@ -564,7 +598,7 @@ function drawPromotionCard(card, role) {
 
   ctx.fillStyle = cfg.color;
   ctx.beginPath();
-  ctx.arc(card.x + 36, card.y + card.h / 2, 18, 0, Math.PI * 2);
+  ctx.arc(slot.x + 36, slot.y + slot.h / 2, 18, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = cfg.color2;
   ctx.lineWidth = 2;
@@ -574,23 +608,20 @@ function drawPromotionCard(card, role) {
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 18px sans-serif';
-  ctx.fillText(cfg.name, card.x + 68, card.y + 32);
+  ctx.fillText(cfg.name, slot.x + 68, slot.y + 32);
 
   ctx.fillStyle = '#bcd';
   ctx.font = '12px sans-serif';
-  ctx.fillText(`사거리 ${cfg.range}  ·  데미지 ${cfg.damage}  ·  속도 ${cfg.fireRate.toFixed(1)}/s`, card.x + 68, card.y + 56);
+  ctx.fillText(`사거리 ${cfg.range}  ·  데미지 ${cfg.damage}  ·  속도 ${cfg.fireRate.toFixed(1)}/s`, slot.x + 68, slot.y + 56);
 
-  let tagline = '';
-  if (role === 'sniper') tagline = '단발 고화력 · 원거리 저격';
-  else if (role === 'gunner') tagline = '연발 사격 · 근거리 제압';
   ctx.fillStyle = '#8aa';
   ctx.font = '11px sans-serif';
-  ctx.fillText(tagline, card.x + 68, card.y + 74);
+  ctx.fillText(cfg.tagline || '', slot.x + 68, slot.y + 74);
 
   ctx.textAlign = 'right';
   ctx.fillStyle = canAfford ? '#f1c40f' : '#666';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText(`${cost}G`, card.x + card.w - 14, card.y + 32);
+  ctx.fillText(`${cost}G`, slot.x + slot.w - 14, slot.y + 32);
 }
 
 function drawPromotionPanel(t) {
@@ -613,8 +644,11 @@ function drawPromotionPanel(t) {
   ctx.font = '12px sans-serif';
   ctx.fillText('역할을 선택하세요', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
 
-  drawPromotionCard(promotionCards.sniper, 'sniper');
-  drawPromotionCard(promotionCards.gunner, 'gunner');
+  const promotions = TOWER_ROLES[t.role].promotions;
+  const cost = promotionCostFor(t);
+  for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
+    drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
+  }
 
   drawCloseX(promotionCloseButton);
 }
@@ -720,17 +754,14 @@ scenes.playing = {
         game.promotionChoiceOpen = false;
         return;
       }
-      if (hitButton(promotionCards.sniper, p)) {
-        if (promoteTower(game.selectedTower, 'sniper')) {
-          game.promotionChoiceOpen = false;
+      const promotions = TOWER_ROLES[game.selectedTower.role].promotions;
+      for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
+        if (hitButton(promotionCardSlots[i], p)) {
+          if (promoteTower(game.selectedTower, promotions[i])) {
+            game.promotionChoiceOpen = false;
+          }
+          return;
         }
-        return;
-      }
-      if (hitButton(promotionCards.gunner, p)) {
-        if (promoteTower(game.selectedTower, 'gunner')) {
-          game.promotionChoiceOpen = false;
-        }
-        return;
       }
       if (hitButton(promotionPanel, p)) {
         return;
@@ -745,7 +776,7 @@ scenes.playing = {
         return;
       }
       if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
-        if (isPromotionReady(game.selectedTower) && canAffordPromotion()) {
+        if (isPromotionReady(game.selectedTower) && canAffordPromotion(game.selectedTower)) {
           game.promotionChoiceOpen = true;
         }
         return;
