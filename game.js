@@ -259,6 +259,7 @@ const game = {
   intermissionTimer: 0,
   selectedTower: null,
   promotionChoiceOpen: false,
+  modal: null,
 };
 
 function resetGame() {
@@ -276,6 +277,7 @@ function resetGame() {
   game.intermissionTimer = 0;
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
+  game.modal = null;
 }
 
 function startNextWave() {
@@ -337,6 +339,7 @@ function loadGame(data) {
   game.intermissionTimer = 0;
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
+  game.modal = null;
   game.towers = (data.towers || [])
     .filter(td => TOWER_ROLES[td.role])
     .map(td => {
@@ -350,17 +353,83 @@ function loadGame(data) {
     });
 }
 
+function getAirChance(wave) {
+  if (wave < 5) return 0;
+  return Math.min(0.5, (wave - 4) * 0.1);
+}
+
+const AIR_INTRO_KEY = 'td_seen_air_intro';
+function hasSeenAirIntro() {
+  try { return localStorage.getItem(AIR_INTRO_KEY) === '1'; } catch (e) { return false; }
+}
+function setAirIntroSeen() {
+  try { localStorage.setItem(AIR_INTRO_KEY, '1'); } catch (e) {}
+}
+
+const airIntroModal = {
+  panel: { x: 20, y: 180, w: 320, h: 280 },
+  confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
+};
+
+function drawAirIntroModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = airIntroModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#a569bd';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  const iconCx = LOGICAL_W / 2;
+  const iconCy = p.y + 50;
+  const r = 14;
+  ctx.fillStyle = '#a569bd';
+  ctx.beginPath();
+  ctx.moveTo(iconCx, iconCy - r);
+  ctx.lineTo(iconCx - r * 0.9, iconCy + r * 0.6);
+  ctx.lineTo(iconCx + r * 0.9, iconCy + r * 0.6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('공중 적 등장!', iconCx, p.y + 102);
+
+  ctx.fillStyle = '#cdd';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('보라색 삼각형은 공중 적입니다.', iconCx, p.y + 142);
+  ctx.fillText('지상 전담 타워는 공격할 수 없으니', iconCx, p.y + 168);
+  ctx.fillText('스카웃을 활용해 대비하세요.', iconCx, p.y + 194);
+
+  drawButton(airIntroModal.confirmBtn, '확인');
+}
+
 function spawnEnemy() {
+  const isAir = Math.random() < getAirChance(game.wave);
   const hp = 3 + Math.floor((game.wave - 1) * 0.5);
+  const speed = 50 + (game.wave - 1) * 4;
   game.enemies.push({
     x: path[0].x,
     y: path[0].y,
-    speed: 50 + (game.wave - 1) * 4,
+    type: isAir ? 'air' : 'ground',
+    speed,
     segment: 0,
     radius: 10,
     hpMax: hp,
     hp: hp,
+    bobPhase: Math.random() * Math.PI * 2,
   });
+  if (isAir && !game.modal && !hasSeenAirIntro()) {
+    game.modal = { type: 'airIntro' };
+  }
 }
 
 function updateEnemy(e, dt) {
@@ -384,22 +453,45 @@ function updateEnemy(e, dt) {
   }
 }
 
-function drawEnemy(e) {
-  ctx.fillStyle = '#c0392b';
-  ctx.beginPath();
-  ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
+function drawEnemyHpBar(e, cy) {
   const barW = 20;
   const barH = 3;
   const ratio = e.hp / e.hpMax;
   ctx.fillStyle = '#000';
-  ctx.fillRect(e.x - barW / 2, e.y - e.radius - 8, barW, barH);
+  ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW, barH);
   ctx.fillStyle = '#2ecc71';
-  ctx.fillRect(e.x - barW / 2, e.y - e.radius - 8, barW * ratio, barH);
+  ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW * ratio, barH);
+}
+
+function drawEnemy(e) {
+  if (e.type === 'air') {
+    const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
+    const cy = e.y + bobY - 3;
+    const r = e.radius;
+
+    ctx.fillStyle = '#a569bd';
+    ctx.beginPath();
+    ctx.moveTo(e.x, cy - r);
+    ctx.lineTo(e.x - r * 0.9, cy + r * 0.6);
+    ctx.lineTo(e.x + r * 0.9, cy + r * 0.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    drawEnemyHpBar(e, cy);
+  } else {
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    drawEnemyHpBar(e, e.y);
+  }
 }
 
 // ============ Tower / Projectile ============
@@ -467,10 +559,14 @@ function promoteTower(t, role) {
 function updateTower(t, dt) {
   t.cooldown = Math.max(0, t.cooldown - dt);
 
+  const cfg = TOWER_ROLES[t.role];
+  const attackTypes = cfg.attackTypes || ['ground'];
+
   let target = null;
   let bestDist = t.range + 1;
   for (const e of game.enemies) {
     if (e.dead) continue;
+    if (!attackTypes.includes(e.type)) continue;
     const d = Math.hypot(e.x - t.x, e.y - t.y);
     if (d < bestDist) {
       bestDist = d;
@@ -786,6 +882,7 @@ scenes.playing = {
     // 호출자(타이틀 시작 / 이어서 하기 / 게임오버 다시 시작)가 resetGame() 또는 loadGame()을 미리 호출
   },
   update(dt) {
+    if (game.modal) return;
     if (game.waveState === 'spawning') {
       game.spawnTimer += dt;
       if (game.spawnTimer >= game.spawnInterval && game.spawnedThisWave < game.enemiesPerWave) {
@@ -862,8 +959,19 @@ scenes.playing = {
       ctx.font = '12px sans-serif';
       ctx.fillText(`빈 곳을 탭하여 타워 배치 (${TOWER.cost}G)`, LOGICAL_W / 2, LOGICAL_H - 12);
     }
+
+    if (game.modal && game.modal.type === 'airIntro') {
+      drawAirIntroModal();
+    }
   },
   pointerDown(p) {
+    if (game.modal) {
+      if (game.modal.type === 'airIntro' && hitButton(airIntroModal.confirmBtn, p)) {
+        setAirIntroSeen();
+        game.modal = null;
+      }
+      return;
+    }
     if (game.selectedTower && game.promotionChoiceOpen) {
       if (hitButton(promotionCloseButton, p)) {
         game.promotionChoiceOpen = false;
