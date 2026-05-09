@@ -160,12 +160,38 @@ function changeScene(name) {
 }
 
 // ============ Title scene ============
-const titleButton = { x: 80, y: 400, w: 200, h: 64 };
+const titleButtonsWithSave = {
+  continueBtn: { x: 80, y: 372, w: 200, h: 64 },
+  start:       { x: 80, y: 460, w: 200, h: 64 },
+};
+const titleButtonsNoSave = {
+  start: { x: 80, y: 400, w: 200, h: 64 },
+};
 let titleAnim = 0;
+let titleSave = null;
+
+function drawContinueButton(btn, wave) {
+  ctx.fillStyle = '#c0392b';
+  roundRect(btn.x, btn.y, btn.w, btn.h, 14);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('이어서 하기', btn.x + btn.w / 2, btn.y + btn.h / 2 - 13);
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText(`Wave ${wave}`, btn.x + btn.w / 2, btn.y + btn.h / 2 + 11);
+  ctx.textBaseline = 'alphabetic';
+}
 
 scenes.title = {
   enter() {
     titleAnim = 0;
+    titleSave = loadSaveData();
   },
   update(dt) {
     titleAnim += dt;
@@ -186,17 +212,33 @@ scenes.title = {
     ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 286);
 
     const pulse = 0.5 + 0.5 * Math.sin(titleAnim * 3);
-    ctx.globalAlpha = 0.6 + 0.4 * pulse;
-    drawButton(titleButton, '게임 시작');
-    ctx.globalAlpha = 1;
+
+    if (titleSave) {
+      ctx.globalAlpha = 0.6 + 0.4 * pulse;
+      drawContinueButton(titleButtonsWithSave.continueBtn, titleSave.wave);
+      ctx.globalAlpha = 1;
+      drawButton(titleButtonsWithSave.start, '게임 시작');
+    } else {
+      ctx.globalAlpha = 0.6 + 0.4 * pulse;
+      drawButton(titleButtonsNoSave.start, '게임 시작');
+      ctx.globalAlpha = 1;
+    }
 
     ctx.fillStyle = '#666';
     ctx.font = '11px sans-serif';
     ctx.fillText('v0.1', LOGICAL_W / 2, 620);
   },
   pointerDown(p) {
-    if (hitButton(titleButton, p)) {
+    if (titleSave && hitButton(titleButtonsWithSave.continueBtn, p)) {
+      loadGame(titleSave);
       changeScene('playing');
+      return;
+    }
+    const startBtn = titleSave ? titleButtonsWithSave.start : titleButtonsNoSave.start;
+    if (hitButton(startBtn, p)) {
+      resetGame();
+      changeScene('playing');
+      return;
     }
   },
 };
@@ -243,6 +285,67 @@ function startNextWave() {
   game.spawnedThisWave = 0;
   game.spawnTimer = 0;
   game.waveState = 'spawning';
+  saveGame();
+}
+
+// ============ Save / Load ============
+const SAVE_KEY = 'td_save_v1';
+
+function saveGame() {
+  const data = {
+    version: 1,
+    wave: game.wave,
+    hp: game.hp,
+    gold: game.gold,
+    spawnInterval: game.spawnInterval,
+    enemiesPerWave: game.enemiesPerWave,
+    towers: game.towers.map(t => ({
+      x: t.x, y: t.y, role: t.role, tier: t.tier, xp: t.xp,
+    })),
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn('save failed', e);
+  }
+}
+
+function loadSaveData() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data.version !== 1) return null;
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+function loadGame(data) {
+  game.wave = data.wave;
+  game.hp = data.hp;
+  game.gold = data.gold;
+  game.spawnInterval = data.spawnInterval;
+  game.enemiesPerWave = data.enemiesPerWave;
+  game.enemies = [];
+  game.projectiles = [];
+  game.spawnTimer = 0;
+  game.spawnedThisWave = 0;
+  game.waveState = 'spawning';
+  game.intermissionTimer = 0;
+  game.selectedTower = null;
+  game.promotionChoiceOpen = false;
+  game.towers = (data.towers || [])
+    .filter(td => TOWER_ROLES[td.role])
+    .map(td => {
+      const cfg = TOWER_ROLES[td.role];
+      return {
+        x: td.x, y: td.y, role: td.role, tier: td.tier,
+        range: cfg.range, fireRate: cfg.fireRate, damage: cfg.damage,
+        cooldown: 0, angle: 0, xp: td.xp || 0,
+      };
+    });
 }
 
 function spawnEnemy() {
@@ -668,7 +771,7 @@ function updateHUD() {
 
 scenes.playing = {
   enter() {
-    resetGame();
+    // 호출자(타이틀 시작 / 이어서 하기 / 게임오버 다시 시작)가 resetGame() 또는 loadGame()을 미리 호출
   },
   update(dt) {
     if (game.waveState === 'spawning') {
@@ -831,6 +934,7 @@ scenes.gameOver = {
   },
   pointerDown(p) {
     if (hitButton(gameOverButtons.restart, p)) {
+      resetGame();
       changeScene('playing');
     } else if (hitButton(gameOverButtons.toTitle, p)) {
       changeScene('title');
