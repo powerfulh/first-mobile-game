@@ -1,0 +1,45 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node.js (for future Capacitor setup)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# Capacitor / build outputs
+dist/
+www/
+.capacitor/
+
+# Android (native project added later by Capacitor)
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/release/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# iOS (in case we add it later)
+ios/App/build/
+ios/App/Pods/
+
+# Local env / secrets
+.env
+.env.local
+*.local
+
+# Logs
+*.log

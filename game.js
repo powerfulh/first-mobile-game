@@ -39,6 +39,25 @@ const path = [
   { x: 300, y: 640 },
 ];
 
+const TOWER = {
+  cost: 50,
+  radius: 14,
+  projectileSpeed: 280,
+  promotionCost: 80,
+  xpMax: 10,
+  maxTier: 1, // Tier 0 → 1만 구현됨. 추후 명세 받으면 3까지 확장 예정
+};
+
+const TOWER_ROLES = {
+  base:   { name: '타워',   color: '#3498db', color2: '#1a5680', range: 90,  fireRate: 1.2, damage: 1 },
+  sniper: { name: '저격수', color: '#9b59b6', color2: '#5b3470', range: 150, fireRate: 0.8, damage: 4 },
+  gunner: { name: '기관총', color: '#e67e22', color2: '#7e3a06', range: 70,  fireRate: 3.0, damage: 1 },
+};
+
+const PATH_WIDTH = 28;
+const ENEMY_KILL_REWARD = 8;
+const HUD_RESERVED_TOP = 36;
+
 // ============ Drawing helpers ============
 function roundRect(x, y, w, h, r) {
   ctx.beginPath();
@@ -72,7 +91,7 @@ function hitButton(btn, p) {
 function drawPath(alpha = 1) {
   ctx.globalAlpha = alpha;
   ctx.strokeStyle = '#8a7a5a';
-  ctx.lineWidth = 28;
+  ctx.lineWidth = PATH_WIDTH;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
@@ -80,6 +99,27 @@ function drawPath(alpha = 1) {
   for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
   ctx.stroke();
   ctx.globalAlpha = 1;
+}
+
+// ============ Geometry helpers ============
+function pointToSegmentDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  const cx = ax + t * dx;
+  const cy = ay + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+function distanceToPath(x, y) {
+  let min = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const d = pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
+    if (d < min) min = d;
+  }
+  return min;
 }
 
 // ============ Scene manager ============
@@ -140,10 +180,16 @@ const game = {
   gold: 100,
   wave: 1,
   enemies: [],
+  towers: [],
+  projectiles: [],
   spawnTimer: 0,
   spawnInterval: 1.2,
   spawnedThisWave: 0,
   enemiesPerWave: 8,
+  waveState: 'spawning',
+  intermissionTimer: 0,
+  selectedTower: null,
+  promotionChoiceOpen: false,
 };
 
 function resetGame() {
@@ -151,20 +197,37 @@ function resetGame() {
   game.gold = 100;
   game.wave = 1;
   game.enemies = [];
+  game.towers = [];
+  game.projectiles = [];
   game.spawnTimer = 0;
+  game.spawnInterval = 1.2;
   game.spawnedThisWave = 0;
   game.enemiesPerWave = 8;
+  game.waveState = 'spawning';
+  game.intermissionTimer = 0;
+  game.selectedTower = null;
+  game.promotionChoiceOpen = false;
+}
+
+function startNextWave() {
+  game.wave++;
+  game.enemiesPerWave += 4;
+  game.spawnInterval = Math.max(0.5, game.spawnInterval - 0.08);
+  game.spawnedThisWave = 0;
+  game.spawnTimer = 0;
+  game.waveState = 'spawning';
 }
 
 function spawnEnemy() {
+  const hp = 3 + Math.floor((game.wave - 1) * 0.5);
   game.enemies.push({
     x: path[0].x,
     y: path[0].y,
-    speed: 50,
+    speed: 50 + (game.wave - 1) * 4,
     segment: 0,
     radius: 10,
-    hpMax: 3,
-    hp: 3,
+    hpMax: hp,
+    hp: hp,
   });
 }
 
@@ -207,6 +270,362 @@ function drawEnemy(e) {
   ctx.fillRect(e.x - barW / 2, e.y - e.radius - 8, barW * ratio, barH);
 }
 
+// ============ Tower / Projectile ============
+function canPlaceTower(x, y) {
+  if (game.gold < TOWER.cost) return false;
+  if (y < HUD_RESERVED_TOP + TOWER.radius) return false;
+  if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
+  if (y > LOGICAL_H - TOWER.radius) return false;
+  if (distanceToPath(x, y) < PATH_WIDTH / 2 + TOWER.radius + 2) return false;
+  for (const t of game.towers) {
+    if (Math.hypot(x - t.x, y - t.y) < TOWER.radius * 2 + 4) return false;
+  }
+  return true;
+}
+
+function placeTower(x, y) {
+  if (!canPlaceTower(x, y)) return false;
+  const cfg = TOWER_ROLES.base;
+  game.towers.push({
+    x, y,
+    role: 'base',
+    tier: 0,
+    range: cfg.range,
+    fireRate: cfg.fireRate,
+    damage: cfg.damage,
+    cooldown: 0,
+    angle: 0,
+    xp: 0,
+  });
+  game.gold -= TOWER.cost;
+  return true;
+}
+
+function canPromote(t) {
+  return t.tier < TOWER.maxTier;
+}
+
+function isPromotionReady(t) {
+  return canPromote(t) && t.xp >= TOWER.xpMax;
+}
+
+function canAffordPromotion() {
+  return game.gold >= TOWER.promotionCost;
+}
+
+function promoteTower(t, role) {
+  if (!isPromotionReady(t)) return false;
+  if (!canAffordPromotion()) return false;
+  const cfg = TOWER_ROLES[role];
+  if (!cfg) return false;
+  t.role = role;
+  t.tier += 1;
+  t.range = cfg.range;
+  t.fireRate = cfg.fireRate;
+  t.damage = cfg.damage;
+  t.cooldown = 0;
+  t.xp = 0;
+  game.gold -= TOWER.promotionCost;
+  return true;
+}
+
+function updateTower(t, dt) {
+  t.cooldown = Math.max(0, t.cooldown - dt);
+
+  let target = null;
+  let bestDist = t.range + 1;
+  for (const e of game.enemies) {
+    if (e.dead) continue;
+    const d = Math.hypot(e.x - t.x, e.y - t.y);
+    if (d < bestDist) {
+      bestDist = d;
+      target = e;
+    }
+  }
+
+  if (target) {
+    t.angle = Math.atan2(target.y - t.y, target.x - t.x);
+    if (t.cooldown <= 0) {
+      game.projectiles.push({
+        x: t.x,
+        y: t.y,
+        target: target,
+        damage: t.damage,
+        speed: TOWER.projectileSpeed,
+        shooter: t,
+      });
+      t.cooldown = 1 / t.fireRate;
+    }
+  }
+}
+
+function updateProjectile(p, dt) {
+  if (!p.target || p.target.dead) {
+    p.dead = true;
+    return;
+  }
+  const dx = p.target.x - p.x;
+  const dy = p.target.y - p.y;
+  const dist = Math.hypot(dx, dy);
+  const move = p.speed * dt;
+  if (move >= dist) {
+    const dealt = Math.min(p.damage, p.target.hp);
+    p.target.hp -= p.damage;
+    if (p.shooter && canPromote(p.shooter)) {
+      p.shooter.xp = Math.min(p.shooter.xp + dealt, TOWER.xpMax);
+    }
+    if (p.target.hp <= 0) {
+      p.target.dead = true;
+      game.gold += ENEMY_KILL_REWARD;
+    }
+    p.dead = true;
+  } else {
+    p.x += (dx / dist) * move;
+    p.y += (dy / dist) * move;
+  }
+}
+
+function drawTower(t) {
+  const cfg = TOWER_ROLES[t.role];
+  const selected = (t === game.selectedTower);
+
+  if (isPromotionReady(t)) {
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
+    ctx.globalAlpha = 0.35 + 0.45 * pulse;
+    ctx.strokeStyle = '#f1c40f';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, TOWER.radius + 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, TOWER.radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.rotate(t.angle);
+  ctx.fillStyle = cfg.color2;
+  ctx.fillRect(0, -3, TOWER.radius + 4, 6);
+  ctx.restore();
+
+  if (canPromote(t)) {
+    const ratio = t.xp / TOWER.xpMax;
+    const bw = 24, bh = 3;
+    const bx = t.x - bw / 2;
+    const by = t.y + TOWER.radius + 5;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = ratio >= 1 ? '#f1c40f' : '#5dade2';
+    ctx.fillRect(bx, by, bw * ratio, bh);
+  }
+}
+
+function drawTowerRange(t, fillAlpha, strokeAlpha) {
+  ctx.globalAlpha = fillAlpha;
+  ctx.fillStyle = '#3498db';
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = strokeAlpha;
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+const towerInfoPanel = { x: 16, y: 496, w: 328, h: 144 };
+const infoCloseButton = { x: 308, y: 504, w: 28, h: 28 };
+const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
+const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
+const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
+const promotionCards = {
+  sniper: { x: 24, y: 432, w: 312, h: 84 },
+  gunner: { x: 24, y: 526, w: 312, h: 84 },
+};
+
+function drawCloseX(btn) {
+  ctx.fillStyle = '#c0392b';
+  roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('×', btn.x + btn.w / 2, btn.y + btn.h / 2);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawPromotionButton(t) {
+  const ready = isPromotionReady(t);
+  const afford = canAffordPromotion();
+  const active = ready && afford;
+
+  ctx.globalAlpha = active ? 1 : 0.55;
+  if (active) {
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
+    ctx.fillStyle = `rgba(241, 196, 15, ${0.85 + 0.15 * pulse})`;
+  } else {
+    ctx.fillStyle = '#3a3f48';
+  }
+  roundRect(infoPromotionButton.x, infoPromotionButton.y, infoPromotionButton.w, infoPromotionButton.h, 8);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = active ? '#fff' : '#555';
+  ctx.lineWidth = active ? 2 : 1;
+  ctx.stroke();
+
+  ctx.fillStyle = active ? '#1a1300' : '#888';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  let label;
+  if (!ready) label = `전직 (XP ${t.xp} / ${TOWER.xpMax})`;
+  else if (!afford) label = `전직 (${TOWER.promotionCost}G · 골드 부족)`;
+  else label = `전직 (${TOWER.promotionCost}G)`;
+  ctx.fillText(label, infoPromotionButton.x + infoPromotionButton.w / 2, infoPromotionButton.y + infoPromotionButton.h / 2);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawTowerInfoPanel(t) {
+  const cfg = TOWER_ROLES[t.role];
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = '#1a2535';
+  roundRect(towerInfoPanel.x, towerInfoPanel.y, towerInfoPanel.w, towerInfoPanel.h, 10);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = cfg.color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px sans-serif';
+  const nameWidth = ctx.measureText(cfg.name).width;
+  ctx.fillText(cfg.name, towerInfoPanel.x + 14, towerInfoPanel.y + 22);
+
+  ctx.fillStyle = cfg.color;
+  ctx.font = '11px sans-serif';
+  ctx.fillText(`Tier ${t.tier}`, towerInfoPanel.x + 14 + nameWidth + 8, towerInfoPanel.y + 22);
+
+  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#cdd';
+  const sx = towerInfoPanel.x + 14;
+  const sy = towerInfoPanel.y + 50;
+  ctx.fillText(`데미지: ${t.damage}`, sx, sy);
+  ctx.fillText(`사거리: ${t.range}`, sx + 110, sy);
+  ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)} / 초`, sx, sy + 20);
+
+  if (canPromote(t)) {
+    const bx = sx;
+    const by = sy + 40;
+    const bw = 240;
+    const bh = 8;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = t.xp >= TOWER.xpMax ? '#f1c40f' : '#5dade2';
+    ctx.fillRect(bx, by, bw * (t.xp / TOWER.xpMax), bh);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, bw, bh);
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(`XP ${t.xp} / ${TOWER.xpMax}`, bx + bw + 8, by + bh - 1);
+
+    drawPromotionButton(t);
+  }
+
+  drawCloseX(infoCloseButton);
+}
+
+function drawPromotionCard(card, role) {
+  const cfg = TOWER_ROLES[role];
+  const cost = TOWER.promotionCost;
+  const canAfford = game.gold >= cost;
+
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = canAfford ? '#222d40' : '#1a1f28';
+  roundRect(card.x, card.y, card.w, card.h, 10);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = canAfford ? cfg.color : '#444';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.arc(card.x + 36, card.y + card.h / 2, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = cfg.color2;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText(cfg.name, card.x + 68, card.y + 32);
+
+  ctx.fillStyle = '#bcd';
+  ctx.font = '12px sans-serif';
+  ctx.fillText(`사거리 ${cfg.range}  ·  데미지 ${cfg.damage}  ·  속도 ${cfg.fireRate.toFixed(1)}/s`, card.x + 68, card.y + 56);
+
+  let tagline = '';
+  if (role === 'sniper') tagline = '단발 고화력 · 원거리 저격';
+  else if (role === 'gunner') tagline = '연발 사격 · 근거리 제압';
+  ctx.fillStyle = '#8aa';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(tagline, card.x + 68, card.y + 74);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = canAfford ? '#f1c40f' : '#666';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText(`${cost}G`, card.x + card.w - 14, card.y + 32);
+}
+
+function drawPromotionPanel(t) {
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = '#0f1620';
+  roundRect(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, 12);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#f1c40f';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('전직 가능!', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
+
+  ctx.fillStyle = '#bcd';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('역할을 선택하세요', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+
+  drawPromotionCard(promotionCards.sniper, 'sniper');
+  drawPromotionCard(promotionCards.gunner, 'gunner');
+
+  drawCloseX(promotionCloseButton);
+}
+
+function drawProjectile(p) {
+  ctx.fillStyle = '#f1c40f';
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function updateHUD() {
   hpEl.textContent = `HP: ${game.hp}`;
   goldEl.textContent = `Gold: ${game.gold}`;
@@ -218,24 +637,173 @@ scenes.playing = {
     resetGame();
   },
   update(dt) {
-    game.spawnTimer += dt;
-    if (game.spawnTimer >= game.spawnInterval && game.spawnedThisWave < game.enemiesPerWave) {
-      game.spawnTimer = 0;
-      game.spawnedThisWave++;
-      spawnEnemy();
+    if (game.waveState === 'spawning') {
+      game.spawnTimer += dt;
+      if (game.spawnTimer >= game.spawnInterval && game.spawnedThisWave < game.enemiesPerWave) {
+        game.spawnTimer = 0;
+        game.spawnedThisWave++;
+        spawnEnemy();
+      }
+    } else if (game.waveState === 'intermission') {
+      game.intermissionTimer -= dt;
+      if (game.intermissionTimer <= 0) {
+        startNextWave();
+      }
     }
+
     for (const e of game.enemies) updateEnemy(e, dt);
+    for (const t of game.towers) updateTower(t, dt);
+    for (const p of game.projectiles) updateProjectile(p, dt);
+
     game.enemies = game.enemies.filter(e => !e.dead);
+    game.projectiles = game.projectiles.filter(p => !p.dead);
+
+    if (game.waveState === 'spawning' &&
+        game.spawnedThisWave >= game.enemiesPerWave &&
+        game.enemies.length === 0) {
+      game.waveState = 'intermission';
+      game.intermissionTimer = 3;
+    }
+
     updateHUD();
+
+    if (game.hp <= 0) {
+      game.hp = 0;
+      game.selectedTower = null;
+      game.promotionChoiceOpen = false;
+      updateHUD();
+      changeScene('gameOver');
+    }
   },
   draw() {
     ctx.fillStyle = '#2d4a2b';
     ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
     drawPath();
+
+    for (const t of game.towers) {
+      if (t === game.selectedTower) continue;
+      drawTowerRange(t, 0.05, 0.12);
+    }
+    if (game.selectedTower) {
+      drawTowerRange(game.selectedTower, 0.18, 0.5);
+    }
+
+    for (const t of game.towers) drawTower(t);
     for (const e of game.enemies) drawEnemy(e);
+    for (const pr of game.projectiles) drawProjectile(pr);
+
+    if (game.waveState === 'intermission') {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(0, LOGICAL_H / 2 - 28, LOGICAL_W, 56);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText(`다음 웨이브까지 ${Math.ceil(game.intermissionTimer)}초`, LOGICAL_W / 2, LOGICAL_H / 2 + 6);
+    }
+
+    if (game.selectedTower) {
+      if (game.promotionChoiceOpen) {
+        drawPromotionPanel(game.selectedTower);
+      } else {
+        drawTowerInfoPanel(game.selectedTower);
+      }
+    } else {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = game.gold >= TOWER.cost ? 'rgba(255,255,255,0.7)' : 'rgba(255,150,150,0.7)';
+      ctx.font = '12px sans-serif';
+      ctx.fillText(`빈 곳을 탭하여 타워 배치 (${TOWER.cost}G)`, LOGICAL_W / 2, LOGICAL_H - 12);
+    }
   },
   pointerDown(p) {
-    // 타워 배치는 다음 단계에서
+    if (game.selectedTower && game.promotionChoiceOpen) {
+      if (hitButton(promotionCloseButton, p)) {
+        game.promotionChoiceOpen = false;
+        return;
+      }
+      if (hitButton(promotionCards.sniper, p)) {
+        if (promoteTower(game.selectedTower, 'sniper')) {
+          game.promotionChoiceOpen = false;
+        }
+        return;
+      }
+      if (hitButton(promotionCards.gunner, p)) {
+        if (promoteTower(game.selectedTower, 'gunner')) {
+          game.promotionChoiceOpen = false;
+        }
+        return;
+      }
+      if (hitButton(promotionPanel, p)) {
+        return;
+      }
+      game.promotionChoiceOpen = false;
+      return;
+    }
+
+    if (game.selectedTower) {
+      if (hitButton(infoCloseButton, p)) {
+        game.selectedTower = null;
+        return;
+      }
+      if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
+        if (isPromotionReady(game.selectedTower) && canAffordPromotion()) {
+          game.promotionChoiceOpen = true;
+        }
+        return;
+      }
+      if (hitButton(towerInfoPanel, p)) {
+        return;
+      }
+    }
+
+    for (const t of game.towers) {
+      if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
+        game.selectedTower = t;
+        game.promotionChoiceOpen = false;
+        return;
+      }
+    }
+    if (game.selectedTower) {
+      game.selectedTower = null;
+      game.promotionChoiceOpen = false;
+      return;
+    }
+    placeTower(p.x, p.y);
+  },
+};
+
+// ============ Game Over scene ============
+const gameOverButtons = {
+  restart: { x: 80, y: 360, w: 200, h: 56 },
+  toTitle: { x: 80, y: 432, w: 200, h: 56 },
+};
+
+scenes.gameOver = {
+  enter() {},
+  update() {},
+  draw() {
+    scenes.playing.draw();
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e74c3c';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.fillText('GAME OVER', LOGICAL_W / 2, 200);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px sans-serif';
+    ctx.fillText(`Wave ${game.wave}에서 패배`, LOGICAL_W / 2, 252);
+
+    drawButton(gameOverButtons.restart, '다시 시작');
+    drawButton(gameOverButtons.toTitle, '타이틀로');
+  },
+  pointerDown(p) {
+    if (hitButton(gameOverButtons.restart, p)) {
+      changeScene('playing');
+    } else if (hitButton(gameOverButtons.toTitle, p)) {
+      changeScene('title');
+    }
   },
 };
 
