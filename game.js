@@ -1082,15 +1082,17 @@ function drawSupportBody(t, cfg, selected) {
   ctx.lineWidth = selected ? 3 : 2;
   ctx.stroke();
 
-  // 회전 배럴 (실제 공격용)
-  ctx.save();
-  ctx.translate(t.x, t.y);
-  ctx.rotate(t.angle);
-  ctx.fillStyle = cfg.color2;
-  ctx.fillRect(0, -3, r + 4, 6);
-  ctx.restore();
+  // 회전 배럴 — 공격 가능한 경우에만
+  if ((cfg.attackTypes || []).length > 0) {
+    ctx.save();
+    ctx.translate(t.x, t.y);
+    ctx.rotate(t.angle);
+    ctx.fillStyle = cfg.color2;
+    ctx.fillRect(0, -3, r + 4, 6);
+    ctx.restore();
+  }
 
-  // 외곽 점선 펄스링 — 버프 오라
+  // 외곽 점선 펄스링 — 사거리 버프 오라
   const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 700);
   ctx.globalAlpha = 0.35 + 0.3 * pulse;
   ctx.strokeStyle = cfg.color;
@@ -1099,6 +1101,16 @@ function drawSupportBody(t, cfg, selected) {
   ctx.beginPath();
   ctx.arc(t.x, t.y, r + 7, 0, Math.PI * 2);
   ctx.stroke();
+
+  // 두 번째 링 — 공격력 버프 오라 (비콘 전용, 반대 위상)
+  if (cfg.buffsDamage) {
+    const pulse2 = 0.5 + 0.5 * Math.sin(performance.now() / 700 + Math.PI);
+    ctx.globalAlpha = 0.35 + 0.3 * pulse2;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, r + 12, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
   ctx.setLineDash([]);
   ctx.globalAlpha = 1;
 }
