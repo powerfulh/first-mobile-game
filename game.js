@@ -128,7 +128,24 @@ const TOWER_ROLES = {
     color: '#2874a6', color2: '#1f618d',
     range: 140, fireRate: 2.4, damage: 2.4,
     attackTypes: ['air'], splash: 0,
+    promotions: ['skydoom', 'interceptor'],
+  },
+  skydoom: {
+    name: '스카이둠', tagline: '광역 공중 폭격 · 반경 40',
+    color: '#1f3a5f', color2: '#0c1c30',
+    range: 140, fireRate: 2.4, damage: 4,
+    attackTypes: ['air'], splash: 40,
     promotions: [],
+  },
+  interceptor: {
+    name: '인터셉터', tagline: '5발 부채꼴 · 공중 (직선 비유도)',
+    color: '#85c1e9', color2: '#5499c7',
+    range: 160, fireRate: 5, damage: 2.4,
+    attackTypes: ['air'], splash: 0,
+    promotions: [],
+    fanShot: true,
+    projectileCount: 5,
+    spreadDeg: 32,
   },
   filder: {
     name: '필더', tagline: '즉발 빔 · 지상 / 공중',
@@ -874,6 +891,27 @@ function updateTower(t, dt) {
         });
       } else if (cfg.instantHit) {
         fireInstantBeam(t, target, damage);
+      } else if (cfg.fanShot) {
+        // 인터셉터: 부채꼴 5발 직선 비유도
+        const count = cfg.projectileCount || 5;
+        const spreadRad = (cfg.spreadDeg || 32) * Math.PI / 180;
+        const half = spreadRad / 2;
+        const step = count > 1 ? spreadRad / (count - 1) : 0;
+        for (let i = 0; i < count; i++) {
+          const angle = t.angle - half + step * i;
+          game.projectiles.push({
+            x: t.x,
+            y: t.y,
+            vx: Math.cos(angle) * TOWER.projectileSpeed,
+            vy: Math.sin(angle) * TOWER.projectileSpeed,
+            damage,
+            shooter: t,
+            splash: cfg.splash || 0,
+            splashColor: cfg.color,
+            attackTypes: cfg.attackTypes || ['ground'],
+            straightMode: true,
+          });
+        }
       } else {
         game.projectiles.push({
           x: t.x,
@@ -960,6 +998,36 @@ function applySplashHit(shooter, impactX, impactY, damage, radius, attackTypes) 
 }
 
 function updateProjectile(p, dt) {
+  if (p.straightMode) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.x < -20 || p.x > LOGICAL_W + 20 || p.y < -20 || p.y > LOGICAL_H + 20) {
+      p.dead = true;
+      return;
+    }
+    for (const e of game.enemies) {
+      if (e.dead) continue;
+      if (p.attackTypes && !p.attackTypes.includes(e.type)) continue;
+      const d = Math.hypot(e.x - p.x, e.y - p.y);
+      if (d <= e.radius) {
+        if (p.splash > 0) {
+          applySplashHit(p.shooter, p.x, p.y, p.damage, p.splash, p.attackTypes);
+          game.splashes.push({
+            x: p.x, y: p.y,
+            radius: p.splash,
+            life: 0.3, maxLife: 0.3,
+            color: p.splashColor || '#fff',
+          });
+        } else {
+          applyTowerHit(p.shooter, e, p.damage);
+        }
+        p.dead = true;
+        return;
+      }
+    }
+    return;
+  }
+
   if (!p.target || p.target.dead) {
     p.dead = true;
     return;
