@@ -46,7 +46,7 @@ const TOWER = {
   promotionCosts: [100, 250, 1000], // [t0→t1, t1→t2, t2→t3]
   xpThresholds:   [20,  40,  200],  // 같은 인덱스
   buffRates:      [0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t1, t2, t3)에 적용 (Step 5 예정)
-  maxTier: 1, // Step 1에서는 t0→t1까지만 구현
+  maxTier: 2, // Step 3까지 t0→t1→t2 구현, t3은 추후 명세
 };
 
 const TOWER_ROLES = {
@@ -62,14 +62,44 @@ const TOWER_ROLES = {
     color: '#5d6d7e', color2: '#212f3d',
     range: 100, fireRate: 1, damage: 3,
     attackTypes: ['ground'], splash: 0,
-    promotions: [], // Step 3에서 ['tank', 'base_buff'] 추가 예정
+    promotions: ['tank', 'buff'],
   },
   scout: {
     name: '스카웃', tagline: '원거리 다목적 · 지상/공중',
     color: '#16a085', color2: '#0e6655',
     range: 140, fireRate: 1.2, damage: 1.6,
     attackTypes: ['ground', 'air'], splash: 0,
-    promotions: [], // Step 3에서 ['eagle', 'filder'] 추가 예정
+    promotions: ['eagle', 'filder'],
+  },
+  tank: {
+    name: '탱크', tagline: '중장갑 지상 화력',
+    color: '#7e5109', color2: '#4a2810',
+    range: 90, fireRate: 0.8, damage: 5,
+    attackTypes: ['ground'], splash: 30, // splash 동작은 Step 4 예정
+    promotions: [],
+  },
+  buff: {
+    name: '배이스', tagline: '주변 아군 강화',
+    color: '#d4ac0d', color2: '#9a7d0a',
+    range: 90, fireRate: 1, damage: 2,
+    attackTypes: ['ground'], splash: 0,
+    promotions: [],
+    buffsRange: true, // 사거리 버프 마커 — Step 5 예정
+  },
+  eagle: {
+    name: '이글', tagline: '공중 전담 · 빠른 사격',
+    color: '#2874a6', color2: '#1f618d',
+    range: 140, fireRate: 2.4, damage: 2,
+    attackTypes: ['air'], splash: 0,
+    promotions: [],
+  },
+  filder: {
+    name: '필더', tagline: '즉발 빔 · 지상 / 공중',
+    color: '#52be80', color2: '#239b56',
+    range: 120, fireRate: 1.6, damage: 2,
+    attackTypes: ['ground', 'air'], splash: 0,
+    promotions: [],
+    instantHit: true,
   },
 };
 
@@ -251,6 +281,7 @@ const game = {
   enemies: [],
   towers: [],
   projectiles: [],
+  beams: [],
   spawnTimer: 0,
   spawnInterval: 1.2,
   spawnedThisWave: 0,
@@ -269,6 +300,7 @@ function resetGame() {
   game.enemies = [];
   game.towers = [];
   game.projectiles = [];
+  game.beams = [];
   game.spawnTimer = 0;
   game.spawnInterval = 1.2;
   game.spawnedThisWave = 0;
@@ -333,6 +365,7 @@ function loadGame(data) {
   game.enemiesPerWave = data.enemiesPerWave;
   game.enemies = [];
   game.projectiles = [];
+  game.beams = [];
   game.spawnTimer = 0;
   game.spawnedThisWave = 0;
   game.waveState = 'spawning';
@@ -588,16 +621,76 @@ function updateTower(t, dt) {
   if (target) {
     t.angle = Math.atan2(target.y - t.y, target.x - t.x);
     if (t.cooldown <= 0) {
-      game.projectiles.push({
-        x: t.x,
-        y: t.y,
-        target: target,
-        damage: t.damage,
-        speed: TOWER.projectileSpeed,
-        shooter: t,
-      });
+      if (cfg.instantHit) {
+        fireInstantBeam(t, target);
+      } else {
+        game.projectiles.push({
+          x: t.x,
+          y: t.y,
+          target: target,
+          damage: t.damage,
+          speed: TOWER.projectileSpeed,
+          shooter: t,
+        });
+      }
       t.cooldown = 1 / t.fireRate;
     }
+  }
+}
+
+function fireInstantBeam(t, target) {
+  const cfg = TOWER_ROLES[t.role];
+  game.beams.push({
+    x1: t.x, y1: t.y,
+    x2: target.x, y2: target.y,
+    life: 0.15,
+    maxLife: 0.15,
+    color: cfg.color,
+  });
+  applyTowerHit(t, target, t.damage);
+}
+
+function updateBeam(b, dt) {
+  b.life -= dt;
+  if (b.life <= 0) b.dead = true;
+}
+
+function drawBeam(b) {
+  const alpha = Math.max(0, b.life / b.maxLife);
+  // 외곽 광채
+  ctx.globalAlpha = alpha * 0.5;
+  ctx.strokeStyle = b.color;
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(b.x1, b.y1);
+  ctx.lineTo(b.x2, b.y2);
+  ctx.stroke();
+  // 내부 코어 (흰색)
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(b.x1, b.y1);
+  ctx.lineTo(b.x2, b.y2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function applyTowerHit(shooter, target, damage) {
+  if (!target || target.dead) return;
+  const dealt = Math.min(damage, target.hp);
+  target.hp -= damage;
+  if (shooter) {
+    shooter.totalDamage = Math.round(((shooter.totalDamage || 0) + dealt) * 10) / 10;
+    if (canPromote(shooter)) {
+      const next = Math.round((shooter.xp + dealt) * 10) / 10;
+      shooter.xp = Math.min(next, xpMaxFor(shooter));
+    }
+  }
+  if (target.hp <= 0) {
+    target.dead = true;
+    game.gold += ENEMY_KILL_REWARD;
   }
 }
 
@@ -611,19 +704,7 @@ function updateProjectile(p, dt) {
   const dist = Math.hypot(dx, dy);
   const move = p.speed * dt;
   if (move >= dist) {
-    const dealt = Math.min(p.damage, p.target.hp);
-    p.target.hp -= p.damage;
-    if (p.shooter) {
-      p.shooter.totalDamage = Math.round(((p.shooter.totalDamage || 0) + dealt) * 10) / 10;
-      if (canPromote(p.shooter)) {
-        const next = Math.round((p.shooter.xp + dealt) * 10) / 10;
-        p.shooter.xp = Math.min(next, xpMaxFor(p.shooter));
-      }
-    }
-    if (p.target.hp <= 0) {
-      p.target.dead = true;
-      game.gold += ENEMY_KILL_REWARD;
-    }
+    applyTowerHit(p.shooter, p.target, p.damage);
     p.dead = true;
   } else {
     p.x += (dx / dist) * move;
@@ -911,9 +992,11 @@ scenes.playing = {
     for (const e of game.enemies) updateEnemy(e, dt);
     for (const t of game.towers) updateTower(t, dt);
     for (const p of game.projectiles) updateProjectile(p, dt);
+    for (const b of game.beams) updateBeam(b, dt);
 
     game.enemies = game.enemies.filter(e => !e.dead);
     game.projectiles = game.projectiles.filter(p => !p.dead);
+    game.beams = game.beams.filter(b => !b.dead);
 
     if (game.waveState === 'spawning' &&
         game.spawnedThisWave >= game.enemiesPerWave &&
@@ -953,6 +1036,7 @@ scenes.playing = {
     for (const t of game.towers) drawTower(t);
     for (const e of game.enemies) drawEnemy(e);
     for (const pr of game.projectiles) drawProjectile(pr);
+    for (const b of game.beams) drawBeam(b);
 
     if (game.waveState === 'intermission') {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
