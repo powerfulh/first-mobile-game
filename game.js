@@ -440,6 +440,11 @@ function getAirChance(wave) {
   return Math.min(0.5, (wave - 4) * 0.02);
 }
 
+function getAirHpRatio(wave) {
+  if (wave < 30) return 0.6;
+  return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
+}
+
 const AIR_INTRO_KEY = 'td_seen_air_intro';
 function hasSeenAirIntro() {
   try { return localStorage.getItem(AIR_INTRO_KEY) === '1'; } catch (e) { return false; }
@@ -608,7 +613,7 @@ function drawBuffIntroModal() {
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
   const baseHp = 3 + Math.floor((game.wave - 1) * 0.5);
-  const hp = isAir ? Math.round(baseHp * 0.6 * 10) / 10 : baseHp;
+  const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
   const speed = 50 + (game.wave - 1) * 2;
   game.enemies.push({
     x: path[0].x,
