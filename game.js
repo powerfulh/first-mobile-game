@@ -72,10 +72,10 @@ const TOWER_ROLES = {
     promotions: ['eagle', 'filder'],
   },
   tank: {
-    name: '탱크', tagline: '범위 공격 · 지상 (반경 30)',
+    name: '탱크', tagline: '범위 공격 · 지상 (반경 40)',
     color: '#7e5109', color2: '#4a2810',
     range: 90, fireRate: 0.8, damage: 5,
-    attackTypes: ['ground'], splash: 30,
+    attackTypes: ['ground'], splash: 40,
     promotions: [],
   },
   buff: {
@@ -89,14 +89,14 @@ const TOWER_ROLES = {
   eagle: {
     name: '이글', tagline: '공중 전담 · 빠른 사격',
     color: '#2874a6', color2: '#1f618d',
-    range: 140, fireRate: 2.4, damage: 2,
+    range: 140, fireRate: 2.4, damage: 2.4,
     attackTypes: ['air'], splash: 0,
     promotions: [],
   },
   filder: {
     name: '필더', tagline: '즉발 빔 · 지상 / 공중',
     color: '#52be80', color2: '#239b56',
-    range: 120, fireRate: 1.6, damage: 2,
+    range: 120, fireRate: 1.6, damage: 2.4,
     attackTypes: ['ground', 'air'], splash: 0,
     promotions: [],
     instantHit: true,
