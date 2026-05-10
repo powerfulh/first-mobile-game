@@ -19,7 +19,6 @@ yarn-error.log*
 
 # Capacitor / build outputs
 dist/
-www/
 .capacitor/
 
 # Android (native project added later by Capacitor)
