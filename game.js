@@ -86,20 +86,39 @@ const TOWER_ROLES = {
     promotions: [],
   },
   trap: {
-    name: '트랩', tagline: '사거리 내 일제 타격 · 지상',
+    name: '트랩', tagline: '사거리 내 일제 타격 · 지상 / 공중',
     color: '#7b241c', color2: '#4a1810',
     range: 90, fireRate: 0.2, damage: 20,
-    attackTypes: ['ground'], splash: 0,
+    attackTypes: ['ground', 'air'], splash: 0,
     promotions: [],
     areaSweep: true,
   },
   buff: {
-    name: '배이스', tagline: '주변 아군 강화',
+    name: '배이스', tagline: '주변 아군 사거리 강화',
     color: '#d4ac0d', color2: '#9a7d0a',
     range: 90, fireRate: 1, damage: 2,
     attackTypes: ['ground'], splash: 0,
+    promotions: ['beacon', 'demon'],
+    buffsRange: true,
+  },
+  beacon: {
+    name: '비콘', tagline: '사거리 + 공격력 버프 · 지상',
+    color: '#f4d03f', color2: '#b9770e',
+    range: 120, fireRate: 1, damage: 2,
+    attackTypes: ['ground'], splash: 0,
     promotions: [],
-    buffsRange: true, // 사거리 버프 마커 — Step 5 예정
+    buffsRange: true,
+    buffsDamage: true,
+  },
+  demon: {
+    name: '데몬', tagline: '버프 + 적 슬로우 · 비공격',
+    color: '#5b2c6f', color2: '#2c0d3c',
+    range: 90, fireRate: 0, damage: 0,
+    attackTypes: [], splash: 0,
+    promotions: [],
+    buffsRange: true,
+    slowsEnemies: true,
+    slowFactor: 0.5,
   },
   eagle: {
     name: '이글', tagline: '공중 전담 · 빠른 사격',
@@ -333,7 +352,7 @@ function resetGame() {
 
 function startNextWave() {
   game.wave++;
-  game.enemiesPerWave += 4;
+  game.enemiesPerWave += 2;
   let interval = Math.max(0.5, game.spawnInterval - 0.08);
   if (game.wave >= 10) {
     // RNG narrowing — 웨이브마다 조밀도가 달라짐
@@ -617,7 +636,7 @@ function updateEnemy(e, dt) {
   const dx = target.x - e.x;
   const dy = target.y - e.y;
   const dist = Math.hypot(dx, dy);
-  const move = e.speed * dt;
+  const move = e.speed * getEnemySpeedFactor(e) * dt;
   if (move >= dist) {
     e.x = target.x;
     e.y = target.y;
@@ -729,6 +748,37 @@ function getEffectiveRange(t) {
   return t.range;
 }
 
+function getEffectiveDamage(t) {
+  if (t.tier < 1) return t.damage;
+  const buffRate = TOWER.buffRates[t.tier - 1];
+  if (buffRate === undefined) return t.damage;
+  for (const other of game.towers) {
+    if (other === t) continue;
+    const otherCfg = TOWER_ROLES[other.role];
+    if (!otherCfg.buffsDamage) continue;
+    const d = Math.hypot(t.x - other.x, t.y - other.y);
+    if (d <= otherCfg.range) {
+      return t.damage * (1 + buffRate);
+    }
+  }
+  return t.damage;
+}
+
+function getEnemySpeedFactor(e) {
+  let factor = 1;
+  for (const t of game.towers) {
+    const cfg = TOWER_ROLES[t.role];
+    if (!cfg.slowsEnemies) continue;
+    const range = getEffectiveRange(t);
+    const d = Math.hypot(e.x - t.x, e.y - t.y);
+    if (d <= range) {
+      const slow = cfg.slowFactor !== undefined ? cfg.slowFactor : 0.5;
+      if (slow < factor) factor = slow;
+    }
+  }
+  return factor;
+}
+
 function promoteTower(t, role) {
   if (!isPromotionReady(t)) return false;
   if (!canAffordPromotion(t)) return false;
@@ -783,6 +833,7 @@ function updateTower(t, dt) {
   if (target) {
     t.angle = Math.atan2(target.y - t.y, target.x - t.x);
     if (t.cooldown <= 0) {
+      const damage = getEffectiveDamage(t);
       if (cfg.areaSweep) {
         // 트랩: 사거리 내 모든 유효 적에 즉시 데미지
         // 데미지 판정 반경에만 buffer 추가 (사거리 표시 / 시각효과는 그대로)
@@ -792,7 +843,7 @@ function updateTower(t, dt) {
           if (!attackTypes.includes(e.type)) continue;
           const d = Math.hypot(e.x - t.x, e.y - t.y);
           if (d <= hitRange) {
-            applyTowerHit(t, e, t.damage);
+            applyTowerHit(t, e, damage);
           }
         }
         game.splashes.push({
@@ -802,13 +853,13 @@ function updateTower(t, dt) {
           color: cfg.color,
         });
       } else if (cfg.instantHit) {
-        fireInstantBeam(t, target);
+        fireInstantBeam(t, target, damage);
       } else {
         game.projectiles.push({
           x: t.x,
           y: t.y,
           target: target,
-          damage: t.damage,
+          damage,
           speed: TOWER.projectileSpeed,
           shooter: t,
           splash: cfg.splash || 0,
@@ -821,7 +872,7 @@ function updateTower(t, dt) {
   }
 }
 
-function fireInstantBeam(t, target) {
+function fireInstantBeam(t, target, damage) {
   const cfg = TOWER_ROLES[t.role];
   game.beams.push({
     x1: t.x, y1: t.y,
@@ -830,7 +881,7 @@ function fireInstantBeam(t, target) {
     maxLife: 0.15,
     color: cfg.color,
   });
-  applyTowerHit(t, target, t.damage);
+  applyTowerHit(t, target, damage !== undefined ? damage : t.damage);
 }
 
 function updateBeam(b, dt) {
@@ -1188,18 +1239,32 @@ function drawTowerInfoPanel(t) {
   ctx.fillStyle = '#cdd';
   const sx = towerInfoPanel.x + 14;
   const sy = towerInfoPanel.y + 50;
-  const dps = Math.round(t.damage * t.fireRate * 10) / 10;
   const total = Math.round((t.totalDamage || 0) * 10) / 10;
   const atkLabels = { ground: '지상', air: '공중' };
-  const atkText = (cfg.attackTypes || []).map(a => atkLabels[a] || a).join('/');
-  ctx.fillText(`데미지: ${t.damage} (${dps}/초)`, sx, sy);
+  const hasAttack = (cfg.attackTypes || []).length > 0;
+  const atkText = hasAttack ? cfg.attackTypes.map(a => atkLabels[a] || a).join('/') : '없음';
+
+  if (hasAttack) {
+    const effDmg = getEffectiveDamage(t);
+    const dmgBuffPct = effDmg > t.damage ? Math.round((effDmg / t.damage - 1) * 100) : 0;
+    const dpsValue = Math.round(effDmg * t.fireRate * 10) / 10;
+    const dmgValue = Math.round(effDmg * 10) / 10;
+    const dmgStr = dmgBuffPct > 0
+      ? `데미지: ${dmgValue} (+${dmgBuffPct}%, ${dpsValue}/초)`
+      : `데미지: ${t.damage} (${dpsValue}/초)`;
+    ctx.fillText(dmgStr, sx, sy);
+    ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)}/초`, sx, sy + 18);
+  } else {
+    ctx.fillText('데미지: —', sx, sy);
+    ctx.fillText('발사속도: —', sx, sy + 18);
+  }
+
   const effRange = getEffectiveRange(t);
   const buffPct = effRange > t.range ? Math.round((effRange / t.range - 1) * 100) : 0;
   const rangeStr = buffPct > 0
     ? `사거리: ${Math.round(effRange)} (+${buffPct}%)`
     : `사거리: ${t.range}`;
   ctx.fillText(rangeStr, sx + 160, sy);
-  ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)}/초`, sx, sy + 18);
   ctx.fillText(`공격 대상: ${atkText}`, sx + 160, sy + 18);
   ctx.fillText(`누적 데미지: ${total}`, sx, sy + 36);
 
