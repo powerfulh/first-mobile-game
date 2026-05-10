@@ -72,10 +72,10 @@ const TOWER_ROLES = {
     promotions: ['eagle', 'filder'],
   },
   tank: {
-    name: '탱크', tagline: '중장갑 지상 화력',
+    name: '탱크', tagline: '범위 공격 · 지상 (반경 30)',
     color: '#7e5109', color2: '#4a2810',
     range: 90, fireRate: 0.8, damage: 5,
-    attackTypes: ['ground'], splash: 30, // splash 동작은 Step 4 예정
+    attackTypes: ['ground'], splash: 30,
     promotions: [],
   },
   buff: {
