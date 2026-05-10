@@ -783,7 +783,8 @@ function canAffordPromotion(t) {
   return game.gold >= promotionCostFor(t);
 }
 
-function getEffectiveRange(t) {
+function getEffectiveRange(t, useChainedSources) {
+  if (useChainedSources === undefined) useChainedSources = true;
   const buffRate = TOWER.buffRates[t.tier];
   if (buffRate === undefined) return t.range;
   for (const other of game.towers) {
@@ -791,14 +792,17 @@ function getEffectiveRange(t) {
     const otherCfg = TOWER_ROLES[other.role];
     if (!otherCfg.buffsRange) continue;
     const d = Math.hypot(t.x - other.x, t.y - other.y);
-    if (d <= otherCfg.range) {
+    // 소스의 effective range를 1단계까지 따라감 (무한 재귀 방지)
+    const otherRange = useChainedSources ? getEffectiveRange(other, false) : otherCfg.range;
+    if (d <= otherRange) {
       return t.range * (1 + buffRate);
     }
   }
   return t.range;
 }
 
-function getEffectiveDamage(t) {
+function getEffectiveDamage(t, useChainedSources) {
+  if (useChainedSources === undefined) useChainedSources = true;
   const buffRate = TOWER.buffRates[t.tier];
   if (buffRate === undefined) return t.damage;
   for (const other of game.towers) {
@@ -806,7 +810,8 @@ function getEffectiveDamage(t) {
     const otherCfg = TOWER_ROLES[other.role];
     if (!otherCfg.buffsDamage) continue;
     const d = Math.hypot(t.x - other.x, t.y - other.y);
-    if (d <= otherCfg.range) {
+    const otherRange = useChainedSources ? getEffectiveRange(other, false) : otherCfg.range;
+    if (d <= otherRange) {
       return t.damage * (1 + buffRate);
     }
   }
