@@ -557,6 +557,8 @@ function promoteTower(t, role) {
   return true;
 }
 
+const TARGET_PRIORITY = ['air', 'ground'];
+
 function updateTower(t, dt) {
   t.cooldown = Math.max(0, t.cooldown - dt);
 
@@ -564,14 +566,22 @@ function updateTower(t, dt) {
   const attackTypes = cfg.attackTypes || ['ground'];
 
   let target = null;
-  let bestDist = t.range + 1;
-  for (const e of game.enemies) {
-    if (e.dead) continue;
-    if (!attackTypes.includes(e.type)) continue;
-    const d = Math.hypot(e.x - t.x, e.y - t.y);
-    if (d < bestDist) {
-      bestDist = d;
-      target = e;
+  for (const wantType of TARGET_PRIORITY) {
+    if (!attackTypes.includes(wantType)) continue;
+    let bestDist = t.range + 1;
+    let best = null;
+    for (const e of game.enemies) {
+      if (e.dead) continue;
+      if (e.type !== wantType) continue;
+      const d = Math.hypot(e.x - t.x, e.y - t.y);
+      if (d < bestDist) {
+        bestDist = d;
+        best = e;
+      }
+    }
+    if (best) {
+      target = best;
+      break;
     }
   }
 
