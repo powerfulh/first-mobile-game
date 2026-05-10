@@ -654,7 +654,11 @@ function drawBuffIntroModal() {
 
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
-  const baseHp = 3 + Math.floor((game.wave - 1) * 0.5);
+  let hpExtra = 0;
+  for (let i = 1; i <= 4; i++) {
+    hpExtra += Math.max(0, game.wave - i * 50) * 0.1;
+  }
+  const baseHp = 2 + Math.floor((game.wave - 1) * 0.6 + hpExtra);
   const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
   const speed = 50 + (game.wave - 1) * 2;
   game.enemies.push({
