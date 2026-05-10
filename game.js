@@ -391,7 +391,7 @@ function loadGame(data) {
 
 function getAirChance(wave) {
   if (wave < 5) return 0;
-  return Math.min(0.5, (wave - 4) * 0.03);
+  return Math.min(0.5, (wave - 4) * 0.02);
 }
 
 const AIR_INTRO_KEY = 'td_seen_air_intro';
@@ -488,7 +488,7 @@ function drawAirIntroModal() {
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
   const baseHp = 3 + Math.floor((game.wave - 1) * 0.5);
-  const hp = isAir ? Math.round(baseHp * 0.8 * 10) / 10 : baseHp;
+  const hp = isAir ? Math.round(baseHp * 0.6 * 10) / 10 : baseHp;
   const speed = 50 + (game.wave - 1) * 4;
   game.enemies.push({
     x: path[0].x,
