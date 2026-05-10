@@ -712,6 +712,52 @@ function updateProjectile(p, dt) {
   }
 }
 
+function drawCannonBody(t, cfg, selected) {
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, TOWER.radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.rotate(t.angle);
+  ctx.fillStyle = cfg.color2;
+  ctx.fillRect(0, -3, TOWER.radius + 4, 6);
+  ctx.restore();
+}
+
+function drawBeamEmitterBody(t, cfg, selected) {
+  const r = TOWER.radius;
+
+  // 육각형 본체 (pointy-top)
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3 - Math.PI / 2;
+    const px = t.x + r * Math.cos(a);
+    const py = t.y + r * Math.sin(a);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  // 중앙 에너지 코어 (살짝 펄스)
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 350);
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.4 + 0.25 * pulse;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, r * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
 function drawTower(t) {
   const cfg = TOWER_ROLES[t.role];
   const selected = (t === game.selectedTower);
@@ -727,20 +773,11 @@ function drawTower(t) {
     ctx.globalAlpha = 1;
   }
 
-  ctx.fillStyle = cfg.color;
-  ctx.beginPath();
-  ctx.arc(t.x, t.y, TOWER.radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-  ctx.lineWidth = selected ? 3 : 2;
-  ctx.stroke();
-
-  ctx.save();
-  ctx.translate(t.x, t.y);
-  ctx.rotate(t.angle);
-  ctx.fillStyle = cfg.color2;
-  ctx.fillRect(0, -3, TOWER.radius + 4, 6);
-  ctx.restore();
+  if (cfg.instantHit) {
+    drawBeamEmitterBody(t, cfg, selected);
+  } else {
+    drawCannonBody(t, cfg, selected);
+  }
 
   if (canPromote(t)) {
     const xpMax = xpMaxFor(t);
