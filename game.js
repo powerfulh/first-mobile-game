@@ -411,7 +411,20 @@ function setAirIntroSeen() {
   try { localStorage.setItem(AIR_INTRO_KEY, '1'); } catch (e) {}
 }
 
+const BUFF_INTRO_KEY = 'td_seen_buff_intro';
+function hasSeenBuffIntro() {
+  try { return localStorage.getItem(BUFF_INTRO_KEY) === '1'; } catch (e) { return false; }
+}
+function setBuffIntroSeen() {
+  try { localStorage.setItem(BUFF_INTRO_KEY, '1'); } catch (e) {}
+}
+
 const airIntroModal = {
+  panel: { x: 20, y: 180, w: 320, h: 280 },
+  confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
+};
+
+const buffIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
@@ -492,6 +505,70 @@ function drawAirIntroModal() {
   ctx.fillText('스카웃을 활용해 대비하세요.', iconCx, p.y + 194);
 
   drawButton(airIntroModal.confirmBtn, '확인');
+}
+
+function drawBuffIntroModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = buffIntroModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#d4ac0d';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 샘플 배이스 시각 (팔각형 + 점선 링)
+  const iconCx = LOGICAL_W / 2;
+  const iconCy = p.y + 56;
+  const ir = 14;
+
+  const auraPulse = 0.5 + 0.5 * Math.sin(performance.now() / 700);
+  ctx.globalAlpha = 0.4 + 0.3 * auraPulse;
+  ctx.strokeStyle = '#d4ac0d';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(iconCx, iconCy, ir + 7, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = '#d4ac0d';
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4 + Math.PI / 8;
+    const px = iconCx + ir * Math.cos(a);
+    const py = iconCy + ir * Math.sin(a);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#9a7d0a';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('버프 타워!', iconCx, p.y + 112);
+
+  ctx.fillStyle = '#cdd';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('사거리 내 다른 타워의 사거리를 강화합니다.', iconCx, p.y + 152);
+
+  ctx.fillStyle = '#d4ac0d';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('버프율  T1 +10%  ·  T2 +20%  ·  T3 +30%', iconCx, p.y + 184);
+
+  ctx.fillStyle = '#9aa';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('(받는 타워의 티어 기준)', iconCx, p.y + 208);
+
+  drawButton(buffIntroModal.confirmBtn, '확인');
 }
 
 function spawnEnemy() {
@@ -621,6 +698,22 @@ function canAffordPromotion(t) {
   return game.gold >= promotionCostFor(t);
 }
 
+function getEffectiveRange(t) {
+  if (t.tier < 1) return t.range;
+  const buffRate = TOWER.buffRates[t.tier - 1];
+  if (buffRate === undefined) return t.range;
+  for (const other of game.towers) {
+    if (other === t) continue;
+    const otherCfg = TOWER_ROLES[other.role];
+    if (!otherCfg.buffsRange) continue;
+    const d = Math.hypot(t.x - other.x, t.y - other.y);
+    if (d <= otherCfg.range) {
+      return t.range * (1 + buffRate);
+    }
+  }
+  return t.range;
+}
+
 function promoteTower(t, role) {
   if (!isPromotionReady(t)) return false;
   if (!canAffordPromotion(t)) return false;
@@ -636,6 +729,10 @@ function promoteTower(t, role) {
   t.damage = cfg.damage;
   t.cooldown = 0;
   t.xp = 0;
+
+  if (cfg.buffsRange && !game.modal && !hasSeenBuffIntro()) {
+    game.modal = { type: 'buffIntro' };
+  }
   return true;
 }
 
@@ -646,11 +743,12 @@ function updateTower(t, dt) {
 
   const cfg = TOWER_ROLES[t.role];
   const attackTypes = cfg.attackTypes || ['ground'];
+  const range = getEffectiveRange(t);
 
   let target = null;
   for (const wantType of TARGET_PRIORITY) {
     if (!attackTypes.includes(wantType)) continue;
-    let bestDist = t.range + 1;
+    let bestDist = range + 1;
     let best = null;
     for (const e of game.enemies) {
       if (e.dead) continue;
@@ -933,10 +1031,11 @@ function drawTower(t) {
 }
 
 function drawTowerRange(t, fillAlpha, strokeAlpha) {
+  const range = getEffectiveRange(t);
   ctx.globalAlpha = fillAlpha;
   ctx.fillStyle = '#3498db';
   ctx.beginPath();
-  ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
+  ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = strokeAlpha;
   ctx.strokeStyle = '#5dade2';
@@ -1034,7 +1133,12 @@ function drawTowerInfoPanel(t) {
   const atkLabels = { ground: '지상', air: '공중' };
   const atkText = (cfg.attackTypes || []).map(a => atkLabels[a] || a).join('/');
   ctx.fillText(`데미지: ${t.damage} (${dps}/초)`, sx, sy);
-  ctx.fillText(`사거리: ${t.range}`, sx + 160, sy);
+  const effRange = getEffectiveRange(t);
+  const buffPct = effRange > t.range ? Math.round((effRange / t.range - 1) * 100) : 0;
+  const rangeStr = buffPct > 0
+    ? `사거리: ${Math.round(effRange)} (+${buffPct}%)`
+    : `사거리: ${t.range}`;
+  ctx.fillText(rangeStr, sx + 160, sy);
   ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)}/초`, sx, sy + 18);
   ctx.fillText(`공격 대상: ${atkText}`, sx + 160, sy + 18);
   ctx.fillText(`누적 데미지: ${total}`, sx, sy + 36);
@@ -1244,14 +1348,18 @@ scenes.playing = {
     drawPauseButton();
     if (game.paused) drawPausedOverlay();
 
-    if (game.modal && game.modal.type === 'airIntro') {
-      drawAirIntroModal();
+    if (game.modal) {
+      if (game.modal.type === 'airIntro') drawAirIntroModal();
+      else if (game.modal.type === 'buffIntro') drawBuffIntroModal();
     }
   },
   pointerDown(p) {
     if (game.modal) {
       if (game.modal.type === 'airIntro' && hitButton(airIntroModal.confirmBtn, p)) {
         setAirIntroSeen();
+        game.modal = null;
+      } else if (game.modal.type === 'buffIntro' && hitButton(buffIntroModal.confirmBtn, p)) {
+        setBuffIntroSeen();
         game.modal = null;
       }
       return;
