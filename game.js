@@ -291,6 +291,7 @@ const game = {
   selectedTower: null,
   promotionChoiceOpen: false,
   modal: null,
+  paused: false,
 };
 
 function resetGame() {
@@ -310,6 +311,7 @@ function resetGame() {
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
   game.modal = null;
+  game.paused = false;
 }
 
 function startNextWave() {
@@ -373,6 +375,7 @@ function loadGame(data) {
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
   game.modal = null;
+  game.paused = false;
   game.towers = (data.towers || [])
     .filter(td => TOWER_ROLES[td.role])
     .map(td => {
@@ -388,7 +391,7 @@ function loadGame(data) {
 
 function getAirChance(wave) {
   if (wave < 5) return 0;
-  return Math.min(0.5, (wave - 4) * 0.05);
+  return Math.min(0.5, (wave - 4) * 0.03);
 }
 
 const AIR_INTRO_KEY = 'td_seen_air_intro';
@@ -403,6 +406,43 @@ const airIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
+
+const pauseButton = { x: 8, y: 600, w: 32, h: 32 };
+
+function drawPauseButton() {
+  ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
+  roundRect(pauseButton.x, pauseButton.y, pauseButton.w, pauseButton.h, 6);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  if (game.paused) {
+    // ▶ Play (resume)
+    ctx.beginPath();
+    ctx.moveTo(pauseButton.x + 11, pauseButton.y + 8);
+    ctx.lineTo(pauseButton.x + 11, pauseButton.y + 24);
+    ctx.lineTo(pauseButton.x + 24, pauseButton.y + 16);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    // || Pause
+    ctx.fillRect(pauseButton.x + 10, pauseButton.y + 8, 4, 16);
+    ctx.fillRect(pauseButton.x + 18, pauseButton.y + 8, 4, 16);
+  }
+}
+
+function drawPausedOverlay() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+  ctx.fillRect(0, 60, LOGICAL_W, 32);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText('⏸  일시정지', LOGICAL_W / 2, 76);
+  ctx.textBaseline = 'alphabetic';
+}
 
 function drawAirIntroModal() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -1012,6 +1052,7 @@ scenes.playing = {
   },
   update(dt) {
     if (game.modal) return;
+    if (game.paused) return;
     if (game.waveState === 'spawning') {
       game.spawnTimer += dt;
       if (game.spawnTimer >= game.spawnInterval && game.spawnedThisWave < game.enemiesPerWave) {
@@ -1097,6 +1138,9 @@ scenes.playing = {
       ctx.fillText(`빈 곳을 탭하여 타워 배치 (${TOWER.cost}G)`, LOGICAL_W / 2, LOGICAL_H - 12);
     }
 
+    drawPauseButton();
+    if (game.paused) drawPausedOverlay();
+
     if (game.modal && game.modal.type === 'airIntro') {
       drawAirIntroModal();
     }
@@ -1107,6 +1151,11 @@ scenes.playing = {
         setAirIntroSeen();
         game.modal = null;
       }
+      return;
+    }
+
+    if (hitButton(pauseButton, p)) {
+      game.paused = !game.paused;
       return;
     }
     if (game.selectedTower && game.promotionChoiceOpen) {
