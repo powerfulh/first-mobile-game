@@ -184,8 +184,9 @@ function promotionCostFor(t) {
 }
 
 const PATH_WIDTH = 28;
-const ENEMY_KILL_REWARD = 8;
+const ENEMY_KILL_REWARD = 6;
 const HUD_RESERVED_TOP = 36;
+const HOLD_DELETE_SECONDS = 1.0;
 
 // ============ Drawing helpers ============
 function roundRect(x, y, w, h, r) {
@@ -365,6 +366,7 @@ const game = {
   promotionChoiceOpen: false,
   modal: null,
   paused: false,
+  holdDelete: null,
 };
 
 function resetGame() {
@@ -386,6 +388,7 @@ function resetGame() {
   game.promotionChoiceOpen = false;
   game.modal = null;
   game.paused = false;
+  game.holdDelete = null;
 }
 
 function startNextWave() {
@@ -457,6 +460,7 @@ function loadGame(data) {
   game.promotionChoiceOpen = false;
   game.modal = null;
   game.paused = false;
+  game.holdDelete = null;
   game.towers = (data.towers || [])
     .filter(td => TOWER_ROLES[td.role])
     .map(td => {
@@ -1543,6 +1547,18 @@ scenes.playing = {
   update(dt) {
     if (game.modal) return;
     if (game.paused) return;
+    if (game.holdDelete) {
+      game.holdDelete.accumulated += dt;
+      if (game.holdDelete.accumulated >= HOLD_DELETE_SECONDS) {
+        const dead = game.holdDelete.tower;
+        game.towers = game.towers.filter(x => x !== dead);
+        if (game.selectedTower === dead) {
+          game.selectedTower = null;
+          game.promotionChoiceOpen = false;
+        }
+        game.holdDelete = null;
+      }
+    }
     if (game.waveState === 'spawning') {
       game.spawnTimer += dt;
       if (game.spawnTimer >= game.spawnInterval && game.spawnedThisWave < game.enemiesPerWave) {
@@ -1609,6 +1625,17 @@ scenes.playing = {
     for (const pr of game.projectiles) drawProjectile(pr);
     for (const b of game.beams) drawBeam(b);
     for (const s of game.splashes) drawSplash(s);
+
+    if (game.holdDelete) {
+      const progress = Math.min(1, game.holdDelete.accumulated / HOLD_DELETE_SECONDS);
+      const t = game.holdDelete.tower;
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, TOWER.radius + 7, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+      ctx.stroke();
+    }
 
     if (game.waveState === 'intermission') {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -1697,6 +1724,7 @@ scenes.playing = {
       if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
         game.selectedTower = t;
         game.promotionChoiceOpen = false;
+        game.holdDelete = { tower: t, accumulated: 0 };
         return;
       }
     }
@@ -1751,6 +1779,24 @@ canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   const p = getLogicalPoint(e.clientX, e.clientY);
   scenes[currentSceneName]?.pointerDown?.(p);
+});
+
+canvas.addEventListener('pointerup', () => {
+  if (game.holdDelete) game.holdDelete = null;
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (game.holdDelete) {
+    const p = getLogicalPoint(e.clientX, e.clientY);
+    const dt = game.holdDelete.tower;
+    if (Math.hypot(p.x - dt.x, p.y - dt.y) > TOWER.radius + 8) {
+      game.holdDelete = null;
+    }
+  }
+});
+
+canvas.addEventListener('pointercancel', () => {
+  if (game.holdDelete) game.holdDelete = null;
 });
 
 // ============ Game loop ============
