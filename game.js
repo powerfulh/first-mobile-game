@@ -355,7 +355,7 @@ function loadGame(data) {
 
 function getAirChance(wave) {
   if (wave < 5) return 0;
-  return Math.min(0.5, (wave - 4) * 0.1);
+  return Math.min(0.5, (wave - 4) * 0.05);
 }
 
 const AIR_INTRO_KEY = 'td_seen_air_intro';
@@ -414,7 +414,8 @@ function drawAirIntroModal() {
 
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
-  const hp = 3 + Math.floor((game.wave - 1) * 0.5);
+  const baseHp = 3 + Math.floor((game.wave - 1) * 0.5);
+  const hp = isAir ? Math.round(baseHp * 0.8 * 10) / 10 : baseHp;
   const speed = 50 + (game.wave - 1) * 4;
   game.enemies.push({
     x: path[0].x,
@@ -907,6 +908,11 @@ scenes.playing = {
     if (game.waveState === 'spawning' &&
         game.spawnedThisWave >= game.enemiesPerWave &&
         game.enemies.length === 0) {
+      for (const t of game.towers) {
+        if (canPromote(t)) {
+          t.xp = Math.min(Math.round((t.xp + 1) * 10) / 10, xpMaxFor(t));
+        }
+      }
       game.waveState = 'intermission';
       game.intermissionTimer = 3;
     }
