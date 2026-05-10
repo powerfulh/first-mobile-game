@@ -804,6 +804,46 @@ function drawBeamEmitterBody(t, cfg, selected) {
   ctx.globalAlpha = 1;
 }
 
+function drawSupportBody(t, cfg, selected) {
+  const r = TOWER.radius;
+
+  // 팔각형 본체
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4 + Math.PI / 8;
+    const px = t.x + r * Math.cos(a);
+    const py = t.y + r * Math.sin(a);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  // 회전 배럴 (실제 공격용)
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.rotate(t.angle);
+  ctx.fillStyle = cfg.color2;
+  ctx.fillRect(0, -3, r + 4, 6);
+  ctx.restore();
+
+  // 외곽 점선 펄스링 — 버프 오라
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 700);
+  ctx.globalAlpha = 0.35 + 0.3 * pulse;
+  ctx.strokeStyle = cfg.color;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, r + 7, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+}
+
 function drawTower(t) {
   const cfg = TOWER_ROLES[t.role];
   const selected = (t === game.selectedTower);
@@ -821,6 +861,8 @@ function drawTower(t) {
 
   if (cfg.instantHit) {
     drawBeamEmitterBody(t, cfg, selected);
+  } else if (cfg.buffsRange) {
+    drawSupportBody(t, cfg, selected);
   } else {
     drawCannonBody(t, cfg, selected);
   }
