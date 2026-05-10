@@ -397,7 +397,10 @@ function startNextWave() {
   let interval = Math.max(0.5, game.spawnInterval - 0.08);
   if (game.wave >= 10) {
     // RNG narrowing — 웨이브마다 조밀도가 달라짐
-    const narrow = 0.6 + Math.random() * 0.4; // 0.6 ~ 1.0
+    // 임계 웨이브(10) 직후엔 변동폭을 좁게 시작해 11 웨이브에 걸쳐 wave 20까지 점진 확장
+    const ramp = Math.min(1, (game.wave - 9) / 11);
+    const minNarrow = 1.0 - ramp * 0.4; // wave 10: 0.964, wave 20+: 0.60
+    const narrow = minNarrow + Math.random() * (1.0 - minNarrow);
     interval *= narrow;
   }
   game.spawnInterval = interval;
@@ -1797,6 +1800,10 @@ canvas.addEventListener('pointermove', (e) => {
 
 canvas.addEventListener('pointercancel', () => {
   if (game.holdDelete) game.holdDelete = null;
+});
+
+canvas.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
 });
 
 // ============ Game loop ============

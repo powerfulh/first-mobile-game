@@ -26,6 +26,7 @@ body {
   display: block;
   background: #2d4a2b;
   touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 #hud {
