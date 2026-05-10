@@ -45,7 +45,7 @@ const TOWER = {
   projectileSpeed: 280,
   promotionCosts: [125, 250, 1000], // [t0→t1, t1→t2, t2→t3]
   xpThresholds:   [20,  40,  200],  // 같은 인덱스
-  buffRates:      [0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t1, t2, t3)에 적용 (Step 5 예정)
+  buffRates:      [0.05, 0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t0, t1, t2, t3)에 적용
   maxTier: 3, // t0→t1→t2→t3 (탱크 라인부터)
 };
 
@@ -138,13 +138,13 @@ const TOWER_ROLES = {
     promotions: [],
   },
   interceptor: {
-    name: '인터셉터', tagline: '5발 부채꼴 · 공중 (직선 비유도)',
+    name: '인터셉터', tagline: '7발 부채꼴 · 공중 (직선 비유도)',
     color: '#85c1e9', color2: '#5499c7',
     range: 160, fireRate: 5, damage: 2.4,
     attackTypes: ['air'], splash: 0,
     promotions: [],
     fanShot: true,
-    projectileCount: 5,
+    projectileCount: 7,
     spreadDeg: 32,
   },
   filder: {
@@ -621,8 +621,8 @@ function drawBuffIntroModal() {
   ctx.fillText('효과가 달라집니다.', iconCx, p.y + 178);
 
   ctx.fillStyle = '#d4ac0d';
-  ctx.font = 'bold 18px sans-serif';
-  ctx.fillText('T1 +10%   T2 +20%   T3 +30%', iconCx, p.y + 218);
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText('T0 +5%   T1 +10%   T2 +20%   T3 +30%', iconCx, p.y + 218);
 
   drawButton(buffIntroModal.confirmBtn, '확인');
 }
@@ -755,8 +755,7 @@ function canAffordPromotion(t) {
 }
 
 function getEffectiveRange(t) {
-  if (t.tier < 1) return t.range;
-  const buffRate = TOWER.buffRates[t.tier - 1];
+  const buffRate = TOWER.buffRates[t.tier];
   if (buffRate === undefined) return t.range;
   for (const other of game.towers) {
     if (other === t) continue;
@@ -771,8 +770,7 @@ function getEffectiveRange(t) {
 }
 
 function getEffectiveDamage(t) {
-  if (t.tier < 1) return t.damage;
-  const buffRate = TOWER.buffRates[t.tier - 1];
+  const buffRate = TOWER.buffRates[t.tier];
   if (buffRate === undefined) return t.damage;
   for (const other of game.towers) {
     if (other === t) continue;
