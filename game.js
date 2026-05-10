@@ -46,7 +46,7 @@ const TOWER = {
   promotionCosts: [125, 250, 1000], // [t0→t1, t1→t2, t2→t3]
   xpThresholds:   [20,  40,  200],  // 같은 인덱스
   buffRates:      [0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t1, t2, t3)에 적용 (Step 5 예정)
-  maxTier: 2, // Step 3까지 t0→t1→t2 구현, t3은 추후 명세
+  maxTier: 3, // t0→t1→t2→t3 (탱크 라인부터)
 };
 
 const TOWER_ROLES = {
@@ -76,7 +76,22 @@ const TOWER_ROLES = {
     color: '#7e5109', color2: '#4a2810',
     range: 90, fireRate: 0.8, damage: 5,
     attackTypes: ['ground'], splash: 40,
+    promotions: ['whale', 'trap'],
+  },
+  whale: {
+    name: '웨일', tagline: '광역 폭발 · 지상 (반경 80)',
+    color: '#5d4037', color2: '#3e2723',
+    range: 120, fireRate: 0.6, damage: 10,
+    attackTypes: ['ground'], splash: 80,
     promotions: [],
+  },
+  trap: {
+    name: '트랩', tagline: '사거리 내 일제 타격 · 지상',
+    color: '#7b241c', color2: '#4a1810',
+    range: 90, fireRate: 0.2, damage: 20,
+    attackTypes: ['ground'], splash: 0,
+    promotions: [],
+    areaSweep: true,
   },
   buff: {
     name: '배이스', tagline: '주변 아군 강화',
@@ -768,7 +783,25 @@ function updateTower(t, dt) {
   if (target) {
     t.angle = Math.atan2(target.y - t.y, target.x - t.x);
     if (t.cooldown <= 0) {
-      if (cfg.instantHit) {
+      if (cfg.areaSweep) {
+        // 트랩: 사거리 내 모든 유효 적에 즉시 데미지
+        // 데미지 판정 반경에만 buffer 추가 (사거리 표시 / 시각효과는 그대로)
+        const hitRange = range + 10;
+        for (const e of game.enemies) {
+          if (e.dead) continue;
+          if (!attackTypes.includes(e.type)) continue;
+          const d = Math.hypot(e.x - t.x, e.y - t.y);
+          if (d <= hitRange) {
+            applyTowerHit(t, e, t.damage);
+          }
+        }
+        game.splashes.push({
+          x: t.x, y: t.y,
+          radius: range,
+          life: 0.5, maxLife: 0.5,
+          color: cfg.color,
+        });
+      } else if (cfg.instantHit) {
         fireInstantBeam(t, target);
       } else {
         game.projectiles.push({
@@ -954,6 +987,31 @@ function drawBeamEmitterBody(t, cfg, selected) {
   ctx.globalAlpha = 1;
 }
 
+function drawAreaSweepBody(t, cfg, selected) {
+  const r = TOWER.radius;
+
+  // 다이아몬드 본체 (정사각형 45° 회전)
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.moveTo(t.x, t.y - r);
+  ctx.lineTo(t.x + r, t.y);
+  ctx.lineTo(t.x, t.y + r);
+  ctx.lineTo(t.x - r, t.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  // 중앙 작은 코어 (위협 신호)
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
 function drawSupportBody(t, cfg, selected) {
   const r = TOWER.radius;
 
@@ -1013,6 +1071,8 @@ function drawTower(t) {
     drawBeamEmitterBody(t, cfg, selected);
   } else if (cfg.buffsRange) {
     drawSupportBody(t, cfg, selected);
+  } else if (cfg.areaSweep) {
+    drawAreaSweepBody(t, cfg, selected);
   } else {
     drawCannonBody(t, cfg, selected);
   }
