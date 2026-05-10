@@ -282,6 +282,7 @@ const game = {
   towers: [],
   projectiles: [],
   beams: [],
+  splashes: [],
   spawnTimer: 0,
   spawnInterval: 1.2,
   spawnedThisWave: 0,
@@ -302,6 +303,7 @@ function resetGame() {
   game.towers = [];
   game.projectiles = [];
   game.beams = [];
+  game.splashes = [];
   game.spawnTimer = 0;
   game.spawnInterval = 1.2;
   game.spawnedThisWave = 0;
@@ -374,6 +376,7 @@ function loadGame(data) {
   game.enemies = [];
   game.projectiles = [];
   game.beams = [];
+  game.splashes = [];
   game.spawnTimer = 0;
   game.spawnedThisWave = 0;
   game.waveState = 'spawning';
@@ -677,6 +680,9 @@ function updateTower(t, dt) {
           damage: t.damage,
           speed: TOWER.projectileSpeed,
           shooter: t,
+          splash: cfg.splash || 0,
+          splashColor: cfg.color,
+          attackTypes: cfg.attackTypes || ['ground'],
         });
       }
       t.cooldown = 1 / t.fireRate;
@@ -740,6 +746,17 @@ function applyTowerHit(shooter, target, damage) {
   }
 }
 
+function applySplashHit(shooter, impactX, impactY, damage, radius, attackTypes) {
+  for (const e of game.enemies) {
+    if (e.dead) continue;
+    if (attackTypes && !attackTypes.includes(e.type)) continue;
+    const d = Math.hypot(e.x - impactX, e.y - impactY);
+    if (d <= radius) {
+      applyTowerHit(shooter, e, damage);
+    }
+  }
+}
+
 function updateProjectile(p, dt) {
   if (!p.target || p.target.dead) {
     p.dead = true;
@@ -750,12 +767,47 @@ function updateProjectile(p, dt) {
   const dist = Math.hypot(dx, dy);
   const move = p.speed * dt;
   if (move >= dist) {
-    applyTowerHit(p.shooter, p.target, p.damage);
+    if (p.splash > 0) {
+      const ix = p.target.x;
+      const iy = p.target.y;
+      applySplashHit(p.shooter, ix, iy, p.damage, p.splash, p.attackTypes);
+      game.splashes.push({
+        x: ix, y: iy,
+        radius: p.splash,
+        life: 0.3, maxLife: 0.3,
+        color: p.splashColor || '#fff',
+      });
+    } else {
+      applyTowerHit(p.shooter, p.target, p.damage);
+    }
     p.dead = true;
   } else {
     p.x += (dx / dist) * move;
     p.y += (dy / dist) * move;
   }
+}
+
+function updateSplash(s, dt) {
+  s.life -= dt;
+  if (s.life <= 0) s.dead = true;
+}
+
+function drawSplash(s) {
+  const t = 1 - s.life / s.maxLife;
+  const r = s.radius * (0.3 + 0.7 * t);
+  const alpha = 1 - t;
+  ctx.globalAlpha = alpha * 0.35;
+  ctx.fillStyle = s.color;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = alpha * 0.85;
+  ctx.strokeStyle = s.color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
 }
 
 function drawCannonBody(t, cfg, selected) {
@@ -1119,10 +1171,12 @@ scenes.playing = {
     for (const t of game.towers) updateTower(t, dt);
     for (const p of game.projectiles) updateProjectile(p, dt);
     for (const b of game.beams) updateBeam(b, dt);
+    for (const s of game.splashes) updateSplash(s, dt);
 
     game.enemies = game.enemies.filter(e => !e.dead);
     game.projectiles = game.projectiles.filter(p => !p.dead);
     game.beams = game.beams.filter(b => !b.dead);
+    game.splashes = game.splashes.filter(s => !s.dead);
 
     if (game.waveState === 'spawning' &&
         game.spawnedThisWave >= game.enemiesPerWave &&
@@ -1163,6 +1217,7 @@ scenes.playing = {
     for (const e of game.enemies) drawEnemy(e);
     for (const pr of game.projectiles) drawProjectile(pr);
     for (const b of game.beams) drawBeam(b);
+    for (const s of game.splashes) drawSplash(s);
 
     if (game.waveState === 'intermission') {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
