@@ -152,8 +152,26 @@ const TOWER_ROLES = {
     color: '#52be80', color2: '#239b56',
     range: 120, fireRate: 1.6, damage: 2.4,
     attackTypes: ['ground', 'air'], splash: 0,
+    promotions: ['master', 'dealman'],
+    instantHit: true,
+  },
+  master: {
+    name: '마스터', tagline: '강화 즉발 빔 · 지상 / 공중',
+    color: '#196f3d', color2: '#0e4d2a',
+    range: 140, fireRate: 4, damage: 4,
+    attackTypes: ['ground', 'air'], splash: 0,
     promotions: [],
     instantHit: true,
+  },
+  dealman: {
+    name: '딜맨', tagline: '관통 빔 · 고HP 우선 · 지상 / 공중',
+    color: '#cb4335', color2: '#922b21',
+    range: 200, fireRate: 1, damage: 12,
+    attackTypes: ['ground', 'air'], splash: 0,
+    promotions: [],
+    instantHit: true,
+    pierces: true,
+    targetMode: 'highestHp',
   },
 };
 
@@ -846,22 +864,36 @@ function updateTower(t, dt) {
   const range = getEffectiveRange(t);
 
   let target = null;
-  for (const wantType of TARGET_PRIORITY) {
-    if (!attackTypes.includes(wantType)) continue;
-    let bestDist = range + 1;
-    let best = null;
+  if (cfg.targetMode === 'highestHp') {
+    let bestHp = -Infinity;
     for (const e of game.enemies) {
       if (e.dead) continue;
-      if (e.type !== wantType) continue;
+      if (!attackTypes.includes(e.type)) continue;
       const d = Math.hypot(e.x - t.x, e.y - t.y);
-      if (d < bestDist) {
-        bestDist = d;
-        best = e;
+      if (d > range) continue;
+      if (e.hp > bestHp) {
+        bestHp = e.hp;
+        target = e;
       }
     }
-    if (best) {
-      target = best;
-      break;
+  } else {
+    for (const wantType of TARGET_PRIORITY) {
+      if (!attackTypes.includes(wantType)) continue;
+      let bestDist = range + 1;
+      let best = null;
+      for (const e of game.enemies) {
+        if (e.dead) continue;
+        if (e.type !== wantType) continue;
+        const d = Math.hypot(e.x - t.x, e.y - t.y);
+        if (d < bestDist) {
+          bestDist = d;
+          best = e;
+        }
+      }
+      if (best) {
+        target = best;
+        break;
+      }
     }
   }
 
@@ -888,7 +920,11 @@ function updateTower(t, dt) {
           color: cfg.color,
         });
       } else if (cfg.instantHit) {
-        fireInstantBeam(t, target, damage);
+        if (cfg.pierces) {
+          fireLineBeam(t, target, damage);
+        } else {
+          fireInstantBeam(t, target, damage);
+        }
       } else if (cfg.fanShot) {
         // 인터셉터: 부채꼴 5발 직선 비유도
         const count = cfg.projectileCount || 5;
@@ -938,6 +974,33 @@ function fireInstantBeam(t, target, damage) {
     color: cfg.color,
   });
   applyTowerHit(t, target, damage !== undefined ? damage : t.damage);
+}
+
+function fireLineBeam(t, target, damage) {
+  const cfg = TOWER_ROLES[t.role];
+  const range = getEffectiveRange(t);
+  const angle = Math.atan2(target.y - t.y, target.x - t.x);
+  const endX = t.x + Math.cos(angle) * range;
+  const endY = t.y + Math.sin(angle) * range;
+
+  game.beams.push({
+    x1: t.x, y1: t.y,
+    x2: endX, y2: endY,
+    life: 0.2,
+    maxLife: 0.2,
+    color: cfg.color,
+  });
+
+  const attackTypes = cfg.attackTypes || ['ground'];
+  const dmg = damage !== undefined ? damage : t.damage;
+  for (const e of game.enemies) {
+    if (e.dead) continue;
+    if (!attackTypes.includes(e.type)) continue;
+    const d = pointToSegmentDist(e.x, e.y, t.x, t.y, endX, endY);
+    if (d <= e.radius) {
+      applyTowerHit(t, e, dmg);
+    }
+  }
 }
 
 function updateBeam(b, dt) {
