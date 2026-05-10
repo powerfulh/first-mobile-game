@@ -94,21 +94,23 @@ const TOWER_ROLES = {
     areaSweep: true,
   },
   buff: {
-    name: '배이스', tagline: '주변 아군 사거리 강화',
+    name: '배이스', tagline: '주변 아군 사거리·XP 강화',
     color: '#d4ac0d', color2: '#9a7d0a',
     range: 90, fireRate: 1, damage: 2,
     attackTypes: ['ground'], splash: 0,
     promotions: ['beacon', 'demon'],
     buffsRange: true,
+    boostsXp: true,
   },
   beacon: {
-    name: '비콘', tagline: '사거리 + 공격력 버프 · 지상',
+    name: '비콘', tagline: '사거리·공격력·XP 버프 · 지상',
     color: '#f4d03f', color2: '#b9770e',
     range: 120, fireRate: 1, damage: 2,
     attackTypes: ['ground'], splash: 0,
     promotions: [],
     buffsRange: true,
     buffsDamage: true,
+    boostsXp: true,
   },
   demon: {
     name: '데몬', tagline: '버프 + 적 슬로우 · 비공격',
@@ -117,6 +119,7 @@ const TOWER_ROLES = {
     attackTypes: [], splash: 0,
     promotions: [],
     buffsRange: true,
+    boostsXp: true,
     slowsEnemies: true,
     slowFactor: 0.5,
   },
@@ -588,19 +591,16 @@ function drawBuffIntroModal() {
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 22px sans-serif';
-  ctx.fillText('버프 타워!', iconCx, p.y + 112);
+  ctx.fillText('티어별 버프율', iconCx, p.y + 112);
 
   ctx.fillStyle = '#cdd';
   ctx.font = '14px sans-serif';
-  ctx.fillText('사거리 내 다른 타워의 사거리를 강화합니다.', iconCx, p.y + 152);
+  ctx.fillText('버프를 받는 타워의 티어에 따라', iconCx, p.y + 152);
+  ctx.fillText('효과가 달라집니다.', iconCx, p.y + 178);
 
   ctx.fillStyle = '#d4ac0d';
-  ctx.font = 'bold 13px sans-serif';
-  ctx.fillText('버프율  T1 +10%  ·  T2 +20%  ·  T3 +30%', iconCx, p.y + 184);
-
-  ctx.fillStyle = '#9aa';
-  ctx.font = '11px sans-serif';
-  ctx.fillText('(받는 타워의 티어 기준)', iconCx, p.y + 208);
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('T1 +10%   T2 +20%   T3 +30%', iconCx, p.y + 218);
 
   drawButton(buffIntroModal.confirmBtn, '확인');
 }
@@ -762,6 +762,21 @@ function getEffectiveDamage(t) {
     }
   }
   return t.damage;
+}
+
+const WAVE_END_XP_MULTIPLIER = 5;
+
+function getXpGainAtWaveEnd(t) {
+  for (const other of game.towers) {
+    if (other === t) continue;
+    const otherCfg = TOWER_ROLES[other.role];
+    if (!otherCfg.boostsXp) continue;
+    const d = Math.hypot(t.x - other.x, t.y - other.y);
+    if (d <= getEffectiveRange(other)) {
+      return WAVE_END_XP_MULTIPLIER;
+    }
+  }
+  return 1;
 }
 
 function getEnemySpeedFactor(e) {
@@ -1424,7 +1439,8 @@ scenes.playing = {
         game.enemies.length === 0) {
       for (const t of game.towers) {
         if (canPromote(t)) {
-          t.xp = Math.min(Math.round((t.xp + 1) * 10) / 10, xpMaxFor(t));
+          const gain = getXpGainAtWaveEnd(t);
+          t.xp = Math.min(Math.round((t.xp + gain) * 10) / 10, xpMaxFor(t));
         }
       }
       game.waveState = 'intermission';
