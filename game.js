@@ -43,7 +43,7 @@ const TOWER = {
   cost: 50,
   radius: 14,
   projectileSpeed: 280,
-  promotionCosts: [100, 250, 1000], // [t0→t1, t1→t2, t2→t3]
+  promotionCosts: [125, 250, 1000], // [t0→t1, t1→t2, t2→t3]
   xpThresholds:   [20,  40,  200],  // 같은 인덱스
   buffRates:      [0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t1, t2, t3)에 적용 (Step 5 예정)
   maxTier: 2, // Step 3까지 t0→t1→t2 구현, t3은 추후 명세
@@ -60,7 +60,7 @@ const TOWER_ROLES = {
   bunker: {
     name: '벙커', tagline: '단발 고화력 · 지상 전담',
     color: '#5d6d7e', color2: '#212f3d',
-    range: 100, fireRate: 1, damage: 3,
+    range: 100, fireRate: 1, damage: 3.6,
     attackTypes: ['ground'], splash: 0,
     promotions: ['tank', 'buff'],
   },
