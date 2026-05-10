@@ -393,7 +393,7 @@ function resetGame() {
 
 function startNextWave() {
   game.wave++;
-  game.enemiesPerWave += 2;
+  game.enemiesPerWave += game.wave >= 40 ? 1 : 2;
   let interval = Math.max(0.5, game.spawnInterval - 0.08);
   if (game.wave >= 10) {
     // RNG narrowing — 웨이브마다 조밀도가 달라짐
