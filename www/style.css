@@ -34,7 +34,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  padding: 8px 16px;
+  padding: max(8px, env(safe-area-inset-top, 8px)) 16px 8px;
   display: flex;
   justify-content: space-between;
   color: #fff;
