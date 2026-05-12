@@ -518,11 +518,11 @@ const buffIntroModal = {
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
 
-const pauseButton = { x: 8, y: 600, w: 32, h: 32 };
+const pauseButton = { x: 8, y: 592, w: 44, h: 44 };
 
 function drawPauseButton() {
   ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
-  roundRect(pauseButton.x, pauseButton.y, pauseButton.w, pauseButton.h, 6);
+  roundRect(pauseButton.x, pauseButton.y, pauseButton.w, pauseButton.h, 8);
   ctx.fill();
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
   ctx.lineWidth = 1;
@@ -532,15 +532,15 @@ function drawPauseButton() {
   if (game.paused) {
     // ▶ Play (resume)
     ctx.beginPath();
-    ctx.moveTo(pauseButton.x + 11, pauseButton.y + 8);
-    ctx.lineTo(pauseButton.x + 11, pauseButton.y + 24);
-    ctx.lineTo(pauseButton.x + 24, pauseButton.y + 16);
+    ctx.moveTo(pauseButton.x + 15, pauseButton.y + 11);
+    ctx.lineTo(pauseButton.x + 15, pauseButton.y + 33);
+    ctx.lineTo(pauseButton.x + 33, pauseButton.y + 22);
     ctx.closePath();
     ctx.fill();
   } else {
     // || Pause
-    ctx.fillRect(pauseButton.x + 10, pauseButton.y + 8, 4, 16);
-    ctx.fillRect(pauseButton.x + 18, pauseButton.y + 8, 4, 16);
+    ctx.fillRect(pauseButton.x + 13, pauseButton.y + 11, 5, 22);
+    ctx.fillRect(pauseButton.x + 26, pauseButton.y + 11, 5, 22);
   }
 }
 
