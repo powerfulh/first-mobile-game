@@ -1732,11 +1732,9 @@ scenes.playing = {
         }
         return;
       }
-      if (hitButton(towerInfoPanel, p)) {
-        return;
-      }
     }
 
+    // 타워 hit는 정보 패널 안 빈 영역보다 먼저 검사 — 패널에 가려진 타워도 선택 / 꾹 누름 삭제 가능
     for (const t of game.towers) {
       if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
         game.selectedTower = t;
@@ -1745,6 +1743,11 @@ scenes.playing = {
         return;
       }
     }
+
+    if (game.selectedTower && hitButton(towerInfoPanel, p)) {
+      return;
+    }
+
     if (game.selectedTower) {
       game.selectedTower = null;
       game.promotionChoiceOpen = false;
