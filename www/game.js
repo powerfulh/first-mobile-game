@@ -1676,7 +1676,7 @@ scenes.playing = {
       ctx.fillText(`빈 곳을 탭하여 타워 배치 (${TOWER.cost}G)`, LOGICAL_W / 2, LOGICAL_H - 12);
     }
 
-    drawPauseButton();
+    if (!game.selectedTower && !game.modal) drawPauseButton();
     if (game.paused) drawPausedOverlay();
 
     if (game.modal) {
@@ -1696,7 +1696,7 @@ scenes.playing = {
       return;
     }
 
-    if (hitButton(pauseButton, p)) {
+    if (!game.selectedTower && hitButton(pauseButton, p)) {
       game.paused = !game.paused;
       return;
     }
