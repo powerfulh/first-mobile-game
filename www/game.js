@@ -332,9 +332,6 @@ scenes.title = {
       ctx.globalAlpha = 1;
     }
 
-    ctx.fillStyle = '#666';
-    ctx.font = '11px sans-serif';
-    ctx.fillText('v0.1', LOGICAL_W / 2, 620);
   },
   pointerDown(p) {
     if (titleSave && hitButton(titleButtonsWithSave.continueBtn, p)) {
