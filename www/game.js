@@ -305,14 +305,19 @@ scenes.title = {
     drawPath(0.25);
 
     ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('PROMOTION', LOGICAL_W / 2, 162);
+
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 48px sans-serif';
-    ctx.fillText('TOWER', LOGICAL_W / 2, 200);
-    ctx.fillText('DEFENSE', LOGICAL_W / 2, 256);
+    ctx.fillText('TOWER', LOGICAL_W / 2, 210);
+    ctx.fillText('DEFENSE', LOGICAL_W / 2, 266);
 
     ctx.fillStyle = '#9ab39a';
     ctx.font = '13px sans-serif';
-    ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 286);
+    ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 296);
 
     const pulse = 0.5 + 0.5 * Math.sin(titleAnim * 3);
 
