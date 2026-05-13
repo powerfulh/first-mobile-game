@@ -1668,9 +1668,11 @@ scenes.playing = {
       }
     } else {
       ctx.textAlign = 'center';
-      ctx.fillStyle = game.gold >= TOWER.cost ? 'rgba(255,255,255,0.7)' : 'rgba(255,150,150,0.7)';
       ctx.font = '12px sans-serif';
-      ctx.fillText(`빈 곳을 탭하여 타워 배치 (${TOWER.cost}G)`, LOGICAL_W / 2, LOGICAL_H - 12);
+      ctx.fillStyle = game.gold >= TOWER.cost ? 'rgba(255,255,255,0.7)' : 'rgba(255,150,150,0.7)';
+      ctx.fillText(`빈 곳을 탭하여 타워 배치 (${TOWER.cost}G)`, LOGICAL_W / 2, LOGICAL_H - 28);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillText('타워를 꾹 눌러 삭제', LOGICAL_W / 2, LOGICAL_H - 12);
     }
 
     if (!game.selectedTower && !game.modal) drawPauseButton();
