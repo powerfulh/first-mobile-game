@@ -364,6 +364,7 @@ const game = {
   enemiesPerWave: 8,
   waveState: 'spawning',
   intermissionTimer: 0,
+  bossActive: false,
   selectedTower: null,
   promotionChoiceOpen: false,
   modal: null,
@@ -386,6 +387,7 @@ function resetGame() {
   game.enemiesPerWave = 8;
   game.waveState = 'spawning';
   game.intermissionTimer = 0;
+  game.bossActive = false;
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
   game.modal = null;
@@ -396,16 +398,24 @@ function resetGame() {
 function startNextWave() {
   game.wave++;
   game.enemiesPerWave += game.wave >= 80 ? 0 : game.wave >= 40 ? 1 : 2;
-  let interval = Math.max(0.5, game.spawnInterval - 0.08);
-  if (game.wave >= 10) {
-    // RNG narrowing — 웨이브마다 조밀도가 달라짐
-    // 임계 웨이브(10) 직후엔 변동폭을 좁게 시작해 21 웨이브에 걸쳐 wave 30까지 점진 확장
-    const ramp = Math.min(1, (game.wave - 9) / 21);
-    const minNarrow = 1.0 - ramp * 0.6; // wave 10: ~0.97, wave 30+: 0.40
-    const narrow = minNarrow + Math.random() * (1.0 - minNarrow);
-    interval *= narrow;
+
+  if (isBossWave(game.wave)) {
+    // 보스 웨이브: base interval의 절반으로 무한 스폰, RNG 미적용
+    game.spawnInterval = getBaseSpawnInterval(game.wave) / 2;
+    game.bossActive = true;
+    spawnBoss();
+  } else {
+    let interval = getBaseSpawnInterval(game.wave);
+    if (game.wave >= 10) {
+      const ramp = Math.min(1, (game.wave - 9) / 21);
+      const minNarrow = 1.0 - ramp * 0.6;
+      const narrow = minNarrow + Math.random() * (1.0 - minNarrow);
+      interval *= narrow;
+    }
+    game.spawnInterval = interval;
+    game.bossActive = false;
   }
-  game.spawnInterval = interval;
+
   game.spawnedThisWave = 0;
   game.spawnTimer = 0;
   game.waveState = 'spawning';
@@ -461,6 +471,7 @@ function loadGame(data) {
   game.spawnedThisWave = 0;
   game.waveState = 'spawning';
   game.intermissionTimer = 0;
+  game.bossActive = false;
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
   game.modal = null;
@@ -477,6 +488,12 @@ function loadGame(data) {
         totalDamage: td.totalDamage || 0,
       };
     });
+
+  // 보스 웨이브에서 저장된 상태라면 보스 다시 스폰
+  if (isBossWave(game.wave)) {
+    game.bossActive = true;
+    spawnBoss();
+  }
 }
 
 function getAirChance(wave) {
@@ -487,6 +504,67 @@ function getAirChance(wave) {
 function getAirHpRatio(wave) {
   if (wave < 30) return 0.6;
   return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
+}
+
+// ============ Boss wave helpers ============
+function isBossWave(wave) {
+  return wave > 0 && wave % 20 === 0;
+}
+
+function getBossType(wave) {
+  // 20=ground, 40=air, 60=ground, 80=air, ...
+  const idx = wave / 20;
+  return idx % 2 === 1 ? 'groundBoss' : 'airBoss';
+}
+
+function getEnemiesPerWaveAt(wave) {
+  if (wave <= 1) return 8;
+  if (wave <= 39) return 8 + 2 * (wave - 1);
+  if (wave <= 79) return wave + 45;
+  return 124;
+}
+
+function computeBaseHpAt(wave) {
+  let hpExtra = 0;
+  for (let i = 1; i <= 4; i++) {
+    hpExtra += Math.max(0, wave - i * 50) * 0.1;
+  }
+  return 2 + Math.floor((wave - 1) * 0.6 + hpExtra);
+}
+
+function computeBossHp(wave) {
+  const n = getEnemiesPerWaveAt(wave);
+  const baseHp = computeBaseHpAt(wave);
+  const airChance = getAirChance(wave);
+  const airHpRatio = getAirHpRatio(wave);
+  const avgHp = baseHp * ((1 - airChance) + airChance * airHpRatio);
+  return Math.round(n * avgHp);
+}
+
+function getBossReward(wave) {
+  return wave;
+}
+
+function getBaseSpawnInterval(wave) {
+  return Math.max(0.5, 1.2 - (wave - 1) * 0.08);
+}
+
+function spawnBoss() {
+  const type = getBossType(game.wave);
+  const bossHp = computeBossHp(game.wave);
+  const baseSpeed = 50 + (Math.min(100, game.wave) - 1) * 2;
+  game.enemies.push({
+    x: path[0].x,
+    y: path[0].y,
+    type,
+    speed: baseSpeed * 0.25,
+    segment: 0,
+    radius: 18,
+    hpMax: bossHp,
+    hp: bossHp,
+    bobPhase: Math.random() * Math.PI * 2,
+    isBoss: true,
+  });
 }
 
 const AIR_INTRO_KEY = 'td_seen_air_intro';
@@ -656,11 +734,7 @@ function drawBuffIntroModal() {
 
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
-  let hpExtra = 0;
-  for (let i = 1; i <= 4; i++) {
-    hpExtra += Math.max(0, game.wave - i * 50) * 0.1;
-  }
-  const baseHp = 2 + Math.floor((game.wave - 1) * 0.6 + hpExtra);
+  const baseHp = computeBaseHpAt(game.wave);
   const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
   const speed = 50 + (Math.min(100, game.wave) - 1) * 2;
   game.enemies.push({
@@ -710,7 +784,86 @@ function drawEnemyHpBar(e, cy) {
   ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW * ratio, barH);
 }
 
+function drawBossHpBar() {
+  if (!game.bossActive) return;
+  let boss = null;
+  for (const e of game.enemies) {
+    if (e.isBoss && !e.dead) { boss = e; break; }
+  }
+  if (!boss) return;
+
+  const bx = 20;
+  const by = 38;
+  const bw = LOGICAL_W - 40;
+  const bh = 14;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(bx, by, bw, bh);
+
+  const ratio = Math.max(0, boss.hp / boss.hpMax);
+  ctx.fillStyle = boss.type === 'airBoss' ? '#a569bd' : '#c0392b';
+  ctx.fillRect(bx, by, bw * ratio, bh);
+
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx, by, bw, bh);
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`BOSS  ${Math.ceil(Math.max(0, boss.hp))} / ${boss.hpMax}`, LOGICAL_W / 2, by + bh / 2);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawGroundBoss(e) {
+  ctx.fillStyle = '#922b21';
+  ctx.beginPath();
+  ctx.ellipse(e.x, e.y, e.radius * 1.2, e.radius * 0.85, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawAirBoss(e) {
+  const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 3;
+  const cx = e.x;
+  const cy = e.y + bobY - 4;
+  const r = e.radius;
+
+  // 날개 (가로 스텁)
+  ctx.fillStyle = '#5b2c6f';
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 1.3, cy - r * 0.05);
+  ctx.lineTo(cx + r * 1.3, cy - r * 0.05);
+  ctx.lineTo(cx + r * 1.0, cy + r * 0.25);
+  ctx.lineTo(cx - r * 1.0, cy + r * 0.25);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 본체 (아래 향한 삼각형 — 비행 방향)
+  ctx.fillStyle = '#7d3c98';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + r * 1.1);
+  ctx.lineTo(cx - r * 0.55, cy - r * 0.5);
+  ctx.lineTo(cx + r * 0.55, cy - r * 0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
 function drawEnemy(e) {
+  if (e.isBoss) {
+    if (e.type === 'groundBoss') drawGroundBoss(e);
+    else if (e.type === 'airBoss') drawAirBoss(e);
+    return;  // 보스는 HP 바를 몸 위가 아닌 고정 UI에 표시
+  }
   if (e.type === 'air') {
     const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
     const cy = e.y + bobY - 3;
@@ -1061,7 +1214,7 @@ function applyTowerHit(shooter, target, damage) {
   }
   if (target.hp <= 0) {
     target.dead = true;
-    game.gold += ENEMY_KILL_REWARD;
+    game.gold += target.isBoss ? getBossReward(game.wave) : ENEMY_KILL_REWARD;
   }
 }
 
@@ -1575,7 +1728,8 @@ scenes.playing = {
     }
     if (game.waveState === 'spawning') {
       game.spawnTimer += dt;
-      if (game.spawnTimer >= game.spawnInterval && game.spawnedThisWave < game.enemiesPerWave) {
+      const canSpawn = game.bossActive || game.spawnedThisWave < game.enemiesPerWave;
+      if (game.spawnTimer >= game.spawnInterval && canSpawn) {
         game.spawnTimer = 0;
         game.spawnedThisWave++;
         spawnEnemy();
@@ -1598,9 +1752,20 @@ scenes.playing = {
     game.beams = game.beams.filter(b => !b.dead);
     game.splashes = game.splashes.filter(s => !s.dead);
 
-    if (game.waveState === 'spawning' &&
-        game.spawnedThisWave >= game.enemiesPerWave &&
-        game.enemies.length === 0) {
+    let waveEnded = false;
+    if (game.waveState === 'spawning') {
+      if (game.bossActive) {
+        // 보스 웨이브: 보스가 죽거나 탈출하면 종료, 잔여 일반 적은 정리
+        if (!game.enemies.some(e => e.isBoss)) {
+          game.bossActive = false;
+          game.enemies = [];
+          waveEnded = true;
+        }
+      } else if (game.spawnedThisWave >= game.enemiesPerWave && game.enemies.length === 0) {
+        waveEnded = true;
+      }
+    }
+    if (waveEnded) {
       for (const t of game.towers) {
         if (canPromote(t)) {
           const gain = getXpGainAtWaveEnd(t);
@@ -1639,6 +1804,8 @@ scenes.playing = {
     for (const pr of game.projectiles) drawProjectile(pr);
     for (const b of game.beams) drawBeam(b);
     for (const s of game.splashes) drawSplash(s);
+
+    drawBossHpBar();
 
     if (game.holdDelete) {
       const progress = Math.min(1, game.holdDelete.accumulated / HOLD_DELETE_SECONDS);
