@@ -400,8 +400,8 @@ function startNextWave() {
   game.enemiesPerWave += game.wave >= 80 ? 0 : game.wave >= 40 ? 1 : 2;
 
   if (isBossWave(game.wave)) {
-    // 보스 웨이브: base interval의 절반으로 무한 스폰, RNG 미적용
-    game.spawnInterval = getBaseSpawnInterval(game.wave) / 2;
+    // 보스 웨이브: base interval의 두 배로 무한 스폰, RNG 미적용
+    game.spawnInterval = getBaseSpawnInterval(game.wave) * 2;
     game.bossActive = true;
     spawnBoss();
   } else {
@@ -514,7 +514,7 @@ function isBossWave(wave) {
 function getBossType(wave) {
   // 20=ground, 40=air, 60=ground, 80=air, ...
   const idx = wave / 20;
-  return idx % 2 === 1 ? 'groundBoss' : 'airBoss';
+  return idx % 2 === 1 ? 'ground' : 'air';
 }
 
 function getEnemiesPerWaveAt(wave) {
@@ -557,14 +557,18 @@ function spawnBoss() {
     x: path[0].x,
     y: path[0].y,
     type,
-    speed: baseSpeed * 0.25,
+    speed: baseSpeed * 0.1,
     segment: 0,
     radius: 18,
     hpMax: bossHp,
     hp: bossHp,
     bobPhase: Math.random() * Math.PI * 2,
     isBoss: true,
+    angle: Math.PI / 2,
   });
+  if (!game.modal && !hasSeenBossIntro()) {
+    game.modal = { type: 'bossIntro' };
+  }
 }
 
 const AIR_INTRO_KEY = 'td_seen_air_intro';
@@ -583,12 +587,25 @@ function setBuffIntroSeen() {
   try { localStorage.setItem(BUFF_INTRO_KEY, '1'); } catch (e) {}
 }
 
+const BOSS_INTRO_KEY = 'td_seen_boss_intro';
+function hasSeenBossIntro() {
+  try { return localStorage.getItem(BOSS_INTRO_KEY) === '1'; } catch (e) { return false; }
+}
+function setBossIntroSeen() {
+  try { localStorage.setItem(BOSS_INTRO_KEY, '1'); } catch (e) {}
+}
+
 const airIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
 
 const buffIntroModal = {
+  panel: { x: 20, y: 180, w: 320, h: 280 },
+  confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
+};
+
+const bossIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
@@ -732,6 +749,43 @@ function drawBuffIntroModal() {
   drawButton(buffIntroModal.confirmBtn, '확인');
 }
 
+function drawBossIntroModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = bossIntroModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#c0392b';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 샘플 보스 아이콘 (타원 — 진행 방향 동쪽 가정)
+  const iconCx = LOGICAL_W / 2;
+  const iconCy = p.y + 56;
+  ctx.fillStyle = '#922b21';
+  ctx.beginPath();
+  ctx.ellipse(iconCx, iconCy, 22, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('보스 등장!', iconCx, p.y + 108);
+
+  ctx.fillStyle = '#cdd';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('20 웨이브마다 보스가 등장합니다.', iconCx, p.y + 152);
+  ctx.fillText('일반 적보다 훨씬 단단하지만 느리게 이동합니다.', iconCx, p.y + 178);
+
+  drawButton(bossIntroModal.confirmBtn, '확인');
+}
+
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
   const baseHp = computeBaseHpAt(game.wave);
@@ -763,6 +817,9 @@ function updateEnemy(e, dt) {
   const dx = target.x - e.x;
   const dy = target.y - e.y;
   const dist = Math.hypot(dx, dy);
+  if (e.isBoss && dist > 0) {
+    e.angle = Math.atan2(dy, dx);
+  }
   const move = e.speed * getEnemySpeedFactor(e) * dt;
   if (move >= dist) {
     e.x = target.x;
@@ -801,7 +858,7 @@ function drawBossHpBar() {
   ctx.fillRect(bx, by, bw, bh);
 
   const ratio = Math.max(0, boss.hp / boss.hpMax);
-  ctx.fillStyle = boss.type === 'airBoss' ? '#a569bd' : '#c0392b';
+  ctx.fillStyle = boss.type === 'air' ? '#a569bd' : '#c0392b';
   ctx.fillRect(bx, by, bw * ratio, bh);
 
   ctx.strokeStyle = '#fff';
@@ -817,9 +874,10 @@ function drawBossHpBar() {
 }
 
 function drawGroundBoss(e) {
+  // 장축(rx)이 진행 방향과 정렬 — ellipse rotation 파라미터에 angle 직접 전달
   ctx.fillStyle = '#922b21';
   ctx.beginPath();
-  ctx.ellipse(e.x, e.y, e.radius * 1.2, e.radius * 0.85, 0, 0, Math.PI * 2);
+  ctx.ellipse(e.x, e.y, e.radius * 1.2, e.radius * 0.85, e.angle || 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
@@ -828,40 +886,45 @@ function drawGroundBoss(e) {
 
 function drawAirBoss(e) {
   const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 3;
-  const cx = e.x;
-  const cy = e.y + bobY - 4;
   const r = e.radius;
 
-  // 날개 (가로 스텁)
+  ctx.save();
+  ctx.translate(e.x, e.y + bobY - 4);
+  // 로컬 +y가 "전방"이므로 angle - π/2 만큼 회전
+  ctx.rotate((e.angle || Math.PI / 2) - Math.PI / 2);
+
+  // 날개 (전방 축에 수직)
   ctx.fillStyle = '#5b2c6f';
   ctx.beginPath();
-  ctx.moveTo(cx - r * 1.3, cy - r * 0.05);
-  ctx.lineTo(cx + r * 1.3, cy - r * 0.05);
-  ctx.lineTo(cx + r * 1.0, cy + r * 0.25);
-  ctx.lineTo(cx - r * 1.0, cy + r * 0.25);
+  ctx.moveTo(-r * 1.3, -r * 0.05);
+  ctx.lineTo(r * 1.3, -r * 0.05);
+  ctx.lineTo(r * 1.0, r * 0.25);
+  ctx.lineTo(-r * 1.0, r * 0.25);
   ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // 본체 (아래 향한 삼각형 — 비행 방향)
+  // 본체 (로컬 +y가 전방)
   ctx.fillStyle = '#7d3c98';
   ctx.beginPath();
-  ctx.moveTo(cx, cy + r * 1.1);
-  ctx.lineTo(cx - r * 0.55, cy - r * 0.5);
-  ctx.lineTo(cx + r * 0.55, cy - r * 0.5);
+  ctx.moveTo(0, r * 1.1);
+  ctx.lineTo(-r * 0.55, -r * 0.5);
+  ctx.lineTo(r * 0.55, -r * 0.5);
   ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
   ctx.stroke();
+
+  ctx.restore();
 }
 
 function drawEnemy(e) {
   if (e.isBoss) {
-    if (e.type === 'groundBoss') drawGroundBoss(e);
-    else if (e.type === 'airBoss') drawAirBoss(e);
+    if (e.type === 'ground') drawGroundBoss(e);
+    else if (e.type === 'air') drawAirBoss(e);
     return;  // 보스는 HP 바를 몸 위가 아닌 고정 UI에 표시
   }
   if (e.type === 'air') {
@@ -1214,7 +1277,11 @@ function applyTowerHit(shooter, target, damage) {
   }
   if (target.hp <= 0) {
     target.dead = true;
-    game.gold += target.isBoss ? getBossReward(game.wave) : ENEMY_KILL_REWARD;
+    if (target.isBoss) {
+      game.gold += getBossReward(game.wave);
+    } else if (!game.bossActive) {
+      game.gold += ENEMY_KILL_REWARD;
+    }
   }
 }
 
@@ -1848,6 +1915,7 @@ scenes.playing = {
     if (game.modal) {
       if (game.modal.type === 'airIntro') drawAirIntroModal();
       else if (game.modal.type === 'buffIntro') drawBuffIntroModal();
+      else if (game.modal.type === 'bossIntro') drawBossIntroModal();
     }
   },
   pointerDown(p) {
@@ -1857,6 +1925,9 @@ scenes.playing = {
         game.modal = null;
       } else if (game.modal.type === 'buffIntro' && hitButton(buffIntroModal.confirmBtn, p)) {
         setBuffIntroSeen();
+        game.modal = null;
+      } else if (game.modal.type === 'bossIntro' && hitButton(bossIntroModal.confirmBtn, p)) {
+        setBossIntroSeen();
         game.modal = null;
       }
       return;
