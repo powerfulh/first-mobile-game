@@ -45,7 +45,7 @@ const TOWER = {
   projectileSpeed: 280,
   promotionCosts: [125, 250, 1000], // [t0→t1, t1→t2, t2→t3]
   xpThresholds:   [20,  40,  200],  // 같은 인덱스
-  buffRates:      [0.05, 0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t0, t1, t2, t3)에 적용
+  buffRates:      [0.10, 0.10, 0.20, 0.30], // 버프 받는 타워의 티어(t0, t1, t2, t3)에 적용
   maxTier: 3, // t0→t1→t2→t3 (탱크 라인부터)
 };
 
@@ -649,7 +649,7 @@ function drawBuffIntroModal() {
 
   ctx.fillStyle = '#d4ac0d';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText('T0 +5%   T1 +10%   T2 +20%   T3 +30%', iconCx, p.y + 218);
+  ctx.fillText('T0 +10%   T1 +10%   T2 +20%   T3 +30%', iconCx, p.y + 218);
 
   drawButton(buffIntroModal.confirmBtn, '확인');
 }
