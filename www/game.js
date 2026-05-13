@@ -395,7 +395,7 @@ function resetGame() {
 
 function startNextWave() {
   game.wave++;
-  game.enemiesPerWave += game.wave >= 40 ? 1 : 2;
+  game.enemiesPerWave += game.wave >= 80 ? 0 : game.wave >= 40 ? 1 : 2;
   let interval = Math.max(0.5, game.spawnInterval - 0.08);
   if (game.wave >= 10) {
     // RNG narrowing — 웨이브마다 조밀도가 달라짐
@@ -662,7 +662,7 @@ function spawnEnemy() {
   }
   const baseHp = 2 + Math.floor((game.wave - 1) * 0.6 + hpExtra);
   const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
-  const speed = 50 + (game.wave - 1) * 2;
+  const speed = 50 + (Math.min(100, game.wave) - 1) * 2;
   game.enemies.push({
     x: path[0].x,
     y: path[0].y,
