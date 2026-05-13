@@ -126,7 +126,7 @@ const TOWER_ROLES = {
   eagle: {
     name: '이글', tagline: '공중 전담 · 빠른 사격',
     color: '#2874a6', color2: '#1f618d',
-    range: 140, fireRate: 2.4, damage: 2.4,
+    range: 140, fireRate: 2.4, damage: 2.8,
     attackTypes: ['air'], splash: 0,
     promotions: ['skydoom', 'interceptor'],
   },
