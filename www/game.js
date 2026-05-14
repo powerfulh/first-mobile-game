@@ -72,10 +72,10 @@ const TOWER_ROLES = {
     promotions: ['eagle', 'filder'],
   },
   tank: {
-    name: '탱크', tagline: '범위 공격 · 지상 (반경 40)',
+    name: '탱크', tagline: '범위 공격 · 지상 (반경 50)',
     color: '#7e5109', color2: '#4a2810',
     range: 90, fireRate: 0.8, damage: 5,
-    attackTypes: ['ground'], splash: 40,
+    attackTypes: ['ground'], splash: 50,
     promotions: ['whale', 'trap'],
   },
   whale: {
@@ -131,10 +131,10 @@ const TOWER_ROLES = {
     promotions: ['skydoom', 'interceptor'],
   },
   skydoom: {
-    name: '스카이둠', tagline: '광역 공중 폭격 · 반경 40',
+    name: '스카이둠', tagline: '광역 공중 폭격 · 반경 50',
     color: '#1f3a5f', color2: '#0c1c30',
     range: 140, fireRate: 2.4, damage: 4,
-    attackTypes: ['air'], splash: 40,
+    attackTypes: ['air'], splash: 50,
     promotions: [],
   },
   interceptor: {
