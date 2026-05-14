@@ -1,4 +1,4 @@
-package com.powerful.ptd;
+package com.powerful.promotd;
 
 import com.getcapacitor.BridgeActivity;
 

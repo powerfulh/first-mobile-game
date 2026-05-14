@@ -7,7 +7,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.powerful.ptd"
+    namespace = "com.powerful.promotd"
     compileSdk = rootProject.ext.compileSdkVersion
     signingConfigs {
         release {
@@ -20,7 +20,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId "com.powerful.ptd"
+        applicationId "com.powerful.promotd"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1       // 정수, Play Store 업로드 시마다 +1 (재사용 불가)
