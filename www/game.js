@@ -877,7 +877,7 @@ function drawGroundBoss(e) {
   // 장축(rx)이 진행 방향과 정렬 — ellipse rotation 파라미터에 angle 직접 전달
   ctx.fillStyle = '#922b21';
   ctx.beginPath();
-  ctx.ellipse(e.x, e.y, e.radius * 1.2, e.radius * 0.85, e.angle || 0, 0, Math.PI * 2);
+  ctx.ellipse(e.x, e.y, e.radius * 1.2, e.radius * 0.85, e.angle, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
@@ -891,7 +891,7 @@ function drawAirBoss(e) {
   ctx.save();
   ctx.translate(e.x, e.y + bobY - 4);
   // 로컬 +y가 "전방"이므로 angle - π/2 만큼 회전
-  ctx.rotate((e.angle || Math.PI / 2) - Math.PI / 2);
+  ctx.rotate(e.angle - Math.PI / 2);
 
   // 날개 (전방 축에 수직)
   ctx.fillStyle = '#5b2c6f';
