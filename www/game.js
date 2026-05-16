@@ -1851,7 +1851,7 @@ scenes.playing = {
         }
       }
       game.waveState = 'intermission';
-      game.intermissionTimer = 3;
+      game.intermissionTimer = game.wave >= 20 ? 2 : 3;
     }
 
     updateHUD();
