@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>스토어 자산 생성기</title>
+<style>
+  body { margin: 24px; background: #1a1a1a; color: #ddd; font-family: -apple-system, "Segoe UI", sans-serif; }
+  h1 { margin-top: 0; }
+  .asset { margin-bottom: 36px; padding: 16px; background: #252525; border-radius: 8px; }
+  h2 { margin: 0 0 8px; font-size: 18px; }
+  canvas { display: block; background: #000; margin: 12px 0; max-width: 100%; height: auto; }
+  button { padding: 8px 16px; background: #3498db; color: #fff; border: 0; border-radius: 4px; cursor: pointer; font-size: 14px; }
+  button:hover { background: #2980b9; }
+  .spec { color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>전직 타워 디펜스 — 스토어 자산</h1>
+
+  <div class="asset">
+    <h2>앱 아이콘</h2>
+    <div class="spec">512 × 512 PNG (32-bit, alpha 가능)</div>
+    <canvas id="icon" width="512" height="512"></canvas>
+    <button onclick="download('icon', 'icon-512.png', 'image/png')">앱 아이콘 PNG 다운로드</button>
+  </div>
+
+  <div class="asset">
+    <h2>피처 그래픽</h2>
+    <div class="spec">1024 × 500 JPG (24-bit, alpha 없음)</div>
+    <canvas id="feature" width="1024" height="500"></canvas>
+    <button onclick="download('feature', 'feature-1024x500.jpg', 'image/jpeg', 0.92)">피처 그래픽 JPG 다운로드</button>
+  </div>
+
+<script>
+function download(id, filename, mime, quality) {
+  const canvas = document.getElementById(id);
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, mime, quality);
+}
+
+// ============ App Icon (512x512) ============
+(function drawIcon() {
+  const ctx = document.getElementById('icon').getContext('2d');
+
+  // 배경 그라데이션
+  const bg = ctx.createLinearGradient(0, 0, 0, 512);
+  bg.addColorStop(0, '#1a2e1a');
+  bg.addColorStop(1, '#2d4a2b');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 512, 512);
+
+  // 부드러운 중앙 하이라이트
+  const hl = ctx.createRadialGradient(256, 220, 0, 256, 220, 320);
+  hl.addColorStop(0, 'rgba(255,255,255,0.10)');
+  hl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = hl;
+  ctx.fillRect(0, 0, 512, 512);
+
+  // 적 (좌상단 보라 삼각형)
+  ctx.fillStyle = '#a569bd';
+  ctx.beginPath();
+  ctx.moveTo(170, 130);
+  ctx.lineTo(130, 195);
+  ctx.lineTo(210, 195);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // 적 (우상단 빨강 원)
+  ctx.fillStyle = '#c0392b';
+  ctx.beginPath();
+  ctx.arc(370, 165, 38, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // 타워 (육각형, 필더 컨셉)
+  const tx = 256, ty = 360;
+  const r = 95;
+  ctx.fillStyle = '#52be80';
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3 - Math.PI / 2;
+    const px = tx + r * Math.cos(a);
+    const py = ty + r * Math.sin(a);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#239b56';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+
+  // 중앙 발광 코어
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.7;
+  ctx.beginPath();
+  ctx.arc(tx, ty, r * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // 빔 (좌상단 적까지)
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#52be80';
+  ctx.lineWidth = 18;
+  ctx.globalAlpha = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(170, 165);
+  ctx.stroke();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(170, 165);
+  ctx.stroke();
+
+  // 빔 (우상단 적까지)
+  ctx.strokeStyle = '#52be80';
+  ctx.lineWidth = 18;
+  ctx.globalAlpha = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(370, 165);
+  ctx.stroke();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(370, 165);
+  ctx.stroke();
+})();
+
+// ============ Feature Graphic (1024x500) ============
+(function drawFeature() {
+  const ctx = document.getElementById('feature').getContext('2d');
+
+  // 배경
+  const bg = ctx.createLinearGradient(0, 0, 0, 500);
+  bg.addColorStop(0, '#1a2e1a');
+  bg.addColorStop(1, '#2d4a2b');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1024, 500);
+
+  // 부드러운 비네팅
+  const vig = ctx.createRadialGradient(512, 250, 100, 512, 250, 700);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, 1024, 500);
+
+  // 경로 (지그재그)
+  ctx.strokeStyle = 'rgba(138, 122, 90, 0.55)';
+  ctx.lineWidth = 42;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(580, 0);
+  ctx.lineTo(580, 130);
+  ctx.lineTo(820, 130);
+  ctx.lineTo(820, 320);
+  ctx.lineTo(620, 320);
+  ctx.lineTo(620, 460);
+  ctx.lineTo(880, 460);
+  ctx.lineTo(880, 500);
+  ctx.stroke();
+
+  // 타워들
+  function cannon(x, y, color, color2, angle) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = color2;
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = color2;
+    ctx.fillRect(0, -7, 38, 14);
+    ctx.restore();
+  }
+  cannon(700, 80, '#3498db', '#1a5680', Math.PI / 2);
+  cannon(720, 220, '#5d6d7e', '#212f3d', -Math.PI / 2);
+  cannon(560, 380, '#7e5109', '#4a2810', Math.PI / 6);
+  cannon(940, 420, '#16a085', '#0e6655', -Math.PI / 2);
+
+  // 적들
+  function ground(x, y) {
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  function air(x, y) {
+    ctx.fillStyle = '#a569bd';
+    ctx.beginPath();
+    ctx.moveTo(x, y - 18);
+    ctx.lineTo(x - 16, y + 11);
+    ctx.lineTo(x + 16, y + 11);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  ground(580, 60);
+  ground(670, 130);
+  air(820, 270);
+  ground(670, 320);
+  ground(880, 460);
+
+  // 제목 — 왼쪽
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 76px sans-serif';
+  ctx.fillText('전직 타워', 60, 200);
+  ctx.fillText('디펜스', 60, 285);
+
+  // 태그라인
+  ctx.fillStyle = '#9ab39a';
+  ctx.font = '24px sans-serif';
+  ctx.fillText('Offline Tower Defense', 64, 330);
+  ctx.fillText('16종의 타워, 4단계 전직 시스템', 64, 362);
+})();
+</script>
+</body>
+</html>
