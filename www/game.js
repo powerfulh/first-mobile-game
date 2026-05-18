@@ -509,10 +509,10 @@ function getAirHpRatio(wave) {
 function getShieldChance(wave) {
   if (wave < 70) return 0;
   // 현재 웨이브의 spawnInterval 기반 — 조밀할수록 (interval 짧을수록) 낮은 확률
-  // Wave 30+ RNG 풀 범위: 0.2 ~ 0.5초 → 1% ~ 10% 매핑 (반비례)
+  // Wave 30+ RNG 풀 범위: 0.2 ~ 0.5초 → 1% ~ 20% 매핑 (반비례)
   const interval = game.spawnInterval;
   const ratio = Math.max(0, Math.min(1, (interval - 0.2) / (0.5 - 0.2)));
-  return 0.01 + ratio * 0.09;
+  return 0.01 + ratio * 0.19;
 }
 
 // ============ Boss wave helpers ============
@@ -1341,13 +1341,15 @@ function drawBeam(b) {
 
 function applyTowerHit(shooter, target, damage) {
   if (!target || target.dead) return;
-  const effective = target.shielded ? Math.max(0, damage - 1) : damage;
-  const dealt = Math.min(effective, target.hp);
+  const effective = target.shielded ? Math.max(0, damage - 3) : damage;
+  const hpBefore = target.hp;
+  const dealt = Math.min(effective, hpBefore);
+  const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시
   target.hp -= effective;
   if (shooter) {
     shooter.totalDamage = Math.round(((shooter.totalDamage || 0) + dealt) * 10) / 10;
     if (canPromote(shooter)) {
-      const next = Math.round((shooter.xp + dealt) * 10) / 10;
+      const next = Math.round((shooter.xp + xpGain) * 10) / 10;
       shooter.xp = Math.min(next, xpMaxFor(shooter));
     }
   }
