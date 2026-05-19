@@ -509,10 +509,13 @@ function getAirHpRatio(wave) {
 function getShieldChance(wave) {
   if (wave < 70) return 0;
   // 현재 웨이브의 spawnInterval 기반 — 조밀할수록 (interval 짧을수록) 낮은 확률
-  // Wave 30+ RNG 풀 범위: 0.2 ~ 0.5초 → 1% ~ 20% 매핑 (반비례)
+  // Wave 70~80: 1% ~ 20% 매핑
+  // Wave 81~90: 상한이 점진적으로 20% → 40%로 확장 (단계당 +2%)
+  // Wave 90+: 상한 40% 고정
   const interval = game.spawnInterval;
   const ratio = Math.max(0, Math.min(1, (interval - 0.2) / (0.5 - 0.2)));
-  return 0.01 + ratio * 0.19;
+  const bonus = Math.min(0.2, Math.max(0, (wave - 80) * 0.02));
+  return 0.01 + ratio * (0.19 + bonus);
 }
 
 // ============ Boss wave helpers ============

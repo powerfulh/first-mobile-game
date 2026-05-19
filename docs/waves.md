@@ -36,9 +36,11 @@
 
 ### Wave 70 ~: 방어막 적 등장
 - 첫 방어막 적 스폰 시 안내 모달 (디바이스당 1회, `localStorage['td_seen_shield_intro']`)
-- 출현 확률 범위: **1% ~ 20%**, 현재 웨이브 `spawnInterval` 기반 **반비례** 매핑
-  - spawnInterval 0.5초 (sparse) → 20%
+- 출현 확률 범위: **1% ~ 20%** (Wave 70~80), 현재 웨이브 `spawnInterval` 기반 **반비례** 매핑
+  - spawnInterval 0.5초 (sparse) → 상한
   - spawnInterval 0.2초 (dense) → 1%
+- Wave 81~90: 상한이 점진적으로 20% → 40%로 확장 (단계당 +2%)
+- Wave 90+: 상한 40% 고정
 - 방어막 적은 받는 데미지가 감소 (현재 -3 고정값)
 - 시각 구분: 테두리 청록색 + 두꺼운 stroke, HP 바 청록색
 - 보스는 적용 안 됨
