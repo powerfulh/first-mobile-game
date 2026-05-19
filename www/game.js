@@ -506,6 +506,18 @@ function getAirHpRatio(wave) {
   return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
 }
 
+function getShieldChance(wave) {
+  if (wave < 70) return 0;
+  // 현재 웨이브의 spawnInterval 기반 — 조밀할수록 (interval 짧을수록) 낮은 확률
+  // Wave 70~80: 1% ~ 20% 매핑
+  // Wave 81~90: 상한이 점진적으로 20% → 40%로 확장 (단계당 +2%)
+  // Wave 90+: 상한 40% 고정
+  const interval = game.spawnInterval;
+  const ratio = Math.max(0, Math.min(1, (interval - 0.2) / (0.5 - 0.2)));
+  const bonus = Math.min(0.2, Math.max(0, (wave - 80) * 0.02));
+  return 0.01 + ratio * (0.19 + bonus);
+}
+
 // ============ Boss wave helpers ============
 function isBossWave(wave) {
   return wave > 0 && wave % 20 === 0;
@@ -595,6 +607,14 @@ function setBossIntroSeen() {
   try { localStorage.setItem(BOSS_INTRO_KEY, '1'); } catch (e) {}
 }
 
+const SHIELD_INTRO_KEY = 'td_seen_shield_intro';
+function hasSeenShieldIntro() {
+  try { return localStorage.getItem(SHIELD_INTRO_KEY) === '1'; } catch (e) { return false; }
+}
+function setShieldIntroSeen() {
+  try { localStorage.setItem(SHIELD_INTRO_KEY, '1'); } catch (e) {}
+}
+
 const airIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
@@ -606,6 +626,11 @@ const buffIntroModal = {
 };
 
 const bossIntroModal = {
+  panel: { x: 20, y: 180, w: 320, h: 280 },
+  confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
+};
+
+const shieldIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
@@ -786,8 +811,46 @@ function drawBossIntroModal() {
   drawButton(bossIntroModal.confirmBtn, '확인');
 }
 
+function drawShieldIntroModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = shieldIntroModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 샘플 방어막 적 (빨간 원 + 청록 테두리)
+  const iconCx = LOGICAL_W / 2;
+  const iconCy = p.y + 56;
+  ctx.fillStyle = '#c0392b';
+  ctx.beginPath();
+  ctx.arc(iconCx, iconCy, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('방어막 적 등장!', iconCx, p.y + 108);
+
+  ctx.fillStyle = '#cdd';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('일부 적이 방어막을 두르고 등장합니다.', iconCx, p.y + 152);
+  ctx.fillText('받는 데미지가 감소합니다.', iconCx, p.y + 178);
+
+  drawButton(shieldIntroModal.confirmBtn, '확인');
+}
+
 function spawnEnemy() {
   const isAir = Math.random() < getAirChance(game.wave);
+  const shielded = Math.random() < getShieldChance(game.wave);
   const baseHp = computeBaseHpAt(game.wave);
   const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
   const speed = 50 + (Math.min(100, game.wave) - 1) * 2;
@@ -801,9 +864,13 @@ function spawnEnemy() {
     hpMax: hp,
     hp: hp,
     bobPhase: Math.random() * Math.PI * 2,
+    shielded,
   });
   if (isAir && !game.modal && !hasSeenAirIntro()) {
     game.modal = { type: 'airIntro' };
+  }
+  if (shielded && !game.modal && !hasSeenShieldIntro()) {
+    game.modal = { type: 'shieldIntro' };
   }
 }
 
@@ -837,7 +904,7 @@ function drawEnemyHpBar(e, cy) {
   const ratio = e.hp / e.hpMax;
   ctx.fillStyle = '#000';
   ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW, barH);
-  ctx.fillStyle = '#2ecc71';
+  ctx.fillStyle = e.shielded ? '#5dade2' : '#2ecc71';
   ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW * ratio, barH);
 }
 
@@ -939,8 +1006,8 @@ function drawEnemy(e) {
     ctx.lineTo(e.x + r * 0.9, cy + r * 0.6);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
+    ctx.lineWidth = e.shielded ? 2 : 1;
     ctx.stroke();
 
     drawEnemyHpBar(e, cy);
@@ -949,8 +1016,8 @@ function drawEnemy(e) {
     ctx.beginPath();
     ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
+    ctx.lineWidth = e.shielded ? 2 : 1;
     ctx.stroke();
 
     drawEnemyHpBar(e, e.y);
@@ -1277,12 +1344,15 @@ function drawBeam(b) {
 
 function applyTowerHit(shooter, target, damage) {
   if (!target || target.dead) return;
-  const dealt = Math.min(damage, target.hp);
-  target.hp -= damage;
+  const effective = target.shielded ? Math.max(0, damage - 3) : damage;
+  const hpBefore = target.hp;
+  const dealt = Math.min(effective, hpBefore);
+  const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시
+  target.hp -= effective;
   if (shooter) {
     shooter.totalDamage = Math.round(((shooter.totalDamage || 0) + dealt) * 10) / 10;
     if (canPromote(shooter)) {
-      const next = Math.round((shooter.xp + dealt) * 10) / 10;
+      const next = Math.round((shooter.xp + xpGain) * 10) / 10;
       shooter.xp = Math.min(next, xpMaxFor(shooter));
     }
   }
@@ -1927,6 +1997,7 @@ scenes.playing = {
       if (game.modal.type === 'airIntro') drawAirIntroModal();
       else if (game.modal.type === 'buffIntro') drawBuffIntroModal();
       else if (game.modal.type === 'bossIntro') drawBossIntroModal();
+      else if (game.modal.type === 'shieldIntro') drawShieldIntroModal();
     }
   },
   pointerDown(p) {
@@ -1939,6 +2010,9 @@ scenes.playing = {
         game.modal = null;
       } else if (game.modal.type === 'bossIntro' && hitButton(bossIntroModal.confirmBtn, p)) {
         setBossIntroSeen();
+        game.modal = null;
+      } else if (game.modal.type === 'shieldIntro' && hitButton(shieldIntroModal.confirmBtn, p)) {
+        setShieldIntroSeen();
         game.modal = null;
       }
       return;
