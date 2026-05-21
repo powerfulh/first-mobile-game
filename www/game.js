@@ -133,7 +133,7 @@ const TOWER_ROLES = {
   skydoom: {
     name: '스카이둠', tagline: '광역 공중 폭격 · 반경 50',
     color: '#1f3a5f', color2: '#0c1c30',
-    range: 140, fireRate: 2.4, damage: 4,
+    range: 140, fireRate: 2.4, damage: 5,
     attackTypes: ['air'], splash: 50,
     promotions: [],
   },
@@ -1344,7 +1344,8 @@ function drawBeam(b) {
 
 function applyTowerHit(shooter, target, damage) {
   if (!target || target.dead) return;
-  const effective = target.shielded ? Math.max(0, damage - 3) : damage;
+  const shieldReduction = game.wave >= 151 ? 4 : 3;
+  const effective = target.shielded ? Math.max(0, damage - shieldReduction) : damage;
   const hpBefore = target.hp;
   const dealt = Math.min(effective, hpBefore);
   const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시
