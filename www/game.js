@@ -1925,17 +1925,15 @@ scenes.playing = {
       game.intermissionTimer = game.wave >= 20 ? 2 : 3;
     }
 
-    updateHUD();
-
     if (game.hp <= 0) {
       game.hp = 0;
       game.selectedTower = null;
       game.promotionChoiceOpen = false;
-      updateHUD();
       changeScene('gameOver');
     }
   },
   draw() {
+    updateHUD();
     ctx.fillStyle = '#2d4a2b';
     ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
     drawPath();
