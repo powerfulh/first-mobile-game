@@ -1922,7 +1922,7 @@ scenes.playing = {
         }
       }
       game.waveState = 'intermission';
-      game.intermissionTimer = game.wave >= 20 ? 2 : 3;
+      game.intermissionTimer = game.wave >= 40 ? 1 : game.wave >= 20 ? 2 : 3;
     }
 
     if (game.hp <= 0) {
