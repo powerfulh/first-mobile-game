@@ -1852,7 +1852,7 @@ function drawProjectile(p) {
 
 function updateHUD() {
   hpEl.textContent = `HP: ${game.hp}`;
-  goldEl.textContent = `Gold: ${game.gold}`;
+  goldEl.textContent = `Gold: ${game.gold}${game.bossActive ? ' 🔒' : ''}`;
   waveEl.textContent = `Wave: ${game.wave}`;
 }
 
