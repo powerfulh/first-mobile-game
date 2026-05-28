@@ -20,8 +20,8 @@ import {
   xpMaxFor, getXpGainAtWaveEnd,
 } from './tower.js';
 import {
-  updateProjectile, updateBeam, updateSplash,
-  drawProjectile, drawBeam, drawSplash,
+  updateProjectile, updateBeam, updateSplash, updateZap,
+  drawProjectile, drawBeam, drawSplash, drawZap,
 } from './attack.js';
 import { startNextWave } from './wave.js';
 import {
@@ -168,11 +168,13 @@ scenes.playing = {
     for (const p of game.projectiles) updateProjectile(p, dt);
     for (const b of game.beams) updateBeam(b, dt);
     for (const s of game.splashes) updateSplash(s, dt);
+    for (const z of game.zaps) updateZap(z, dt);
 
     game.enemies = game.enemies.filter(e => !e.dead);
     game.projectiles = game.projectiles.filter(p => !p.dead);
     game.beams = game.beams.filter(b => !b.dead);
     game.splashes = game.splashes.filter(s => !s.dead);
+    game.zaps = game.zaps.filter(z => !z.dead);
 
     let waveEnded = false;
     if (game.waveState === 'spawning') {
@@ -223,6 +225,7 @@ scenes.playing = {
     for (const pr of game.projectiles) drawProjectile(pr);
     for (const b of game.beams) drawBeam(b);
     for (const s of game.splashes) drawSplash(s);
+    for (const z of game.zaps) drawZap(z);
 
     drawBossHpBar();
 

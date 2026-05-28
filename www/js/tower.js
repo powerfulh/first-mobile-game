@@ -6,7 +6,7 @@ import {
 import { game, hasSeenBuffIntro } from './state.js';
 import { distanceToPath, roundRect, drawCloseX } from './helpers.js';
 import {
-  applyTowerHit, fireInstantBeam, fireLineBeam,
+  applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 
 // ============ Promotion / XP helpers ============
@@ -216,12 +216,7 @@ export function updateTower(t, dt) {
             applyTowerHit(t, e, damage);
           }
         }
-        game.splashes.push({
-          x: t.x, y: t.y,
-          radius: range,
-          life: 0.5, maxLife: 0.5,
-          color: cfg.color,
-        });
+        spawnZap(t.x, t.y, range, cfg.color);
       } else if (cfg.instantHit) {
         if (cfg.pierces) {
           fireLineBeam(t, target, damage);

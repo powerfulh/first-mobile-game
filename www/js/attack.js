@@ -152,6 +152,70 @@ export function updateSplash(s, dt) {
   if (s.life <= 0) s.dead = true;
 }
 
+export function spawnZap(x, y, radius, color) {
+  const boltCount = 7;
+  const bolts = [];
+  for (let i = 0; i < boltCount; i++) {
+    const angle = (Math.PI * 2 * i / boltCount) + (Math.random() - 0.5) * 0.45;
+    const reach = radius * (0.85 + Math.random() * 0.15);
+    const perpX = -Math.sin(angle);
+    const perpY = Math.cos(angle);
+    const segments = 5;
+    const points = [];
+    for (let s = 1; s <= segments; s++) {
+      const t = s / segments;
+      const baseX = x + Math.cos(angle) * reach * t;
+      const baseY = y + Math.sin(angle) * reach * t;
+      const offset = (s === segments ? 0 : (Math.random() - 0.5) * reach * 0.16);
+      points.push({ x: baseX + perpX * offset, y: baseY + perpY * offset });
+    }
+    bolts.push(points);
+  }
+  game.zaps.push({
+    x, y, color, bolts,
+    life: 0.25, maxLife: 0.25,
+  });
+}
+
+export function updateZap(z, dt) {
+  z.life -= dt;
+  if (z.life <= 0) z.dead = true;
+}
+
+export function drawZap(z) {
+  const alpha = Math.max(0, z.life / z.maxLife);
+
+  // 중앙 발광
+  ctx.globalAlpha = alpha * 0.7;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(z.x, z.y, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 전기 볼트
+  for (const points of z.bolts) {
+    ctx.beginPath();
+    ctx.moveTo(z.x, z.y);
+    for (const pt of points) ctx.lineTo(pt.x, pt.y);
+
+    // 외곽 광채 (타워 색)
+    ctx.globalAlpha = alpha * 0.55;
+    ctx.strokeStyle = z.color;
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // 내부 코어 (흰색)
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+}
+
 export function drawProjectile(p) {
   ctx.fillStyle = '#f1c40f';
   ctx.beginPath();
