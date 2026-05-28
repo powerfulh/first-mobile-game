@@ -12,9 +12,11 @@ export function startNextWave() {
     spawnBoss();
   } else {
     let interval = getBaseSpawnInterval(game.wave);
-    if (game.wave >= 10) {
-      const ramp = Math.min(1, (game.wave - 9) / 21);
-      const minNarrow = 1.0 - ramp * 0.6;
+    if (game.wave >= 11) {
+      const ramp = Math.min(1, (game.wave - 10) / 20);
+      // Wave 101~110: 매 웨이브 minNarrow를 추가로 -0.01씩 (총 -0.10까지)
+      const extraReduction = Math.min(0.10, Math.max(0, game.wave - 100) * 0.01);
+      const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction);
       const narrow = minNarrow + Math.random() * (1.0 - minNarrow);
       interval *= narrow;
     }

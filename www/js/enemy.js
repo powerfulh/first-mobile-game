@@ -10,7 +10,7 @@ export function getAirChance(wave) {
 }
 
 export function getAirHpRatio(wave) {
-  if (wave < 30) return 0.6;
+  if (wave < 31) return 0.6;
   return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
 }
 
@@ -18,11 +18,13 @@ export function getShieldChance(wave) {
   if (wave < 70) return 0;
   // Wave 70~80: 1% ~ 20% (spawnInterval 기반 반비례)
   // Wave 81~90: 상한이 점진적으로 20% → 40% 확장
-  // Wave 90+: 상한 40% 고정
+  // Wave 90~100: 상한 40% 고정
+  // Wave 101~110: 상한이 매 웨이브 +1%씩 추가 확장 → 최종 50%
   const interval = game.spawnInterval;
   const ratio = Math.max(0, Math.min(1, (interval - 0.2) / (0.5 - 0.2)));
   const bonus = Math.min(0.2, Math.max(0, (wave - 80) * 0.02));
-  return 0.01 + ratio * (0.19 + bonus);
+  const extraBonus = Math.min(0.10, Math.max(0, (wave - 100) * 0.01));
+  return 0.01 + ratio * (0.19 + bonus + extraBonus);
 }
 
 // ============ Boss wave helpers ============
