@@ -160,6 +160,10 @@ export const TOWER_ROLES = {
     promotions: [],
     areaSweep: true,
     marksEnemies: true,
+    description: [
+      '적을 감지하여 사거리와 상관없이 공격할 수 있게 합니다',
+      '비콘의 버프 능력을 잃습니다',
+    ],
   },
 };
 

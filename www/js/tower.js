@@ -545,6 +545,8 @@ export const promotionCardSlots = [
   { x: 24, y: 432, w: 312, h: 84 },
   { x: 24, y: 526, w: 312, h: 84 },
 ];
+// 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
+export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
 // 정보 카드 전직 버튼의 현재 상태 (라벨 + 활성/액션 종류)
 // action: 'cancelTarget' | 'fuseTier4' | 'setTarget' | 'openTier3Choice' | null
@@ -562,22 +564,19 @@ export function getPromotionButtonState(t) {
     }
     if (game.promotionTarget) {
       if (isCompatibleTier4Partner(game.promotionTarget, t)) {
-        const recipe = getTier4Recipe(t);
-        const resultCfg = TOWER_ROLES[recipe.result];
         const afford = game.gold >= cost;
         return {
           active: afford,
-          action: afford ? 'fuseTier4' : null,
+          action: afford ? 'openTier4Choice' : null,
           label: afford
-            ? `${resultCfg.name}로 전직 (${cost.toLocaleString()}G)`
-            : `${resultCfg.name}로 전직 (${cost.toLocaleString()}G · 골드 부족)`,
+            ? `전직 (${cost.toLocaleString()}G)`
+            : `전직 (${cost.toLocaleString()}G · 골드 부족)`,
         };
       }
-      const targetCfg = TOWER_ROLES[game.promotionTarget.role];
       return {
         active: false,
         action: null,
-        label: `${targetCfg.name}와 레시피 불일치`,
+        label: '레시피 불일치',
       };
     }
     return { active: true, action: 'setTarget', label: '4티어 대상 지정' };
@@ -735,7 +734,90 @@ function drawPromotionCard(slot, role, cost) {
   ctx.textAlign = 'right';
   ctx.fillStyle = canAfford ? '#f1c40f' : '#666';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText(`${cost}G`, slot.x + slot.w - 14, slot.y + 32);
+  ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
+}
+
+function drawTier4ResultCard(slot, role, cost) {
+  const cfg = TOWER_ROLES[role];
+  const canAfford = game.gold >= cost;
+
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = canAfford ? '#222d40' : '#1a1f28';
+  roundRect(slot.x, slot.y, slot.w, slot.h, 10);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = canAfford ? cfg.color : '#444';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 외관 미리보기 — 큰 원 + 4티어 골든 펄스 띠
+  const orbCx = slot.x + 42;
+  const orbCy = slot.y + 42;
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+  ctx.globalAlpha = 0.55 + 0.35 * pulse;
+  ctx.strokeStyle = '#f5d76e';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(orbCx, orbCy, 26, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.arc(orbCx, orbCy, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = cfg.color2;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 이름 + 비용
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText(cfg.name, slot.x + 80, slot.y + 32);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = canAfford ? '#f1c40f' : '#666';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
+
+  // 스탯
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#bcd';
+  ctx.font = '12px sans-serif';
+  ctx.fillText(
+    `사거리 ${cfg.range}  ·  데미지 ${cfg.damage}  ·  속도 ${cfg.fireRate.toFixed(1)}/s`,
+    slot.x + 80, slot.y + 54,
+  );
+
+  ctx.fillStyle = '#8aa';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(cfg.tagline || '', slot.x + 80, slot.y + 72);
+
+  // 구분선
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(slot.x + 14, slot.y + 92);
+  ctx.lineTo(slot.x + slot.w - 14, slot.y + 92);
+  ctx.stroke();
+
+  // 상세 설명
+  const lines = cfg.description || [];
+  ctx.fillStyle = '#dde';
+  ctx.font = '12px sans-serif';
+  const lineH = 18;
+  const baseY = slot.y + 112;
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText('• ' + lines[i], slot.x + 16, baseY + i * lineH);
+  }
+}
+
+// 현재 선택 타워가 4티어 합체 전직 분기인지
+export function isTier4ChoiceContext(t) {
+  return t && t.tier === 3 && game.promotionTarget
+    && isCompatibleTier4Partner(game.promotionTarget, t);
 }
 
 export function drawPromotionPanel(t) {
@@ -754,14 +836,27 @@ export function drawPromotionPanel(t) {
   ctx.font = 'bold 18px sans-serif';
   ctx.fillText('전직 가능!', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
+  const tier4 = isTier4ChoiceContext(t);
+  const cost = promotionCostFor(t);
+
   ctx.fillStyle = '#bcd';
   ctx.font = '12px sans-serif';
-  ctx.fillText('역할을 선택하세요', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
-
-  const promotions = TOWER_ROLES[t.role].promotions;
-  const cost = promotionCostFor(t);
-  for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
-    drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
+  if (tier4) {
+    const recipe = getTier4Recipe(t);
+    const fromCfg = TOWER_ROLES[t.role];
+    const toCfg = TOWER_ROLES[recipe.result];
+    ctx.fillText(
+      `${fromCfg.name} 타워가 ${toCfg.name} 타워로 전직됩니다`,
+      promotionPanel.x + promotionPanel.w / 2,
+      promotionPanel.y + 48,
+    );
+    drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost);
+  } else {
+    ctx.fillText('역할을 선택하세요', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+    const promotions = TOWER_ROLES[t.role].promotions;
+    for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
+      drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
+    }
   }
 
   drawCloseX(promotionCloseButton);

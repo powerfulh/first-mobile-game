@@ -16,9 +16,9 @@ import {
   promoteTower, updateTower, drawTower, drawTowerRange,
   drawTowerInfoPanel, drawPromotionPanel,
   towerInfoPanel, infoCloseButton, infoPromotionButton,
-  promotionPanel, promotionCloseButton, promotionCardSlots,
+  promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
   xpMaxFor, getXpGainAtWaveEnd,
-  getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate,
+  getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
   updateProjectile, updateBeam, updateSplash, updateZap,
@@ -313,6 +313,21 @@ scenes.playing = {
         game.promotionChoiceOpen = false;
         return;
       }
+
+      if (isTier4ChoiceContext(game.selectedTower)) {
+        if (hitButton(tier4ResultCardSlot, p)) {
+          const second = game.selectedTower;
+          if (promoteToTier4(second)) {
+            game.promotionChoiceOpen = false;
+            game.selectedTower = second; // 변환된 4티어 그대로 선택 유지
+          }
+          return;
+        }
+        if (hitButton(promotionPanel, p)) return;
+        game.promotionChoiceOpen = false;
+        return;
+      }
+
       const promotions = TOWER_ROLES[game.selectedTower.role].promotions;
       for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
         if (hitButton(promotionCardSlots[i], p)) {
@@ -344,11 +359,8 @@ scenes.playing = {
           game.selectedTower = null;
         } else if (state.action === 'cancelTarget') {
           game.promotionTarget = null;
-        } else if (state.action === 'fuseTier4') {
-          const second = game.selectedTower;
-          if (promoteToTier4(second)) {
-            game.selectedTower = second; // 변환된 4티어 그대로 선택 유지
-          }
+        } else if (state.action === 'openTier4Choice') {
+          game.promotionChoiceOpen = true;
         }
         return;
       }
