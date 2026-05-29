@@ -322,6 +322,22 @@ export function updateTower(t, dt) {
             straightMode: true,
           });
         }
+      } else if (cfg.scatterDeg) {
+        // 단발 직선 탄, t.angle에 ±scatterDeg/2 난수 적용
+        const scatterRad = cfg.scatterDeg * Math.PI / 180;
+        const angle = t.angle + (Math.random() - 0.5) * scatterRad;
+        game.projectiles.push({
+          x: t.x,
+          y: t.y,
+          vx: Math.cos(angle) * TOWER.projectileSpeed,
+          vy: Math.sin(angle) * TOWER.projectileSpeed,
+          damage,
+          shooter: t,
+          splash: cfg.splash || 0,
+          splashColor: cfg.color,
+          attackTypes: cfg.attackTypes || ['ground'],
+          straightMode: true,
+        });
       } else if (cfg.ballistic) {
         // 발사 시점의 좌표를 고정 착탄점으로 잡고 직선 발사. 적이 회피해도 그 자리 폭격.
         const tx = target.x;
@@ -475,6 +491,50 @@ function drawSupportBody(t, cfg, selected) {
 
   ctx.setLineDash([]);
   ctx.globalAlpha = 1;
+}
+
+function drawGatlingBody(t, cfg, selected) {
+  const r = TOWER.radius;
+
+  // 본체 원
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  // 다발 배럴 (3개 평행, t.angle 방향)
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.rotate(t.angle);
+
+  // 발사 직후 짧은 반동 (cooldown 마지막 30%)
+  const interval = 1 / t.fireRate;
+  const recoiling = t.cooldown > interval * 0.7;
+  const recoilOffset = recoiling ? -1.5 : 0;
+
+  ctx.fillStyle = cfg.color2;
+  for (let i = -1; i <= 1; i++) {
+    const offY = i * 3.5;
+    ctx.fillRect(recoilOffset, offY - 1.2, r + 4, 2.4);
+  }
+
+  // 배럴 끝 강조
+  ctx.fillStyle = '#1a252f';
+  for (let i = -1; i <= 1; i++) {
+    const offY = i * 3.5;
+    ctx.fillRect(r + recoilOffset + 2, offY - 1.2, 2, 2.4);
+  }
+
+  ctx.restore();
+
+  // 중심 캡(회전축 표시)
+  ctx.fillStyle = '#bdc3c7';
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawAssassinBody(t, cfg, selected) {
@@ -648,6 +708,8 @@ export function drawTower(t) {
 
   if (cfg.disablesModifiers) {
     drawAssassinBody(t, cfg, selected);
+  } else if (cfg.scatterDeg) {
+    drawGatlingBody(t, cfg, selected);
   } else if (cfg.instantHit) {
     drawBeamEmitterBody(t, cfg, selected);
   } else if (cfg.buffsRange) {

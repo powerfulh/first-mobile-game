@@ -24,12 +24,14 @@ export const TOWER = {
 
 // 4티어 레시피 (1:1 양방향). 두 3티어 역할 쌍 → 4티어 역할.
 export const TIER4_RECIPES = {
-  beacon:  { partner: 'trap',    result: 'radar' },
-  trap:    { partner: 'beacon',  result: 'radar' },
-  dealman: { partner: 'demon',   result: 'assassin' },
-  demon:   { partner: 'dealman', result: 'assassin' },
-  whale:   { partner: 'skydoom', result: 'silo' },
-  skydoom: { partner: 'whale',   result: 'silo' },
+  beacon:      { partner: 'trap',        result: 'radar' },
+  trap:        { partner: 'beacon',      result: 'radar' },
+  dealman:     { partner: 'demon',       result: 'assassin' },
+  demon:       { partner: 'dealman',     result: 'assassin' },
+  whale:       { partner: 'skydoom',     result: 'silo' },
+  skydoom:     { partner: 'whale',       result: 'silo' },
+  master:      { partner: 'interceptor', result: 'gatling' },
+  interceptor: { partner: 'master',      result: 'gatling' },
 };
 
 export const TOWER_ROLES = {
@@ -173,7 +175,7 @@ export const TOWER_ROLES = {
   assassin: {
     name: '어쌔신', tagline: '관통 빔 + 방어막·회복 무력화 · 지상 / 공중',
     color: '#5b1b3a', color2: '#2d0a1d',
-    range: 200, fireRate: 0.8, damage: 30,
+    range: 200, fireRate: 0.8, damage: 24,
     attackTypes: ['ground', 'air'], splash: 0,
     promotions: [],
     instantHit: true,
@@ -197,6 +199,18 @@ export const TOWER_ROLES = {
       '유도 없이 발사 시점의 착탄 지점에 광역 폭격',
       '최소 사거리 존재',
       '스카이둠의 공중 공격 능력은 잃습니다',
+    ],
+  },
+  gatling: {
+    name: '개틀링', tagline: '비유도 연사 탄막 · 공중',
+    color: '#566573', color2: '#2c3e50',
+    range: 150, fireRate: 20, damage: 2.4,
+    attackTypes: ['air'], splash: 0,
+    promotions: [],
+    scatterDeg: 12, // ±6° 흩어짐
+    description: [
+      '약간 부정확하지만 폭발적인 공세를 퍼붓습니다',
+      '지상 공격 능력을 잃습니다',
     ],
   },
 };
