@@ -1,9 +1,9 @@
 import { ctx } from './canvas.js';
-import { LOGICAL_W, path, REGEN_HEAL_RATE } from './config.js';
 import {
-  game,
-  hasSeenAirIntro, hasSeenBossIntro, hasSeenShieldIntro, hasSeenRegenIntro,
-} from './state.js';
+  LOGICAL_W, path, REGEN_HEAL_RATE,
+  AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY,
+} from './config.js';
+import { game, hasSeenIntro } from './state.js';
 import { roundRect } from './helpers.js';
 import { getEnemySpeedFactor } from './tower.js';
 
@@ -103,13 +103,13 @@ export function spawnEnemy() {
     shielded,
     regen,
   });
-  if (isAir && !game.modal && !hasSeenAirIntro()) {
+  if (isAir && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
     game.modal = { type: 'airIntro' };
   }
-  if (shielded && !game.modal && !hasSeenShieldIntro()) {
+  if (shielded && !game.modal && !hasSeenIntro(SHIELD_INTRO_KEY)) {
     game.modal = { type: 'shieldIntro' };
   }
-  if (regen && !game.modal && !hasSeenRegenIntro()) {
+  if (regen && !game.modal && !hasSeenIntro(REGEN_INTRO_KEY)) {
     game.modal = { type: 'regenIntro' };
   }
 }
@@ -131,7 +131,7 @@ export function spawnBoss() {
     isBoss: true,
     angle: Math.PI / 2,
   });
-  if (!game.modal && !hasSeenBossIntro()) {
+  if (!game.modal && !hasSeenIntro(BOSS_INTRO_KEY)) {
     game.modal = { type: 'bossIntro' };
   }
 }

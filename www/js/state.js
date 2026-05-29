@@ -1,7 +1,4 @@
-import {
-  SAVE_KEY, AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-  TIER4_INTRO_KEY, REGEN_INTRO_KEY, TOWER_ROLES,
-} from './config.js';
+import { SAVE_KEY, TOWER_ROLES } from './config.js';
 import { isBossWave, spawnBoss } from './enemy.js';
 
 export const game = {
@@ -127,44 +124,9 @@ export function loadGame(data) {
 }
 
 // ============ Intro 플래그 ============
-export function hasSeenAirIntro() {
-  try { return localStorage.getItem(AIR_INTRO_KEY) === '1'; } catch (e) { return false; }
+export function hasSeenIntro(key) {
+  try { return localStorage.getItem(key) === '1'; } catch (e) { return false; }
 }
-export function setAirIntroSeen() {
-  try { localStorage.setItem(AIR_INTRO_KEY, '1'); } catch (e) {}
-}
-
-export function hasSeenBuffIntro() {
-  try { return localStorage.getItem(BUFF_INTRO_KEY) === '1'; } catch (e) { return false; }
-}
-export function setBuffIntroSeen() {
-  try { localStorage.setItem(BUFF_INTRO_KEY, '1'); } catch (e) {}
-}
-
-export function hasSeenBossIntro() {
-  try { return localStorage.getItem(BOSS_INTRO_KEY) === '1'; } catch (e) { return false; }
-}
-export function setBossIntroSeen() {
-  try { localStorage.setItem(BOSS_INTRO_KEY, '1'); } catch (e) {}
-}
-
-export function hasSeenShieldIntro() {
-  try { return localStorage.getItem(SHIELD_INTRO_KEY) === '1'; } catch (e) { return false; }
-}
-export function setShieldIntroSeen() {
-  try { localStorage.setItem(SHIELD_INTRO_KEY, '1'); } catch (e) {}
-}
-
-export function hasSeenTier4Intro() {
-  try { return localStorage.getItem(TIER4_INTRO_KEY) === '1'; } catch (e) { return false; }
-}
-export function setTier4IntroSeen() {
-  try { localStorage.setItem(TIER4_INTRO_KEY, '1'); } catch (e) {}
-}
-
-export function hasSeenRegenIntro() {
-  try { return localStorage.getItem(REGEN_INTRO_KEY) === '1'; } catch (e) { return false; }
-}
-export function setRegenIntroSeen() {
-  try { localStorage.setItem(REGEN_INTRO_KEY, '1'); } catch (e) {}
+export function setIntroSeen(key) {
+  try { localStorage.setItem(key, '1'); } catch (e) {}
 }

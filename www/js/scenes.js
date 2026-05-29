@@ -1,13 +1,10 @@
 import { ctx, hudEl } from './canvas.js';
 import {
-  LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS,
+  LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
 } from './config.js';
 import {
   game, resetGame, loadGame, loadSaveData,
-  hasSeenAirIntro, hasSeenBuffIntro, hasSeenBossIntro, hasSeenShieldIntro,
-  hasSeenTier4Intro, hasSeenRegenIntro,
-  setAirIntroSeen, setBuffIntroSeen, setBossIntroSeen, setShieldIntroSeen,
-  setTier4IntroSeen, setRegenIntroSeen,
+  hasSeenIntro, setIntroSeen,
 } from './state.js';
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
@@ -29,10 +26,7 @@ import {
 import { startNextWave } from './wave.js';
 import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
-  airIntroModal, buffIntroModal, bossIntroModal, shieldIntroModal,
-  tier4IntroModal, regenIntroModal,
-  drawAirIntroModal, drawBuffIntroModal, drawBossIntroModal, drawShieldIntroModal,
-  drawTier4IntroModal, drawRegenIntroModal,
+  INTRO_MODALS,
 } from './ui.js';
 
 export const scenes = {};
@@ -207,7 +201,7 @@ scenes.playing = {
       game.intermissionTimer = game.wave >= 40 ? 1 : game.wave >= 20 ? 2 : 3;
     }
 
-    if (!game.modal && !hasSeenTier4Intro() && hasReadyTier4Candidate()) {
+    if (!game.modal && !hasSeenIntro(TIER4_INTRO_KEY) && hasReadyTier4Candidate()) {
       game.modal = { type: 'tier4Intro' };
     }
 
@@ -280,33 +274,15 @@ scenes.playing = {
     if (game.paused) drawPausedOverlay();
 
     if (game.modal) {
-      if (game.modal.type === 'airIntro') drawAirIntroModal();
-      else if (game.modal.type === 'buffIntro') drawBuffIntroModal();
-      else if (game.modal.type === 'bossIntro') drawBossIntroModal();
-      else if (game.modal.type === 'shieldIntro') drawShieldIntroModal();
-      else if (game.modal.type === 'tier4Intro') drawTier4IntroModal();
-      else if (game.modal.type === 'regenIntro') drawRegenIntroModal();
+      const intro = INTRO_MODALS[game.modal.type];
+      if (intro) intro.draw();
     }
   },
   pointerDown(p) {
     if (game.modal) {
-      if (game.modal.type === 'airIntro' && hitButton(airIntroModal.confirmBtn, p)) {
-        setAirIntroSeen();
-        game.modal = null;
-      } else if (game.modal.type === 'buffIntro' && hitButton(buffIntroModal.confirmBtn, p)) {
-        setBuffIntroSeen();
-        game.modal = null;
-      } else if (game.modal.type === 'bossIntro' && hitButton(bossIntroModal.confirmBtn, p)) {
-        setBossIntroSeen();
-        game.modal = null;
-      } else if (game.modal.type === 'shieldIntro' && hitButton(shieldIntroModal.confirmBtn, p)) {
-        setShieldIntroSeen();
-        game.modal = null;
-      } else if (game.modal.type === 'tier4Intro' && hitButton(tier4IntroModal.confirmBtn, p)) {
-        setTier4IntroSeen();
-        game.modal = null;
-      } else if (game.modal.type === 'regenIntro' && hitButton(regenIntroModal.confirmBtn, p)) {
-        setRegenIntroSeen();
+      const intro = INTRO_MODALS[game.modal.type];
+      if (intro && hitButton(intro.confirmBtn, p)) {
+        setIntroSeen(intro.key);
         game.modal = null;
       }
       return;

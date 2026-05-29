@@ -1,9 +1,9 @@
 import { ctx } from './canvas.js';
 import {
   LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TARGET_PRIORITY, TIER4_RECIPES,
-  PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER,
+  PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY,
 } from './config.js';
-import { game, hasSeenBuffIntro } from './state.js';
+import { game, hasSeenIntro } from './state.js';
 import { distanceToPath, roundRect, drawCloseX } from './helpers.js';
 import {
   applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
@@ -209,7 +209,7 @@ export function promoteTower(t, role) {
   t.cooldown = 0;
   t.xp = 0;
 
-  if (cfg.buffsRange && !game.modal && !hasSeenBuffIntro()) {
+  if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
     game.modal = { type: 'buffIntro' };
   }
   return true;
