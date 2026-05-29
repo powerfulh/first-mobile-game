@@ -1,6 +1,6 @@
 import { ctx } from './canvas.js';
 import {
-  LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TARGET_PRIORITY,
+  LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TARGET_PRIORITY, TIER4_RECIPES,
   PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER,
 } from './config.js';
 import { game, hasSeenBuffIntro } from './state.js';
@@ -19,7 +19,9 @@ export function promotionCostFor(t) {
 }
 
 export function canPromote(t) {
-  return t.tier < TOWER.maxTier && TOWER_ROLES[t.role].promotions.length > 0;
+  if (t.tier >= TOWER.maxTier) return false;
+  if (t.tier === 3) return !!TIER4_RECIPES[t.role]; // 4티어는 레시피 등록된 3티어만
+  return TOWER_ROLES[t.role].promotions.length > 0;
 }
 
 export function isPromotionReady(t) {
@@ -28,6 +30,60 @@ export function isPromotionReady(t) {
 
 export function canAffordPromotion(t) {
   return game.gold >= promotionCostFor(t);
+}
+
+// ============ Tier 4 helpers ============
+export function getTier4Recipe(t) {
+  return TIER4_RECIPES[t.role] || null;
+}
+
+export function isCompatibleTier4Partner(target, candidate) {
+  // 두 3티어 타워가 서로의 레시피 파트너인지
+  if (!target || !candidate || target === candidate) return false;
+  if (target.tier !== 3 || candidate.tier !== 3) return false;
+  const recipe = TIER4_RECIPES[target.role];
+  return !!recipe && recipe.partner === candidate.role;
+}
+
+export function hasReadyTier4Candidate() {
+  // 게임 내에 XP 가득 찬 4티어 후보 3티어가 존재하는지
+  for (const t of game.towers) {
+    if (t.tier === 3 && TIER4_RECIPES[t.role] && t.xp >= xpMaxFor(t)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function promoteToTier4(secondTower) {
+  // 대상(첫 타워)이 사라지고 secondTower 자리에 4티어 타워 생성
+  const target = game.promotionTarget;
+  if (!target) return false;
+  if (!isCompatibleTier4Partner(target, secondTower)) return false;
+  if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
+  const cost = promotionCostFor(secondTower);
+  if (game.gold < cost) return false;
+
+  const recipe = TIER4_RECIPES[secondTower.role];
+  const resultRole = recipe.result;
+  const cfg = TOWER_ROLES[resultRole];
+  if (!cfg) return false;
+
+  game.gold -= cost;
+
+  // 대상 타워 제거
+  game.towers = game.towers.filter(x => x !== target);
+  game.promotionTarget = null;
+
+  // 두 번째 타워 자리에 4티어로 변환
+  secondTower.role = resultRole;
+  secondTower.tier = 4;
+  secondTower.range = cfg.range;
+  secondTower.fireRate = cfg.fireRate;
+  secondTower.damage = cfg.damage;
+  secondTower.cooldown = 0;
+  secondTower.xp = 0;
+  return true;
 }
 
 // ============ Buff / range helpers ============
@@ -167,6 +223,9 @@ export function updateTower(t, dt) {
   const attackTypes = cfg.attackTypes || ['ground'];
   const range = getEffectiveRange(t);
 
+  // areaSweep은 자기 사거리 내만 처리 (마킹 풀 무시). 그 외 모든 단일 타겟 타워는 마킹 적 포함.
+  const includeMarked = !cfg.areaSweep;
+
   let target = null;
   if (cfg.targetMode === 'highestHp') {
     let bestHp = -Infinity;
@@ -174,7 +233,7 @@ export function updateTower(t, dt) {
       if (e.dead) continue;
       if (!attackTypes.includes(e.type)) continue;
       const d = Math.hypot(e.x - t.x, e.y - t.y);
-      if (d > range) continue;
+      if (d > range && !(includeMarked && e.marked)) continue;
       if (e.hp > bestHp) {
         bestHp = e.hp;
         target = e;
@@ -183,12 +242,13 @@ export function updateTower(t, dt) {
   } else {
     for (const wantType of TARGET_PRIORITY) {
       if (!attackTypes.includes(wantType)) continue;
-      let bestDist = range + 1;
+      let bestDist = Infinity;
       let best = null;
       for (const e of game.enemies) {
         if (e.dead) continue;
         if (e.type !== wantType) continue;
         const d = Math.hypot(e.x - t.x, e.y - t.y);
+        if (d > range && !(includeMarked && e.marked)) continue;
         if (d < bestDist) {
           bestDist = d;
           best = e;
@@ -377,20 +437,64 @@ function drawSupportBody(t, cfg, selected) {
   ctx.globalAlpha = 1;
 }
 
+function drawTier4Aura(t) {
+  // 4티어 외곽 골든 띠
+  const r = TOWER.radius + 4;
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+  ctx.globalAlpha = 0.55 + 0.35 * pulse;
+  ctx.strokeStyle = '#f5d76e';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawRadarAntenna(t) {
+  // 회전 안테나(디시) — 본체 위에 별도 디시 + sweeping 빔
+  const sweep = (performance.now() / 600) % (Math.PI * 2);
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.rotate(sweep);
+
+  // 디시 윤곽
+  ctx.fillStyle = '#0e6655';
+  ctx.beginPath();
+  ctx.arc(0, 0, 6, -Math.PI * 0.4, Math.PI * 0.4);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // 스윕 라인 (옅게 길게)
+  ctx.strokeStyle = 'rgba(26, 188, 156, 0.45)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(TOWER.radius + 10, 0);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawTower(t) {
   const cfg = TOWER_ROLES[t.role];
   const selected = (t === game.selectedTower);
+  const isTarget = (t === game.promotionTarget);
 
   if (isPromotionReady(t)) {
     const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
     ctx.globalAlpha = 0.35 + 0.45 * pulse;
-    ctx.strokeStyle = '#f1c40f';
+    ctx.strokeStyle = isTarget ? '#1abc9c' : '#f1c40f';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(t.x, t.y, TOWER.radius + 5, 0, Math.PI * 2);
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
+
+  if (t.tier === 4) drawTier4Aura(t);
 
   if (cfg.instantHit) {
     drawBeamEmitterBody(t, cfg, selected);
@@ -401,6 +505,8 @@ export function drawTower(t) {
   } else {
     drawCannonBody(t, cfg, selected);
   }
+
+  if (cfg.marksEnemies) drawRadarAntenna(t);
 
   if (canPromote(t)) {
     const xpMax = xpMaxFor(t);
@@ -440,12 +546,55 @@ export const promotionCardSlots = [
   { x: 24, y: 526, w: 312, h: 84 },
 ];
 
-function drawPromotionButton(t) {
+// 정보 카드 전직 버튼의 현재 상태 (라벨 + 활성/액션 종류)
+// action: 'cancelTarget' | 'fuseTier4' | 'setTarget' | 'openTier3Choice' | null
+export function getPromotionButtonState(t) {
   const ready = isPromotionReady(t);
-  const afford = canAffordPromotion(t);
-  const active = ready && afford;
   const cost = promotionCostFor(t);
   const xpMax = xpMaxFor(t);
+
+  if (t.tier === 3) {
+    if (!ready) {
+      return { active: false, action: null, label: `전직 (XP ${t.xp} / ${xpMax})` };
+    }
+    if (t === game.promotionTarget) {
+      return { active: true, action: 'cancelTarget', label: '대상 취소' };
+    }
+    if (game.promotionTarget) {
+      if (isCompatibleTier4Partner(game.promotionTarget, t)) {
+        const recipe = getTier4Recipe(t);
+        const resultCfg = TOWER_ROLES[recipe.result];
+        const afford = game.gold >= cost;
+        return {
+          active: afford,
+          action: afford ? 'fuseTier4' : null,
+          label: afford
+            ? `${resultCfg.name}로 전직 (${cost.toLocaleString()}G)`
+            : `${resultCfg.name}로 전직 (${cost.toLocaleString()}G · 골드 부족)`,
+        };
+      }
+      const targetCfg = TOWER_ROLES[game.promotionTarget.role];
+      return {
+        active: false,
+        action: null,
+        label: `${targetCfg.name}와 레시피 불일치`,
+      };
+    }
+    return { active: true, action: 'setTarget', label: '4티어 대상 지정' };
+  }
+
+  // t.tier < 3 — 기존 로직
+  const afford = canAffordPromotion(t);
+  const active = ready && afford;
+  let label;
+  if (!ready) label = `전직 (XP ${t.xp} / ${xpMax})`;
+  else if (!afford) label = `전직 (${cost}G · 골드 부족)`;
+  else label = `전직 (${cost}G)`;
+  return { active, action: active ? 'openTier3Choice' : null, label };
+}
+
+function drawPromotionButton(t) {
+  const { active, label } = getPromotionButtonState(t);
 
   ctx.globalAlpha = active ? 1 : 0.55;
   if (active) {
@@ -465,10 +614,6 @@ function drawPromotionButton(t) {
   ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  let label;
-  if (!ready) label = `전직 (XP ${t.xp} / ${xpMax})`;
-  else if (!afford) label = `전직 (${cost}G · 골드 부족)`;
-  else label = `전직 (${cost}G)`;
   ctx.fillText(label, infoPromotionButton.x + infoPromotionButton.w / 2, infoPromotionButton.y + infoPromotionButton.h / 2);
   ctx.textBaseline = 'alphabetic';
 }

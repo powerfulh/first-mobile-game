@@ -4,8 +4,8 @@ import {
 } from './config.js';
 import {
   game, resetGame, loadGame, loadSaveData,
-  hasSeenAirIntro, hasSeenBuffIntro, hasSeenBossIntro, hasSeenShieldIntro,
-  setAirIntroSeen, setBuffIntroSeen, setBossIntroSeen, setShieldIntroSeen,
+  hasSeenAirIntro, hasSeenBuffIntro, hasSeenBossIntro, hasSeenShieldIntro, hasSeenTier4Intro,
+  setAirIntroSeen, setBuffIntroSeen, setBossIntroSeen, setShieldIntroSeen, setTier4IntroSeen,
 } from './state.js';
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
@@ -18,6 +18,7 @@ import {
   towerInfoPanel, infoCloseButton, infoPromotionButton,
   promotionPanel, promotionCloseButton, promotionCardSlots,
   xpMaxFor, getXpGainAtWaveEnd,
+  getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate,
 } from './tower.js';
 import {
   updateProjectile, updateBeam, updateSplash, updateZap,
@@ -26,8 +27,8 @@ import {
 import { startNextWave } from './wave.js';
 import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
-  airIntroModal, buffIntroModal, bossIntroModal, shieldIntroModal,
-  drawAirIntroModal, drawBuffIntroModal, drawBossIntroModal, drawShieldIntroModal,
+  airIntroModal, buffIntroModal, bossIntroModal, shieldIntroModal, tier4IntroModal,
+  drawAirIntroModal, drawBuffIntroModal, drawBossIntroModal, drawShieldIntroModal, drawTier4IntroModal,
 } from './ui.js';
 
 export const scenes = {};
@@ -145,6 +146,9 @@ scenes.playing = {
           game.selectedTower = null;
           game.promotionChoiceOpen = false;
         }
+        if (game.promotionTarget === dead) {
+          game.promotionTarget = null;
+        }
         game.holdDelete = null;
       }
     }
@@ -197,6 +201,10 @@ scenes.playing = {
       }
       game.waveState = 'intermission';
       game.intermissionTimer = game.wave >= 40 ? 1 : game.wave >= 20 ? 2 : 3;
+    }
+
+    if (!game.modal && !hasSeenTier4Intro() && hasReadyTier4Candidate()) {
+      game.modal = { type: 'tier4Intro' };
     }
 
     if (game.hp <= 0) {
@@ -272,6 +280,7 @@ scenes.playing = {
       else if (game.modal.type === 'buffIntro') drawBuffIntroModal();
       else if (game.modal.type === 'bossIntro') drawBossIntroModal();
       else if (game.modal.type === 'shieldIntro') drawShieldIntroModal();
+      else if (game.modal.type === 'tier4Intro') drawTier4IntroModal();
     }
   },
   pointerDown(p) {
@@ -287,6 +296,9 @@ scenes.playing = {
         game.modal = null;
       } else if (game.modal.type === 'shieldIntro' && hitButton(shieldIntroModal.confirmBtn, p)) {
         setShieldIntroSeen();
+        game.modal = null;
+      } else if (game.modal.type === 'tier4Intro' && hitButton(tier4IntroModal.confirmBtn, p)) {
+        setTier4IntroSeen();
         game.modal = null;
       }
       return;
@@ -323,8 +335,20 @@ scenes.playing = {
         return;
       }
       if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
-        if (isPromotionReady(game.selectedTower) && canAffordPromotion(game.selectedTower)) {
+        const state = getPromotionButtonState(game.selectedTower);
+        if (!state.active || !state.action) return;
+        if (state.action === 'openTier3Choice') {
           game.promotionChoiceOpen = true;
+        } else if (state.action === 'setTarget') {
+          game.promotionTarget = game.selectedTower;
+          game.selectedTower = null;
+        } else if (state.action === 'cancelTarget') {
+          game.promotionTarget = null;
+        } else if (state.action === 'fuseTier4') {
+          const second = game.selectedTower;
+          if (promoteToTier4(second)) {
+            game.selectedTower = second; // 변환된 4티어 그대로 선택 유지
+          }
         }
         return;
       }

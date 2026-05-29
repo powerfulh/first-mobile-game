@@ -21,6 +21,10 @@ export function applyTowerHit(shooter, target, damage) {
       const next = Math.round((shooter.xp + xpGain) * 10) / 10;
       shooter.xp = Math.min(next, xpMaxFor(shooter));
     }
+    const shooterCfg = TOWER_ROLES[shooter.role];
+    if (shooterCfg && shooterCfg.marksEnemies && !target.dead) {
+      target.marked = true;
+    }
   }
   if (target.hp <= 0) {
     target.dead = true;

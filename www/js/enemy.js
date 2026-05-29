@@ -155,6 +155,33 @@ function drawEnemyHpBar(e, cy) {
   ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW * ratio, barH);
 }
 
+function drawMarkRing(e, cy) {
+  // 래이다르 마킹: 적 주변 회전하는 점선 링 + 중심 십자
+  const r = e.radius + 6;
+  const t = performance.now() / 700;
+  ctx.save();
+  ctx.translate(e.x, cy);
+  ctx.rotate(t);
+  ctx.strokeStyle = '#1abc9c';
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 십자 마커
+  const m = 3;
+  ctx.beginPath();
+  ctx.moveTo(r - m, 0); ctx.lineTo(r + m, 0);
+  ctx.moveTo(-r - m, 0); ctx.lineTo(-r + m, 0);
+  ctx.moveTo(0, r - m); ctx.lineTo(0, r + m);
+  ctx.moveTo(0, -r - m); ctx.lineTo(0, -r + m);
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawBossHpBar() {
   if (!game.bossActive) return;
   let boss = null;
@@ -237,6 +264,7 @@ export function drawEnemy(e) {
   if (e.isBoss) {
     if (e.type === 'ground') drawGroundBoss(e);
     else if (e.type === 'air') drawAirBoss(e);
+    if (e.marked) drawMarkRing(e, e.y);
     return; // 보스 HP는 고정 UI에 표시
   }
   if (e.type === 'air') {
@@ -256,6 +284,7 @@ export function drawEnemy(e) {
     ctx.stroke();
 
     drawEnemyHpBar(e, cy);
+    if (e.marked) drawMarkRing(e, cy);
   } else {
     ctx.fillStyle = '#c0392b';
     ctx.beginPath();
@@ -266,5 +295,6 @@ export function drawEnemy(e) {
     ctx.stroke();
 
     drawEnemyHpBar(e, e.y);
+    if (e.marked) drawMarkRing(e, e.y);
   }
 }

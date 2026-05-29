@@ -16,10 +16,16 @@ export const TOWER = {
   cost: 50,
   radius: 14,
   projectileSpeed: 280,
-  promotionCosts: [125, 250, 1000], // [t0→t1, t1→t2, t2→t3]
-  xpThresholds:   [20,  40,  200],
-  buffRates:      [0.10, 0.10, 0.20, 0.30], // 받는 타워 티어 (t0, t1, t2, t3)
-  maxTier: 3,
+  promotionCosts: [125, 250, 1000, 3000], // [t0→t1, t1→t2, t2→t3, t3→t4]
+  xpThresholds:   [20,  40,  200,  500],
+  buffRates:      [0.10, 0.10, 0.20, 0.30, 0.40], // 받는 타워 티어 (t0~t4)
+  maxTier: 4,
+};
+
+// 4티어 레시피 (1:1 양방향). 두 3티어 역할 쌍 → 4티어 역할.
+export const TIER4_RECIPES = {
+  beacon: { partner: 'trap', result: 'radar' },
+  trap:   { partner: 'beacon', result: 'radar' },
 };
 
 export const TOWER_ROLES = {
@@ -146,6 +152,15 @@ export const TOWER_ROLES = {
     pierces: true,
     targetMode: 'highestHp',
   },
+  radar: {
+    name: '래이다르', tagline: '사거리 내 일제 + 마킹 · 지상 / 공중',
+    color: '#1abc9c', color2: '#117a65',
+    range: 100, fireRate: 0.2, damage: 20,
+    attackTypes: ['ground', 'air'], splash: 0,
+    promotions: [],
+    areaSweep: true,
+    marksEnemies: true,
+  },
 };
 
 export const TARGET_PRIORITY = ['air', 'ground'];
@@ -161,3 +176,4 @@ export const AIR_INTRO_KEY = 'td_seen_air_intro';
 export const BUFF_INTRO_KEY = 'td_seen_buff_intro';
 export const BOSS_INTRO_KEY = 'td_seen_boss_intro';
 export const SHIELD_INTRO_KEY = 'td_seen_shield_intro';
+export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';

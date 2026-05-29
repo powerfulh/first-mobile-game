@@ -1,6 +1,6 @@
 import {
   SAVE_KEY, AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-  TOWER_ROLES,
+  TIER4_INTRO_KEY, TOWER_ROLES,
 } from './config.js';
 import { isBossWave, spawnBoss } from './enemy.js';
 
@@ -23,6 +23,7 @@ export const game = {
   bossActive: false,
   selectedTower: null,
   promotionChoiceOpen: false,
+  promotionTarget: null,
   modal: null,
   paused: false,
   holdDelete: null,
@@ -47,6 +48,7 @@ export function resetGame() {
   game.bossActive = false;
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
+  game.promotionTarget = null;
   game.modal = null;
   game.paused = false;
   game.holdDelete = null;
@@ -102,6 +104,7 @@ export function loadGame(data) {
   game.bossActive = false;
   game.selectedTower = null;
   game.promotionChoiceOpen = false;
+  game.promotionTarget = null;
   game.modal = null;
   game.paused = false;
   game.holdDelete = null;
@@ -150,4 +153,11 @@ export function hasSeenShieldIntro() {
 }
 export function setShieldIntroSeen() {
   try { localStorage.setItem(SHIELD_INTRO_KEY, '1'); } catch (e) {}
+}
+
+export function hasSeenTier4Intro() {
+  try { return localStorage.getItem(TIER4_INTRO_KEY) === '1'; } catch (e) { return false; }
+}
+export function setTier4IntroSeen() {
+  try { localStorage.setItem(TIER4_INTRO_KEY, '1'); } catch (e) {}
 }

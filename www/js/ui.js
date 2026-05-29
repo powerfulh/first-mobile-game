@@ -65,6 +65,10 @@ export const shieldIntroModal = {
   panel: { x: 20, y: 180, w: 320, h: 280 },
   confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
 };
+export const tier4IntroModal = {
+  panel: { x: 20, y: 160, w: 320, h: 320 },
+  confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
+};
 
 export function drawAirIntroModal() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -237,4 +241,54 @@ export function drawShieldIntroModal() {
   ctx.fillText('받는 데미지가 감소합니다.', iconCx, p.y + 178);
 
   drawButton(shieldIntroModal.confirmBtn, '확인');
+}
+
+export function drawTier4IntroModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = tier4IntroModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#f5d76e';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 4티어 아이콘: 두 디스크가 합쳐지는 모양
+  const iconCx = LOGICAL_W / 2;
+  const iconCy = p.y + 56;
+  ctx.fillStyle = '#1abc9c';
+  ctx.beginPath();
+  ctx.arc(iconCx - 12, iconCy, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f1c40f';
+  ctx.beginPath();
+  ctx.arc(iconCx + 12, iconCy, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 합쳐짐 표시
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('+', iconCx, iconCy);
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#f5d76e';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText('합체 전직 가능!', iconCx, p.y + 100);
+
+  ctx.fillStyle = '#cdd';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('XP를 모두 채운 3티어 타워 두 개로', iconCx, p.y + 128);
+  ctx.fillText('레시피 조합 4티어 전직이 가능합니다.', iconCx, p.y + 148);
+
+  ctx.fillStyle = '#f5d76e';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('① 한 타워의 "4티어 대상 지정"', iconCx, p.y + 180);
+  ctx.fillText('② 레시피 짝 타워에서 "전직"', iconCx, p.y + 200);
+  ctx.fillText('③ 대상 타워는 소모, 짝 타워가 4티어로 전직', iconCx, p.y + 220);
+
+  drawButton(tier4IntroModal.confirmBtn, '확인');
 }
