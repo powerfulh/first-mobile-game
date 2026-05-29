@@ -477,6 +477,43 @@ function drawSupportBody(t, cfg, selected) {
   ctx.globalAlpha = 1;
 }
 
+function drawAssassinBody(t, cfg, selected) {
+  const r = TOWER.radius;
+  const time = performance.now();
+
+  // 본체 — 칼날 다이아몬드 (다른 타워와 비슷한 크기)
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.rotate(t.angle);
+
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.moveTo(r + 2, 0);          // 앞 (날카롭게 뻗음)
+  ctx.lineTo(0, -r * 0.9);
+  ctx.lineTo(-r * 0.9, 0);
+  ctx.lineTo(0, r * 0.9);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.stroke();
+
+  // 중심 짙은 코어
+  ctx.fillStyle = cfg.color2;
+  ctx.beginPath();
+  ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 붉은 빛점 (위협 펄스)
+  const pulse = 0.5 + 0.5 * Math.sin(time / 250);
+  ctx.fillStyle = `rgba(231, 76, 60, ${0.6 + 0.4 * pulse})`;
+  ctx.beginPath();
+  ctx.arc(0, 0, 1.8 + pulse * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
 function drawSiloBody(t, cfg, selected) {
   const r = TOWER.radius;
   const x = t.x - r;
@@ -548,17 +585,19 @@ function drawSiloBody(t, cfg, selected) {
   ctx.fill();
 }
 
-function drawTier4Aura(t) {
-  // 4티어 외곽 골든 띠
-  const r = TOWER.radius + 4;
-  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
-  ctx.globalAlpha = 0.55 + 0.35 * pulse;
-  ctx.strokeStyle = '#f5d76e';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+function drawTier4Halo(cx, cy, haloR) {
+  // 4티어 공통 외관 — 회전하는 6개 점
+  const time = performance.now();
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI * 2 * i / 6) + time / 500;
+    const px = cx + Math.cos(angle) * haloR;
+    const py = cy + Math.sin(angle) * haloR;
+    const alpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(time / 280 + i * 1.1));
+    ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function drawRadarAntenna(t) {
@@ -605,9 +644,11 @@ export function drawTower(t) {
     ctx.globalAlpha = 1;
   }
 
-  if (t.tier === 4) drawTier4Aura(t);
+  if (t.tier === 4) drawTier4Halo(t.x, t.y, TOWER.radius + 8);
 
-  if (cfg.instantHit) {
+  if (cfg.disablesModifiers) {
+    drawAssassinBody(t, cfg, selected);
+  } else if (cfg.instantHit) {
     drawBeamEmitterBody(t, cfg, selected);
   } else if (cfg.buffsRange) {
     drawSupportBody(t, cfg, selected);
@@ -879,17 +920,10 @@ function drawTier4ResultCard(slot, role, cost) {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // 외관 미리보기 — 큰 원 + 4티어 골든 펄스 띠
+  // 외관 미리보기 — 큰 원 + 4티어 공통 회전 6점
   const orbCx = slot.x + 42;
   const orbCy = slot.y + 42;
-  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
-  ctx.globalAlpha = 0.55 + 0.35 * pulse;
-  ctx.strokeStyle = '#f5d76e';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(orbCx, orbCy, 26, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  drawTier4Halo(orbCx, orbCy, 30);
 
   ctx.fillStyle = cfg.color;
   ctx.beginPath();
