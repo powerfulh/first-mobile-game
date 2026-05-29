@@ -9,7 +9,8 @@ import { getBossReward } from './enemy.js';
 
 export function applyTowerHit(shooter, target, damage) {
   if (!target || target.dead) return;
-  const shieldReduction = game.wave >= 151 ? 4 : 3;
+  // Wave 131~150: 매 웨이브 방어막 데미지 감소 +0.1 (누적 +2.0, Wave 150에서 -5.0 상한)
+  const shieldReduction = 3 + Math.min(2, Math.max(0, game.wave - 130) * 0.1);
   const effective = target.shielded ? Math.max(0, damage - shieldReduction) : damage;
   const hpBefore = target.hp;
   const dealt = Math.min(effective, hpBefore);
