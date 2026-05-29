@@ -4,8 +4,10 @@ import {
 } from './config.js';
 import {
   game, resetGame, loadGame, loadSaveData,
-  hasSeenAirIntro, hasSeenBuffIntro, hasSeenBossIntro, hasSeenShieldIntro, hasSeenTier4Intro,
-  setAirIntroSeen, setBuffIntroSeen, setBossIntroSeen, setShieldIntroSeen, setTier4IntroSeen,
+  hasSeenAirIntro, hasSeenBuffIntro, hasSeenBossIntro, hasSeenShieldIntro,
+  hasSeenTier4Intro, hasSeenRegenIntro,
+  setAirIntroSeen, setBuffIntroSeen, setBossIntroSeen, setShieldIntroSeen,
+  setTier4IntroSeen, setRegenIntroSeen,
 } from './state.js';
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
@@ -27,8 +29,10 @@ import {
 import { startNextWave } from './wave.js';
 import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
-  airIntroModal, buffIntroModal, bossIntroModal, shieldIntroModal, tier4IntroModal,
-  drawAirIntroModal, drawBuffIntroModal, drawBossIntroModal, drawShieldIntroModal, drawTier4IntroModal,
+  airIntroModal, buffIntroModal, bossIntroModal, shieldIntroModal,
+  tier4IntroModal, regenIntroModal,
+  drawAirIntroModal, drawBuffIntroModal, drawBossIntroModal, drawShieldIntroModal,
+  drawTier4IntroModal, drawRegenIntroModal,
 } from './ui.js';
 
 export const scenes = {};
@@ -281,6 +285,7 @@ scenes.playing = {
       else if (game.modal.type === 'bossIntro') drawBossIntroModal();
       else if (game.modal.type === 'shieldIntro') drawShieldIntroModal();
       else if (game.modal.type === 'tier4Intro') drawTier4IntroModal();
+      else if (game.modal.type === 'regenIntro') drawRegenIntroModal();
     }
   },
   pointerDown(p) {
@@ -299,6 +304,9 @@ scenes.playing = {
         game.modal = null;
       } else if (game.modal.type === 'tier4Intro' && hitButton(tier4IntroModal.confirmBtn, p)) {
         setTier4IntroSeen();
+        game.modal = null;
+      } else if (game.modal.type === 'regenIntro' && hitButton(regenIntroModal.confirmBtn, p)) {
+        setRegenIntroSeen();
         game.modal = null;
       }
       return;

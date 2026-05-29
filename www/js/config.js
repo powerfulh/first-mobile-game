@@ -175,9 +175,13 @@ export const HUD_RESERVED_TOP = 36;
 export const HOLD_DELETE_SECONDS = 1.0;
 export const WAVE_END_XP_MULTIPLIER = 5;
 
+export const REGEN_START_WAVE = 111;
+export const REGEN_HEAL_RATE = 0.10; // hpMax 기준 초당 회복 비율
+
 export const SAVE_KEY = 'td_save_v1';
 export const AIR_INTRO_KEY = 'td_seen_air_intro';
 export const BUFF_INTRO_KEY = 'td_seen_buff_intro';
 export const BOSS_INTRO_KEY = 'td_seen_boss_intro';
 export const SHIELD_INTRO_KEY = 'td_seen_shield_intro';
 export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';
+export const REGEN_INTRO_KEY = 'td_seen_regen_intro';

@@ -1,6 +1,6 @@
 import {
   SAVE_KEY, AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-  TIER4_INTRO_KEY, TOWER_ROLES,
+  TIER4_INTRO_KEY, REGEN_INTRO_KEY, TOWER_ROLES,
 } from './config.js';
 import { isBossWave, spawnBoss } from './enemy.js';
 
@@ -160,4 +160,11 @@ export function hasSeenTier4Intro() {
 }
 export function setTier4IntroSeen() {
   try { localStorage.setItem(TIER4_INTRO_KEY, '1'); } catch (e) {}
+}
+
+export function hasSeenRegenIntro() {
+  try { return localStorage.getItem(REGEN_INTRO_KEY) === '1'; } catch (e) { return false; }
+}
+export function setRegenIntroSeen() {
+  try { localStorage.setItem(REGEN_INTRO_KEY, '1'); } catch (e) {}
 }

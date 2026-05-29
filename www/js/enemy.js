@@ -1,6 +1,10 @@
 import { ctx } from './canvas.js';
-import { LOGICAL_W, path } from './config.js';
-import { game, hasSeenAirIntro, hasSeenBossIntro, hasSeenShieldIntro } from './state.js';
+import { LOGICAL_W, path, REGEN_HEAL_RATE } from './config.js';
+import {
+  game,
+  hasSeenAirIntro, hasSeenBossIntro, hasSeenShieldIntro, hasSeenRegenIntro,
+} from './state.js';
+import { roundRect } from './helpers.js';
 import { getEnemySpeedFactor } from './tower.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
@@ -12,6 +16,12 @@ export function getAirChance(wave) {
 export function getAirHpRatio(wave) {
   if (wave < 31) return 0.6;
   return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
+}
+
+export function getRegenChance(wave) {
+  if (wave < 111) return 0;
+  // Wave 111: 0.2%, Wave 112: 0.4%, ..., Wave 130+: 4.0% (고정)
+  return Math.min(0.04, (wave - 110) * 0.002);
 }
 
 export function getShieldChance(wave) {
@@ -72,11 +82,14 @@ export function getBaseSpawnInterval(wave) {
 
 // ============ Spawn ============
 export function spawnEnemy() {
-  const isAir = Math.random() < getAirChance(game.wave);
+  // 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
+  const regen = Math.random() < getRegenChance(game.wave);
+  const isAir = regen ? false : Math.random() < getAirChance(game.wave);
   const shielded = Math.random() < getShieldChance(game.wave);
   const baseHp = computeBaseHpAt(game.wave);
   const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
-  const speed = 50 + (Math.min(100, game.wave) - 1) * 2;
+  const baseSpeed = 50 + (Math.min(100, game.wave) - 1) * 2;
+  const speed = regen ? baseSpeed * 0.5 : baseSpeed;
   game.enemies.push({
     x: path[0].x,
     y: path[0].y,
@@ -88,12 +101,16 @@ export function spawnEnemy() {
     hp: hp,
     bobPhase: Math.random() * Math.PI * 2,
     shielded,
+    regen,
   });
   if (isAir && !game.modal && !hasSeenAirIntro()) {
     game.modal = { type: 'airIntro' };
   }
   if (shielded && !game.modal && !hasSeenShieldIntro()) {
     game.modal = { type: 'shieldIntro' };
+  }
+  if (regen && !game.modal && !hasSeenRegenIntro()) {
+    game.modal = { type: 'regenIntro' };
   }
 }
 
@@ -121,6 +138,9 @@ export function spawnBoss() {
 
 // ============ Update ============
 export function updateEnemy(e, dt) {
+  if (e.regen && e.hp < e.hpMax) {
+    e.hp = Math.min(e.hpMax, e.hp + e.hpMax * REGEN_HEAL_RATE * dt);
+  }
   if (e.segment >= path.length - 1) {
     game.hp -= 1;
     e.dead = true;
@@ -260,12 +280,73 @@ function drawAirBoss(e) {
   ctx.restore();
 }
 
+function drawRegenAura(cx, cy, baseR) {
+  // 사방으로 + 파티클이 흩어지며 페이드아웃 (각 파티클이 서로 다른 페이즈)
+  const count = 6;
+  const reach = 14;
+  const period = 1100;
+  const now = performance.now();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < count; i++) {
+    const phase = i / count;
+    const t = ((now / period) + phase) % 1;
+    const angle = (Math.PI * 2 * i / count) + Math.sin(now / 700 + i * 1.3) * 0.25;
+    const r = baseR + reach * t;
+    const px = cx + Math.cos(angle) * r;
+    const py = cy + Math.sin(angle) * r;
+    const alpha = Math.min(1, t * 4) * (1 - t * 0.9);
+    const sz = 2.4;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.moveTo(px - sz, py);
+    ctx.lineTo(px + sz, py);
+    ctx.moveTo(px, py - sz);
+    ctx.lineTo(px, py + sz);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.lineCap = 'butt';
+}
+
+function drawRegenEnemy(e) {
+  const r = e.radius;
+  const w = r * 1.8;
+  const x = e.x - w / 2;
+  const y = e.y - w / 2;
+
+  // 외곽 옅은 초록 글로우 (회복 분위기)
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
+  ctx.globalAlpha = 0.25 + 0.25 * pulse;
+  ctx.fillStyle = '#2ecc71';
+  roundRect(x - 3, y - 3, w + 6, w + 6, 5);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // 본체
+  ctx.fillStyle = '#1e8449';
+  roundRect(x, y, w, w, 3);
+  ctx.fill();
+  ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
+  ctx.lineWidth = e.shielded ? 2 : 1;
+  ctx.stroke();
+
+  drawEnemyHpBar(e, e.y);
+  drawRegenAura(e.x, e.y, r + 4);
+}
+
 export function drawEnemy(e) {
   if (e.isBoss) {
     if (e.type === 'ground') drawGroundBoss(e);
     else if (e.type === 'air') drawAirBoss(e);
     if (e.marked) drawMarkRing(e, e.y);
     return; // 보스 HP는 고정 UI에 표시
+  }
+  if (e.regen) {
+    drawRegenEnemy(e);
+    if (e.marked) drawMarkRing(e, e.y);
+    return;
   }
   if (e.type === 'air') {
     const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;

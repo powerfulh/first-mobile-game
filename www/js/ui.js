@@ -69,6 +69,10 @@ export const tier4IntroModal = {
   panel: { x: 20, y: 160, w: 320, h: 320 },
   confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
 };
+export const regenIntroModal = {
+  panel: { x: 20, y: 180, w: 320, h: 280 },
+  confirmBtn: { x: 110, y: 406, w: 140, h: 40 },
+};
 
 export function drawAirIntroModal() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -291,4 +295,56 @@ export function drawTier4IntroModal() {
   ctx.fillText('③ 대상 타워는 소모, 짝 타워가 4티어로 전직', iconCx, p.y + 220);
 
   drawButton(tier4IntroModal.confirmBtn, '확인');
+}
+
+export function drawRegenIntroModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = regenIntroModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#2ecc71';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 재생 적 아이콘: 사각형 + 위쪽 + 마크
+  const iconCx = LOGICAL_W / 2;
+  const iconCy = p.y + 56;
+  const w = 22;
+  ctx.fillStyle = '#1e8449';
+  roundRect(iconCx - w / 2, iconCy - w / 2, w, w, 3);
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // + 마크
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  const ms = 5;
+  const mcy = iconCy - w / 2 - 10;
+  ctx.beginPath();
+  ctx.moveTo(iconCx - ms, mcy);
+  ctx.lineTo(iconCx + ms, mcy);
+  ctx.moveTo(iconCx, mcy - ms);
+  ctx.lineTo(iconCx, mcy + ms);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('재생 적 등장!', iconCx, p.y + 108);
+
+  ctx.fillStyle = '#cdd';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('초록색 사각형은 재생 적입니다.', iconCx, p.y + 148);
+  ctx.fillText('이동 속도가 절반이지만', iconCx, p.y + 172);
+  ctx.fillText('피해를 입어도 매초 체력을 회복합니다.', iconCx, p.y + 196);
+
+  drawButton(regenIntroModal.confirmBtn, '확인');
 }
