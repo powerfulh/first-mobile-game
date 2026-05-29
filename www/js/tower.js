@@ -241,6 +241,7 @@ export function updateTower(t, dt) {
 
   // areaSweep은 자기 사거리 내만 처리 (마킹 풀 무시). 그 외 모든 단일 타겟 타워는 마킹 적 포함.
   const includeMarked = !cfg.areaSweep;
+  const minRange = cfg.minRange || 0;
 
   let target = null;
   if (cfg.targetMode === 'highestHp') {
@@ -249,6 +250,7 @@ export function updateTower(t, dt) {
       if (e.dead) continue;
       if (!attackTypes.includes(e.type)) continue;
       const d = Math.hypot(e.x - t.x, e.y - t.y);
+      if (d < minRange) continue;
       if (d > range && !(includeMarked && e.marked)) continue;
       if (e.hp > bestHp) {
         bestHp = e.hp;
@@ -264,6 +266,7 @@ export function updateTower(t, dt) {
         if (e.dead) continue;
         if (e.type !== wantType) continue;
         const d = Math.hypot(e.x - t.x, e.y - t.y);
+        if (d < minRange) continue;
         if (d > range && !(includeMarked && e.marked)) continue;
         if (d < bestDist) {
           bestDist = d;
@@ -319,6 +322,27 @@ export function updateTower(t, dt) {
             straightMode: true,
           });
         }
+      } else if (cfg.ballistic) {
+        // 발사 시점의 좌표를 고정 착탄점으로 잡고 직선 발사. 적이 회피해도 그 자리 폭격.
+        const tx = target.x;
+        const ty = target.y;
+        const dx = tx - t.x;
+        const dy = ty - t.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const speed = cfg.projectileSpeed || TOWER.projectileSpeed;
+        game.projectiles.push({
+          x: t.x,
+          y: t.y,
+          vx: (dx / dist) * speed,
+          vy: (dy / dist) * speed,
+          tx, ty,
+          damage,
+          shooter: t,
+          splash: cfg.splash || 0,
+          splashColor: cfg.color,
+          attackTypes: cfg.attackTypes || ['ground'],
+          ballisticMode: true,
+        });
       } else {
         game.projectiles.push({
           x: t.x,
@@ -453,6 +477,77 @@ function drawSupportBody(t, cfg, selected) {
   ctx.globalAlpha = 1;
 }
 
+function drawSiloBody(t, cfg, selected) {
+  const r = TOWER.radius;
+  const x = t.x - r;
+  const y = t.y - r;
+  const w = r * 2;
+
+  // 본체 - 사각형 격납고
+  ctx.fillStyle = cfg.color;
+  ctx.fillRect(x, y, w, w);
+  ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+  ctx.lineWidth = selected ? 3 : 2;
+  ctx.strokeRect(x, y, w, w);
+
+  // 격납고 도어 분할 라인 (십자)
+  ctx.strokeStyle = cfg.color2;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, t.y);
+  ctx.lineTo(x + w, t.y);
+  ctx.moveTo(t.x, y);
+  ctx.lineTo(t.x, y + w);
+  ctx.stroke();
+
+  // 모서리 리벳
+  ctx.fillStyle = cfg.color2;
+  const rivetR = 1.5;
+  const off = 3;
+  ctx.beginPath();
+  ctx.arc(x + off, y + off, rivetR, 0, Math.PI * 2);
+  ctx.arc(x + w - off, y + off, rivetR, 0, Math.PI * 2);
+  ctx.arc(x + off, y + w - off, rivetR, 0, Math.PI * 2);
+  ctx.arc(x + w - off, y + w - off, rivetR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 미사일 (angle 방향, 발사 직후 잠시 숨김)
+  const ready = t.cooldown < (1 / t.fireRate) * 0.7;
+  if (ready) {
+    ctx.save();
+    ctx.translate(t.x, t.y);
+    ctx.rotate(t.angle);
+
+    ctx.fillStyle = '#bdc3c7';
+    ctx.beginPath();
+    ctx.moveTo(-4, -2);
+    ctx.lineTo(4, -2);
+    ctx.lineTo(8, 0);
+    ctx.lineTo(4, 2);
+    ctx.lineTo(-4, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#34495e';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 헤드 붉은 점
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(5, 0, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // 좌상단 작동 LED (깜빡임)
+  const blink = (performance.now() % 900) < 450;
+  ctx.fillStyle = blink ? '#f1c40f' : 'rgba(241, 196, 15, 0.25)';
+  ctx.beginPath();
+  ctx.arc(x + 3, y + 3, 1.6, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function drawTier4Aura(t) {
   // 4티어 외곽 골든 띠
   const r = TOWER.radius + 4;
@@ -518,6 +613,8 @@ export function drawTower(t) {
     drawSupportBody(t, cfg, selected);
   } else if (cfg.areaSweep) {
     drawAreaSweepBody(t, cfg, selected);
+  } else if (cfg.ballistic) {
+    drawSiloBody(t, cfg, selected);
   } else {
     drawCannonBody(t, cfg, selected);
   }
@@ -538,16 +635,31 @@ export function drawTower(t) {
 }
 
 export function drawTowerRange(t, fillAlpha, strokeAlpha) {
+  const cfg = TOWER_ROLES[t.role];
   const range = getEffectiveRange(t);
+  const minRange = cfg.minRange || 0;
+
   ctx.globalAlpha = fillAlpha;
   ctx.fillStyle = '#3498db';
   ctx.beginPath();
   ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
-  ctx.fill();
+  if (minRange > 0) {
+    // 도넛 — 내경을 반대 방향으로 추가 후 evenodd로 가운데 비움
+    ctx.arc(t.x, t.y, minRange, 0, Math.PI * 2, true);
+  }
+  ctx.fill('evenodd');
+
   ctx.globalAlpha = strokeAlpha;
   ctx.strokeStyle = '#5dade2';
   ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
   ctx.stroke();
+  if (minRange > 0) {
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, minRange, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -644,9 +756,17 @@ export function drawTowerInfoPanel(t) {
   const nameWidth = ctx.measureText(cfg.name).width;
   ctx.fillText(cfg.name, towerInfoPanel.x + 14, towerInfoPanel.y + 22);
 
+  ctx.font = 'bold 11px sans-serif';
+  const tierX = towerInfoPanel.x + 14 + nameWidth + 8;
+  const tierY = towerInfoPanel.y + 22;
+  const tierStr = `Tier ${t.tier}`;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.strokeText(tierStr, tierX, tierY);
   ctx.fillStyle = cfg.color;
-  ctx.font = '11px sans-serif';
-  ctx.fillText(`Tier ${t.tier}`, towerInfoPanel.x + 14 + nameWidth + 8, towerInfoPanel.y + 22);
+  ctx.fillText(tierStr, tierX, tierY);
+  ctx.lineWidth = 1;
 
   ctx.font = '12px sans-serif';
   ctx.fillStyle = '#cdd';

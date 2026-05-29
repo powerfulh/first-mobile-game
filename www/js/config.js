@@ -24,10 +24,12 @@ export const TOWER = {
 
 // 4티어 레시피 (1:1 양방향). 두 3티어 역할 쌍 → 4티어 역할.
 export const TIER4_RECIPES = {
-  beacon:  { partner: 'trap',   result: 'radar' },
-  trap:    { partner: 'beacon', result: 'radar' },
-  dealman: { partner: 'demon',  result: 'assassin' },
+  beacon:  { partner: 'trap',    result: 'radar' },
+  trap:    { partner: 'beacon',  result: 'radar' },
+  dealman: { partner: 'demon',   result: 'assassin' },
   demon:   { partner: 'dealman', result: 'assassin' },
+  whale:   { partner: 'skydoom', result: 'silo' },
+  skydoom: { partner: 'whale',   result: 'silo' },
 };
 
 export const TOWER_ROLES = {
@@ -181,6 +183,20 @@ export const TOWER_ROLES = {
     description: [
       '피해를 입은 적의 방어막과 회복을 영구 무력화합니다',
       '데몬의 버프 능력을 잃습니다',
+    ],
+  },
+  silo: {
+    name: '사일로', tagline: '비유도 광역 폭격 · 지상 (반경 160)',
+    color: '#34495e', color2: '#1a252f',
+    range: 120, minRange: 60, fireRate: 0.4, damage: 40,
+    attackTypes: ['ground'], splash: 160,
+    promotions: [],
+    ballistic: true,
+    projectileSpeed: 196, // TOWER.projectileSpeed(280)의 70%
+    description: [
+      '유도 없이 발사 시점의 착탄 지점에 광역 폭격',
+      '최소 사거리 존재',
+      '스카이둠의 공중 공격 능력은 잃습니다',
     ],
   },
 };

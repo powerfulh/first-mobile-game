@@ -97,6 +97,24 @@ export function fireLineBeam(t, target, damage) {
 }
 
 export function updateProjectile(p, dt) {
+  if (p.ballisticMode) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    // 발사 방향 기준으로 target을 지나쳤는지 — dot product <= 0이면 도달/지나침
+    const dx = p.tx - p.x;
+    const dy = p.ty - p.y;
+    if (dx * p.vx + dy * p.vy <= 0) {
+      applySplashHit(p.shooter, p.tx, p.ty, p.damage, p.splash, p.attackTypes);
+      game.splashes.push({
+        x: p.tx, y: p.ty,
+        radius: p.splash,
+        life: 0.3, maxLife: 0.3,
+        color: p.splashColor || '#fff',
+      });
+      p.dead = true;
+    }
+    return;
+  }
   if (p.straightMode) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
@@ -230,7 +248,52 @@ export function drawZap(z) {
   ctx.globalAlpha = 1;
 }
 
+function drawMissile(p) {
+  const angle = Math.atan2(p.vy, p.vx);
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(angle);
+
+  // 꼬리 화염 (살짝 깜빡임)
+  const flicker = 0.6 + 0.4 * Math.sin(performance.now() / 50);
+  ctx.globalAlpha = flicker;
+  ctx.fillStyle = '#f39c12';
+  ctx.beginPath();
+  ctx.moveTo(-7, -2);
+  ctx.lineTo(-11, 0);
+  ctx.lineTo(-7, 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // 본체 (캡슐)
+  ctx.fillStyle = '#2c3e50';
+  ctx.beginPath();
+  ctx.moveTo(-6, -2.5);
+  ctx.lineTo(4, -2.5);
+  ctx.lineTo(7, 0);
+  ctx.lineTo(4, 2.5);
+  ctx.lineTo(-6, 2.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#1a252f';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // 헤드 (붉은 점)
+  ctx.fillStyle = '#c0392b';
+  ctx.beginPath();
+  ctx.arc(5, 0, 1.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
 export function drawProjectile(p) {
+  if (p.ballisticMode) {
+    drawMissile(p);
+    return;
+  }
   ctx.fillStyle = '#f1c40f';
   ctx.beginPath();
   ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
