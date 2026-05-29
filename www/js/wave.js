@@ -17,7 +17,10 @@ export function startNextWave() {
       // Wave 101~110: 매 웨이브 minNarrow를 추가로 -0.01씩 (총 -0.10까지)
       const extraReduction = Math.min(0.10, Math.max(0, game.wave - 100) * 0.01);
       const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction);
-      const narrow = minNarrow + Math.random() * (1.0 - minNarrow);
+      // Wave 121~130: 매 웨이브 maxNarrow를 -0.01씩 (총 -0.10까지)
+      const maxReduction = Math.min(0.10, Math.max(0, game.wave - 120) * 0.01);
+      const maxNarrow = Math.max(minNarrow, 1.0 - maxReduction);
+      const narrow = minNarrow + Math.random() * (maxNarrow - minNarrow);
       interval *= narrow;
     }
     game.spawnInterval = interval;
