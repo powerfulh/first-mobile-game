@@ -22,8 +22,14 @@ export function applyTowerHit(shooter, target, damage) {
       shooter.xp = Math.min(next, xpMaxFor(shooter));
     }
     const shooterCfg = TOWER_ROLES[shooter.role];
-    if (shooterCfg && shooterCfg.marksEnemies && !target.dead) {
-      target.marked = true;
+    if (shooterCfg && !target.dead) {
+      if (shooterCfg.marksEnemies) {
+        target.marked = true;
+      }
+      if (shooterCfg.disablesModifiers) {
+        target.shielded = false;
+        target.regenDisabled = true;
+      }
     }
   }
   if (target.hp <= 0) {
@@ -63,8 +69,11 @@ export function fireLineBeam(t, target, damage) {
   const cfg = TOWER_ROLES[t.role];
   const range = getEffectiveRange(t);
   const angle = Math.atan2(target.y - t.y, target.x - t.x);
-  const endX = t.x + Math.cos(angle) * range;
-  const endY = t.y + Math.sin(angle) * range;
+  // 사거리 외 마킹 적도 타깃이 될 수 있으니 빔은 target 위치까지 확장
+  const targetDist = Math.hypot(target.x - t.x, target.y - t.y);
+  const beamLen = Math.max(range, targetDist);
+  const endX = t.x + Math.cos(angle) * beamLen;
+  const endY = t.y + Math.sin(angle) * beamLen;
 
   game.beams.push({
     x1: t.x, y1: t.y,

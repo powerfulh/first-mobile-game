@@ -138,7 +138,7 @@ export function spawnBoss() {
 
 // ============ Update ============
 export function updateEnemy(e, dt) {
-  if (e.regen && e.hp < e.hpMax) {
+  if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
     e.hp = Math.min(e.hpMax, e.hp + e.hpMax * REGEN_HEAL_RATE * dt);
   }
   if (e.segment >= path.length - 1) {
@@ -333,7 +333,7 @@ function drawRegenEnemy(e) {
   ctx.stroke();
 
   drawEnemyHpBar(e, e.y);
-  drawRegenAura(e.x, e.y, r + 4);
+  if (!e.regenDisabled) drawRegenAura(e.x, e.y, r + 4);
 }
 
 export function drawEnemy(e) {

@@ -24,8 +24,10 @@ export const TOWER = {
 
 // 4티어 레시피 (1:1 양방향). 두 3티어 역할 쌍 → 4티어 역할.
 export const TIER4_RECIPES = {
-  beacon: { partner: 'trap', result: 'radar' },
-  trap:   { partner: 'beacon', result: 'radar' },
+  beacon:  { partner: 'trap',   result: 'radar' },
+  trap:    { partner: 'beacon', result: 'radar' },
+  dealman: { partner: 'demon',  result: 'assassin' },
+  demon:   { partner: 'dealman', result: 'assassin' },
 };
 
 export const TOWER_ROLES = {
@@ -101,6 +103,7 @@ export const TOWER_ROLES = {
     boostsXp: true,
     slowsEnemies: true,
     slowFactor: 0.5,
+    gainsXpOnEnemyEnter: true,
   },
   eagle: {
     name: '이글', tagline: '공중 전담 · 빠른 사격',
@@ -165,6 +168,21 @@ export const TOWER_ROLES = {
       '비콘의 버프 능력을 잃습니다',
     ],
   },
+  assassin: {
+    name: '어쌔신', tagline: '관통 빔 + 방어막·회복 무력화 · 지상 / 공중',
+    color: '#5b1b3a', color2: '#2d0a1d',
+    range: 200, fireRate: 0.8, damage: 30,
+    attackTypes: ['ground', 'air'], splash: 0,
+    promotions: [],
+    instantHit: true,
+    pierces: true,
+    targetMode: 'highestHp',
+    disablesModifiers: true,
+    description: [
+      '피해를 입은 적의 방어막과 회복을 영구 무력화합니다',
+      '데몬의 버프 능력을 잃습니다',
+    ],
+  },
 };
 
 export const TARGET_PRIORITY = ['air', 'ground'];
@@ -176,7 +194,7 @@ export const HOLD_DELETE_SECONDS = 1.0;
 export const WAVE_END_XP_MULTIPLIER = 5;
 
 export const REGEN_START_WAVE = 111;
-export const REGEN_HEAL_RATE = 0.10; // hpMax 기준 초당 회복 비율
+export const REGEN_HEAL_RATE = 0.12; // hpMax 기준 초당 회복 비율
 
 export const SAVE_KEY = 'td_save_v1';
 export const AIR_INTRO_KEY = 'td_seen_air_intro';

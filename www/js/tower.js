@@ -223,6 +223,22 @@ export function updateTower(t, dt) {
   const attackTypes = cfg.attackTypes || ['ground'];
   const range = getEffectiveRange(t);
 
+  // 영향권 진입 시 XP 부여 (데몬류 비공격 타워의 수급 수단)
+  if (cfg.gainsXpOnEnemyEnter) {
+    if (!t.inRangeEnemies) t.inRangeEnemies = new Set();
+    const next = new Set();
+    for (const e of game.enemies) {
+      if (e.dead) continue;
+      const d = Math.hypot(e.x - t.x, e.y - t.y);
+      if (d > range) continue;
+      next.add(e);
+      if (!t.inRangeEnemies.has(e) && canPromote(t)) {
+        t.xp = Math.min(xpMaxFor(t), Math.round((t.xp + 1) * 10) / 10);
+      }
+    }
+    t.inRangeEnemies = next;
+  }
+
   // areaSweep은 자기 사거리 내만 처리 (마킹 풀 무시). 그 외 모든 단일 타겟 타워는 마킹 적 포함.
   const includeMarked = !cfg.areaSweep;
 
@@ -562,21 +578,14 @@ export function getPromotionButtonState(t) {
     if (t === game.promotionTarget) {
       return { active: true, action: 'cancelTarget', label: '대상 취소' };
     }
-    if (game.promotionTarget) {
-      if (isCompatibleTier4Partner(game.promotionTarget, t)) {
-        const afford = game.gold >= cost;
-        return {
-          active: afford,
-          action: afford ? 'openTier4Choice' : null,
-          label: afford
-            ? `전직 (${cost.toLocaleString()}G)`
-            : `전직 (${cost.toLocaleString()}G · 골드 부족)`,
-        };
-      }
+    if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, t)) {
+      const afford = game.gold >= cost;
       return {
-        active: false,
-        action: null,
-        label: '레시피 불일치',
+        active: afford,
+        action: afford ? 'openTier4Choice' : null,
+        label: afford
+          ? `전직 (${cost.toLocaleString()}G)`
+          : `전직 (${cost.toLocaleString()}G · 골드 부족)`,
       };
     }
     return { active: true, action: 'setTarget', label: '4티어 대상 지정' };
