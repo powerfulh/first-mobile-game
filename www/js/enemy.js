@@ -1,10 +1,10 @@
 import { ctx } from './canvas.js';
 import {
-  LOGICAL_W, path, REGEN_HEAL_RATE,
-  AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY,
+  LOGICAL_W, path, REGEN_HEAL_RATE, BARRIER_RADIUS,
+  AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './config.js';
 import { game, hasSeenIntro } from './state.js';
-import { roundRect } from './helpers.js';
+import { roundRect, pointToSegmentDist } from './helpers.js';
 import { getEnemySpeedFactor } from './tower.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
@@ -22,6 +22,12 @@ export function getRegenChance(wave) {
   if (wave < 111) return 0;
   // Wave 111: 0.2%, Wave 112: 0.4%, ..., Wave 130+: 4.0% (고정)
   return Math.min(0.04, (wave - 110) * 0.002);
+}
+
+export function getBarrierSpawnerChance(wave) {
+  if (wave < 151) return 0;
+  // Wave 151: 0.4%, Wave 152: 0.8%, ..., Wave 160+: 4.0% (고정)
+  return Math.min(0.04, (wave - 150) * 0.004);
 }
 
 export function getShieldChance(wave) {
@@ -83,11 +89,17 @@ export function getBaseSpawnInterval(wave) {
 // ============ Spawn ============
 export function spawnEnemy() {
   // 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
-  const regen = Math.random() < getRegenChance(game.wave);
-  const isAir = regen ? false : Math.random() < getAirChance(game.wave);
+  const barrierSpawner = Math.random() < getBarrierSpawnerChance(game.wave);
+  const regen = barrierSpawner ? false : Math.random() < getRegenChance(game.wave);
+  const isAirPlain = !barrierSpawner && !regen && Math.random() < getAirChance(game.wave);
+  const isAir = barrierSpawner || isAirPlain; // 장벽 적은 공중 타입
   const shielded = Math.random() < getShieldChance(game.wave);
   const baseHp = computeBaseHpAt(game.wave);
-  const hp = isAir ? Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10 : baseHp;
+  // 장벽 적: 일반 적과 동일 HP/속도 (공중 HP 비율 미적용, 슬로우 미적용)
+  let hp;
+  if (barrierSpawner) hp = baseHp;
+  else if (isAir) hp = Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10;
+  else hp = baseHp;
   const baseSpeed = 50 + (Math.min(100, game.wave) - 1) * 2;
   const speed = regen ? baseSpeed * 0.5 : baseSpeed;
   game.enemies.push({
@@ -102,8 +114,9 @@ export function spawnEnemy() {
     bobPhase: Math.random() * Math.PI * 2,
     shielded,
     regen,
+    barrierSpawner,
   });
-  if (isAir && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
+  if (isAirPlain && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
     game.modal = { type: 'airIntro' };
   }
   if (shielded && !game.modal && !hasSeenIntro(SHIELD_INTRO_KEY)) {
@@ -112,6 +125,90 @@ export function spawnEnemy() {
   if (regen && !game.modal && !hasSeenIntro(REGEN_INTRO_KEY)) {
     game.modal = { type: 'regenIntro' };
   }
+  if (barrierSpawner && !game.modal && !hasSeenIntro(BARRIER_INTRO_KEY)) {
+    game.modal = { type: 'barrierIntro' };
+  }
+}
+
+// 장벽 객체 — 일반 적과 game.enemies에 함께 들어감 (e.isBarrier=true).
+// 공중 타입이라 공중 공격 가능 타워의 타깃이 됨.
+export function spawnBarrier(x, y) {
+  const hp = computeBaseHpAt(game.wave) * 2;
+  game.enemies.push({
+    x, y,
+    type: 'air',
+    speed: 0,
+    segment: -1,
+    radius: BARRIER_RADIUS,
+    hpMax: hp,
+    hp: hp,
+    isBarrier: true,
+  });
+}
+
+// 장벽 적 처치 시 호출 — 즉시 생성 대신 짧은 애니메이션 후 spawnBarrier.
+export function startBarrierSpawn(x, y) {
+  game.barrierSpawnFx.push({
+    x, y,
+    life: 0.55,
+    maxLife: 0.55,
+  });
+}
+
+export function updateBarrierSpawnFx(fx, dt) {
+  fx.life -= dt;
+  if (fx.life <= 0) {
+    fx.dead = true;
+    spawnBarrier(fx.x, fx.y);
+  }
+}
+
+export function drawBarrierSpawnFx(fx) {
+  const t = 1 - fx.life / fx.maxLife; // 0 → 1
+  const r = 6 + (BARRIER_RADIUS - 6) * t;
+
+  // 채움 — 점차 진해짐
+  ctx.globalAlpha = t * 0.35;
+  ctx.fillStyle = '#aab7c4';
+  ctx.beginPath();
+  ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 외곽 펄스 링 (점선, 회전)
+  ctx.globalAlpha = 0.8;
+  ctx.strokeStyle = '#d5dbdb';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.lineDashOffset = -performance.now() / 40;
+  ctx.beginPath();
+  ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.lineDashOffset = 0;
+
+  // 중심 빛점 (사라지면서 외곽으로 흩어짐)
+  const sparkAlpha = (1 - t) * 0.9;
+  ctx.globalAlpha = sparkAlpha;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(fx.x, fx.y, 5 * (1 - t * 0.6), 0, Math.PI * 2);
+  ctx.fill();
+
+  // 사방 작은 입자 (수렴 → 펼침 양상)
+  const sparkCount = 6;
+  ctx.fillStyle = '#d5dbdb';
+  for (let i = 0; i < sparkCount; i++) {
+    const angle = (Math.PI * 2 * i / sparkCount) + t * 1.5;
+    const dist = r * 0.75;
+    const px = fx.x + Math.cos(angle) * dist;
+    const py = fx.y + Math.sin(angle) * dist;
+    ctx.globalAlpha = Math.max(0, (1 - t) * 0.8);
+    ctx.beginPath();
+    ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
 }
 
 export function spawnBoss() {
@@ -138,6 +235,10 @@ export function spawnBoss() {
 
 // ============ Update ============
 export function updateEnemy(e, dt) {
+  if (e.isBarrier) {
+    // 장벽은 그 자리 고정 — 이동/회복 없음
+    return;
+  }
   if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
     e.hp = Math.min(e.hpMax, e.hp + e.hpMax * REGEN_HEAL_RATE * dt);
   }
@@ -336,7 +437,109 @@ function drawRegenEnemy(e) {
   if (!e.regenDisabled) drawRegenAura(e.x, e.y, r + 4);
 }
 
+function drawBarrierSpawnerEnemy(e, cy) {
+  const r = e.radius;
+  // 역삼각형 본체 — 위쪽이 넓고 아래 꼭짓점
+  ctx.fillStyle = '#a569bd';
+  ctx.beginPath();
+  ctx.moveTo(e.x - r * 0.9, cy - r * 0.6);
+  ctx.lineTo(e.x + r * 0.9, cy - r * 0.6);
+  ctx.lineTo(e.x, cy + r);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
+  ctx.lineWidth = e.shielded ? 2 : 1;
+  ctx.stroke();
+
+  // 내부 장벽 미니어처 — 반투명 회청 디스크 + 격자 1줄로 장벽 느낌
+  const cx = e.x;
+  const inY = cy - r * 0.15;
+  const inR = 5;
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = '#aab7c4';
+  ctx.beginPath();
+  ctx.arc(cx, inY, inR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#d5dbdb';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // 격자(십자) — 장벽의 견고함 암시
+  ctx.beginPath();
+  ctx.moveTo(cx - inR, inY);
+  ctx.lineTo(cx + inR, inY);
+  ctx.moveTo(cx, inY - inR);
+  ctx.lineTo(cx, inY + inR);
+  ctx.stroke();
+}
+
+function drawBarrier(e) {
+  const ratio = Math.max(0, e.hp / e.hpMax);
+  // 단계 (HP 비율 기준): >0.66 견고 / >0.33 손상 / 그 외 부서지기 직전
+  const stage = ratio > 0.66 ? 0 : ratio > 0.33 ? 1 : 2;
+  const r = e.radius;
+  const t = performance.now() / 800;
+
+  // 채움 (반투명, 단계 따라 옅어짐)
+  const fillAlpha = stage === 0 ? 0.18 : stage === 1 ? 0.12 : 0.06;
+  ctx.globalAlpha = fillAlpha;
+  ctx.fillStyle = '#aab7c4';
+  ctx.beginPath();
+  ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // 외곽선 (단계별 두께/점선/색)
+  if (stage === 0) {
+    ctx.strokeStyle = '#d5dbdb';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([]);
+  } else if (stage === 1) {
+    ctx.strokeStyle = '#aeb6bf';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+  } else {
+    ctx.strokeStyle = '#7f8c8d';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+  }
+  ctx.beginPath();
+  ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 내부 격자/균열 — 단계 따라 증가
+  ctx.strokeStyle = stage === 0 ? 'rgba(213, 219, 219, 0.55)'
+                    : stage === 1 ? 'rgba(174, 182, 191, 0.6)'
+                    : 'rgba(127, 140, 141, 0.7)';
+  ctx.lineWidth = 1;
+  const cracks = stage === 0 ? 0 : stage === 1 ? 4 : 8;
+  for (let i = 0; i < cracks; i++) {
+    const angle = (Math.PI * 2 * i / Math.max(1, cracks)) + t * 0.3;
+    const innerR = r * 0.25;
+    const outerR = r * (stage === 1 ? 0.9 : 1.0);
+    const x1 = e.x + Math.cos(angle) * innerR;
+    const y1 = e.y + Math.sin(angle) * innerR;
+    const x2 = e.x + Math.cos(angle) * outerR;
+    const y2 = e.y + Math.sin(angle) * outerR;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // 중심 코어 (작은 점)
+  ctx.fillStyle = stage === 2 ? 'rgba(231, 76, 60, 0.7)' : 'rgba(213, 219, 219, 0.6)';
+  ctx.beginPath();
+  ctx.arc(e.x, e.y, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 export function drawEnemy(e) {
+  if (e.isBarrier) {
+    drawBarrier(e);
+    return;
+  }
   if (e.isBoss) {
     if (e.type === 'ground') drawGroundBoss(e);
     else if (e.type === 'air') drawAirBoss(e);
@@ -353,16 +556,20 @@ export function drawEnemy(e) {
     const cy = e.y + bobY - 3;
     const r = e.radius;
 
-    ctx.fillStyle = '#a569bd';
-    ctx.beginPath();
-    ctx.moveTo(e.x, cy - r);
-    ctx.lineTo(e.x - r * 0.9, cy + r * 0.6);
-    ctx.lineTo(e.x + r * 0.9, cy + r * 0.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
-    ctx.lineWidth = e.shielded ? 2 : 1;
-    ctx.stroke();
+    if (e.barrierSpawner) {
+      drawBarrierSpawnerEnemy(e, cy);
+    } else {
+      ctx.fillStyle = '#a569bd';
+      ctx.beginPath();
+      ctx.moveTo(e.x, cy - r);
+      ctx.lineTo(e.x - r * 0.9, cy + r * 0.6);
+      ctx.lineTo(e.x + r * 0.9, cy + r * 0.6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
+      ctx.lineWidth = e.shielded ? 2 : 1;
+      ctx.stroke();
+    }
 
     drawEnemyHpBar(e, cy);
     if (e.marked) drawMarkRing(e, cy);
@@ -378,4 +585,88 @@ export function drawEnemy(e) {
     drawEnemyHpBar(e, e.y);
     if (e.marked) drawMarkRing(e, e.y);
   }
+}
+
+// ============ 장벽 차단 헬퍼 ============
+// 타워(또는 빔 출발점)에서 target까지 직선이 장벽을 통과하는지 검사.
+// 시작점이 어떤 장벽 안에 있으면 무조건 차단 (안에서는 공격 불가).
+export function isBlockedByBarrier(fromX, fromY, target) {
+  for (const b of game.enemies) {
+    if (!b.isBarrier || b.dead) continue;
+    if (b === target) continue;
+    // 시작점이 장벽 안 → 무조건 차단
+    if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) return true;
+    // 광선이 장벽 통과
+    const d = pointToSegmentDist(b.x, b.y, fromX, fromY, target.x, target.y);
+    if (d < b.radius) return true;
+  }
+  return false;
+}
+
+// 광선(from + angle) 방향 가장 가까운 장벽 진입점까지 거리. 없으면 null.
+// 시작점이 어떤 장벽 안이면 거리 0 (즉시 차단).
+export function findBarrierBlockDist(fromX, fromY, angle, maxDist, excludeTarget) {
+  const ux = Math.cos(angle);
+  const uy = Math.sin(angle);
+  let minDist = null;
+  for (const b of game.enemies) {
+    if (!b.isBarrier || b.dead) continue;
+    if (b === excludeTarget) continue;
+    if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) {
+      // 시작점이 장벽 안 → 즉시 차단
+      if (minDist === null || 0 < minDist) minDist = 0;
+      continue;
+    }
+    const dx = b.x - fromX;
+    const dy = b.y - fromY;
+    const proj = dx * ux + dy * uy;
+    const perp = Math.abs(dx * uy - dy * ux);
+    if (perp >= b.radius) continue;
+    const back = Math.sqrt(b.radius * b.radius - perp * perp);
+    const entry = proj - back;
+    if (entry < 0 || entry > maxDist) continue;
+    if (minDist === null || entry < minDist) minDist = entry;
+  }
+  return minDist;
+}
+
+// 투사체 이동 (from → to) 경로상 가장 가까운 장벽 진입점.
+// 시작점이 장벽 안이면 그 자리 즉시 차단.
+// 반환: { barrier, x, y, dist } 또는 null.
+export function projectileHitsBarrier(fromX, fromY, toX, toY) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const length = Math.hypot(dx, dy);
+  if (length === 0) return null;
+  const ux = dx / length;
+  const uy = dy / length;
+  let nearest = null;
+  for (const b of game.enemies) {
+    if (!b.isBarrier || b.dead) continue;
+    if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) {
+      // 시작점이 안 → 거리 0
+      if (!nearest || 0 < nearest.dist) {
+        nearest = { barrier: b, dist: 0 };
+      }
+      continue;
+    }
+    const bx = b.x - fromX;
+    const by = b.y - fromY;
+    const proj = bx * ux + by * uy;
+    const perp = Math.abs(bx * uy - by * ux);
+    if (perp >= b.radius) continue;
+    const back = Math.sqrt(b.radius * b.radius - perp * perp);
+    const entry = proj - back;
+    if (entry < 0 || entry > length) continue;
+    if (!nearest || entry < nearest.dist) {
+      nearest = { barrier: b, dist: entry };
+    }
+  }
+  if (!nearest) return null;
+  return {
+    barrier: nearest.barrier,
+    x: fromX + ux * nearest.dist,
+    y: fromY + uy * nearest.dist,
+    dist: nearest.dist,
+  };
 }

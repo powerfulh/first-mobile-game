@@ -9,6 +9,7 @@ import {
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
   spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
+  updateBarrierSpawnFx, drawBarrierSpawnFx,
 } from './enemy.js';
 import {
   canPlaceTower, placeTower, canPromote, isPromotionReady, canAffordPromotion,
@@ -188,12 +189,14 @@ scenes.playing = {
     for (const b of game.beams) updateBeam(b, dt);
     for (const s of game.splashes) updateSplash(s, dt);
     for (const z of game.zaps) updateZap(z, dt);
+    for (const fx of game.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
 
     game.enemies = game.enemies.filter(e => !e.dead);
     game.projectiles = game.projectiles.filter(p => !p.dead);
     game.beams = game.beams.filter(b => !b.dead);
     game.splashes = game.splashes.filter(s => !s.dead);
     game.zaps = game.zaps.filter(z => !z.dead);
+    game.barrierSpawnFx = game.barrierSpawnFx.filter(fx => !fx.dead);
 
     let waveEnded = false;
     if (game.waveState === 'spawning') {
@@ -203,8 +206,13 @@ scenes.playing = {
           game.enemies = [];
           waveEnded = true;
         }
-      } else if (game.spawnedThisWave >= game.enemiesPerWave && game.enemies.length === 0) {
-        waveEnded = true;
+      } else {
+        // 장벽은 일반 적 카운트에서 제외 / 장벽 생성 fx 진행 중에도 wave 안 끝남
+        const remainingNonBarrier = game.enemies.some(e => !e.isBarrier);
+        const fxPending = game.barrierSpawnFx.length > 0;
+        if (game.spawnedThisWave >= game.enemiesPerWave && !remainingNonBarrier && !fxPending) {
+          waveEnded = true;
+        }
       }
     }
     if (waveEnded) {
@@ -214,6 +222,8 @@ scenes.playing = {
           t.xp = Math.min(Math.round((t.xp + gain) * 10) / 10, xpMaxFor(t));
         }
       }
+      // 잔여 장벽 정리 (웨이브 종료 시 사라짐)
+      game.enemies = game.enemies.filter(e => !e.isBarrier);
       game.waveState = 'intermission';
       game.intermissionTimer = game.wave >= 40 ? 1 : game.wave >= 20 ? 2 : 3;
     }
@@ -249,6 +259,7 @@ scenes.playing = {
     for (const b of game.beams) drawBeam(b);
     for (const s of game.splashes) drawSplash(s);
     for (const z of game.zaps) drawZap(z);
+    for (const fx of game.barrierSpawnFx) drawBarrierSpawnFx(fx);
 
     drawBossHpBar();
 

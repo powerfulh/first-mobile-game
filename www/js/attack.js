@@ -5,7 +5,10 @@ import { pointToSegmentDist } from './helpers.js';
 import {
   canPromote, xpMaxFor, getEffectiveRange,
 } from './tower.js';
-import { getBossReward } from './enemy.js';
+import {
+  getBossReward, startBarrierSpawn,
+  findBarrierBlockDist, projectileHitsBarrier,
+} from './enemy.js';
 
 export function applyTowerHit(shooter, target, damage) {
   if (!target || target.dead) return;
@@ -37,8 +40,14 @@ export function applyTowerHit(shooter, target, damage) {
     target.dead = true;
     if (target.isBoss) {
       game.gold += getBossReward(game.wave);
+    } else if (target.isBarrier) {
+      // 장벽은 보상 없음
     } else if (!game.bossActive) {
       game.gold += ENEMY_KILL_REWARD;
+    }
+    // 장벽 적 처치 시 그 자리에 장벽 생성 (짧은 애니메이션 후)
+    if (target.barrierSpawner) {
+      startBarrierSpawn(target.x, target.y);
     }
   }
 }
@@ -56,14 +65,31 @@ export function applySplashHit(shooter, impactX, impactY, damage, radius, attack
 
 export function fireInstantBeam(t, target, damage) {
   const cfg = TOWER_ROLES[t.role];
-  game.beams.push({
-    x1: t.x, y1: t.y,
-    x2: target.x, y2: target.y,
-    life: 0.15,
-    maxLife: 0.15,
-    color: cfg.color,
-  });
-  applyTowerHit(t, target, damage !== undefined ? damage : t.damage);
+  const dmg = damage !== undefined ? damage : t.damage;
+  const attackTypes = cfg.attackTypes || ['ground'];
+  // 공중 공격일 때만 장벽 차단. 지상 전용 빔은 통과.
+  const canBeBlocked = attackTypes.includes('air');
+  let blocker = null;
+  if (canBeBlocked) {
+    blocker = projectileHitsBarrier(t.x, t.y, target.x, target.y);
+  }
+  if (blocker) {
+    game.beams.push({
+      x1: t.x, y1: t.y,
+      x2: blocker.x, y2: blocker.y,
+      life: 0.15, maxLife: 0.15,
+      color: cfg.color,
+    });
+    applyTowerHit(t, blocker.barrier, dmg);
+  } else {
+    game.beams.push({
+      x1: t.x, y1: t.y,
+      x2: target.x, y2: target.y,
+      life: 0.15, maxLife: 0.15,
+      color: cfg.color,
+    });
+    applyTowerHit(t, target, dmg);
+  }
 }
 
 export function fireLineBeam(t, target, damage) {
@@ -72,7 +98,15 @@ export function fireLineBeam(t, target, damage) {
   const angle = Math.atan2(target.y - t.y, target.x - t.x);
   // 사거리 외 마킹 적도 타깃이 될 수 있으니 빔은 target 위치까지 확장
   const targetDist = Math.hypot(target.x - t.x, target.y - t.y);
-  const beamLen = Math.max(range, targetDist);
+  let beamLen = Math.max(range, targetDist);
+
+  const attackTypes = cfg.attackTypes || ['ground'];
+  // 공중 공격은 target에 상관없이 장벽에서 빔이 짤림 (지상 전용은 통과)
+  if (attackTypes.includes('air')) {
+    const blockDist = findBarrierBlockDist(t.x, t.y, angle, beamLen, null);
+    if (blockDist !== null) beamLen = blockDist;
+  }
+
   const endX = t.x + Math.cos(angle) * beamLen;
   const endY = t.y + Math.sin(angle) * beamLen;
 
@@ -84,7 +118,6 @@ export function fireLineBeam(t, target, damage) {
     color: cfg.color,
   });
 
-  const attackTypes = cfg.attackTypes || ['ground'];
   const dmg = damage !== undefined ? damage : t.damage;
   for (const e of game.enemies) {
     if (e.dead) continue;
@@ -96,10 +129,38 @@ export function fireLineBeam(t, target, damage) {
   }
 }
 
+// 투사체가 (oldX,oldY) → (newX,newY) 이동 중 장벽 진입점을 만나면 거기서 폭발/타격.
+// 공중 공격(attackTypes 'air' 포함)일 때만 막힘. 지상 전용 투사체는 장벽 통과.
+function handleBarrierBlock(p, oldX, oldY, newX, newY) {
+  if (!p.attackTypes || !p.attackTypes.includes('air')) return false;
+  const hit = projectileHitsBarrier(oldX, oldY, newX, newY);
+  if (!hit) return false;
+  if (p.splash > 0) {
+    applySplashHit(p.shooter, hit.x, hit.y, p.damage, p.splash, p.attackTypes);
+    game.splashes.push({
+      x: hit.x, y: hit.y,
+      radius: p.splash,
+      life: 0.3, maxLife: 0.3,
+      color: p.splashColor || '#fff',
+    });
+    // splash 반경 안에 장벽 중심이 안 들어오는 경우만 단발 데미지 보장 (중복 방지)
+    const dToBarrier = Math.hypot(hit.barrier.x - hit.x, hit.barrier.y - hit.y);
+    if (dToBarrier > p.splash) {
+      applyTowerHit(p.shooter, hit.barrier, p.damage);
+    }
+  } else {
+    applyTowerHit(p.shooter, hit.barrier, p.damage);
+  }
+  p.dead = true;
+  return true;
+}
+
 export function updateProjectile(p, dt) {
   if (p.ballisticMode) {
+    const oldX = p.x, oldY = p.y;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
+    if (handleBarrierBlock(p, oldX, oldY, p.x, p.y)) return;
     // 발사 방향 기준으로 target을 지나쳤는지 — dot product <= 0이면 도달/지나침
     const dx = p.tx - p.x;
     const dy = p.ty - p.y;
@@ -116,14 +177,17 @@ export function updateProjectile(p, dt) {
     return;
   }
   if (p.straightMode) {
+    const oldX = p.x, oldY = p.y;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     if (p.x < -20 || p.x > LOGICAL_W + 20 || p.y < -20 || p.y > LOGICAL_H + 20) {
       p.dead = true;
       return;
     }
+    if (handleBarrierBlock(p, oldX, oldY, p.x, p.y)) return;
     for (const e of game.enemies) {
       if (e.dead) continue;
+      if (e.isBarrier) continue; // 장벽은 handleBarrierBlock에서 처리됨
       if (p.attackTypes && !p.attackTypes.includes(e.type)) continue;
       const d = Math.hypot(e.x - p.x, e.y - p.y);
       if (d <= e.radius) {
@@ -154,6 +218,8 @@ export function updateProjectile(p, dt) {
   const dist = Math.hypot(dx, dy);
   const move = p.speed * dt;
   if (move >= dist) {
+    // 마지막 점프 — target 직전에 장벽 만남 검사
+    if (handleBarrierBlock(p, p.x, p.y, p.target.x, p.target.y)) return;
     if (p.splash > 0) {
       const ix = p.target.x;
       const iy = p.target.y;
@@ -169,8 +235,10 @@ export function updateProjectile(p, dt) {
     }
     p.dead = true;
   } else {
+    const oldX = p.x, oldY = p.y;
     p.x += (dx / dist) * move;
     p.y += (dy / dist) * move;
+    if (handleBarrierBlock(p, oldX, oldY, p.x, p.y)) return;
   }
 }
 
@@ -189,7 +257,10 @@ export function spawnZap(x, y, radius, color) {
   const bolts = [];
   for (let i = 0; i < boltCount; i++) {
     const angle = (Math.PI * 2 * i / boltCount) + (Math.random() - 0.5) * 0.45;
-    const reach = radius * (0.85 + Math.random() * 0.15);
+    let reach = radius * (0.85 + Math.random() * 0.15);
+    // 광선 방향에 장벽이 있으면 그 진입점까지만 뻗음
+    const blockDist = findBarrierBlockDist(x, y, angle, reach, null);
+    if (blockDist !== null) reach = Math.max(0, blockDist - 2);
     const perpX = -Math.sin(angle);
     const perpY = Math.cos(angle);
     const segments = 5;

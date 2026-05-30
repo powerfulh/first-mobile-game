@@ -2,7 +2,7 @@ import { ctx, hpEl, goldEl, waveEl } from './canvas.js';
 import {
   LOGICAL_W, LOGICAL_H,
   AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-  TIER4_INTRO_KEY, REGEN_INTRO_KEY,
+  TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './config.js';
 import { game } from './state.js';
 import { roundRect, drawButton } from './helpers.js';
@@ -274,6 +274,64 @@ export const INTRO_MODALS = {
       ctx.fillText('① 한 타워의 "4티어 대상 지정"', iconCx, p.y + 180);
       ctx.fillText('② 레시피 짝 타워에서 "전직"', iconCx, p.y + 200);
       ctx.fillText('③ 대상 타워는 소모, 짝 타워가 4티어로 전직', iconCx, p.y + 220);
+
+      drawButton(this.confirmBtn, '확인');
+    },
+  },
+
+  barrierIntro: {
+    key: BARRIER_INTRO_KEY,
+    panel: STD_PANEL,
+    confirmBtn: STD_BTN,
+    draw() {
+      const p = this.panel;
+      drawIntroBackdrop(p, '#aab7c4');
+
+      // 아이콘: 역삼각형 + 내부 디스크 (장벽 적 미니어처)
+      const iconCx = LOGICAL_W / 2;
+      const iconCy = p.y + 56;
+      const r = 14;
+      ctx.fillStyle = '#a569bd';
+      ctx.beginPath();
+      ctx.moveTo(iconCx - r * 0.9, iconCy - r * 0.6);
+      ctx.lineTo(iconCx + r * 0.9, iconCy - r * 0.6);
+      ctx.lineTo(iconCx, iconCy + r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // 내부 디스크
+      const inY = iconCy - r * 0.15;
+      const inR = 5;
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = '#aab7c4';
+      ctx.beginPath();
+      ctx.arc(iconCx, inY, inR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = '#d5dbdb';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(iconCx - inR, inY);
+      ctx.lineTo(iconCx + inR, inY);
+      ctx.moveTo(iconCx, inY - inR);
+      ctx.lineTo(iconCx, inY + inR);
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('장벽 적 등장!', iconCx, p.y + 108);
+
+      ctx.fillStyle = '#cdd';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('장벽 적이 등장합니다.', iconCx, p.y + 148);
+      ctx.fillText('처치한 자리에 장벽이 생성되어', iconCx, p.y + 174);
+      ctx.fillText('공중 공격을 차단합니다.', iconCx, p.y + 200);
 
       drawButton(this.confirmBtn, '확인');
     },

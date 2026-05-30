@@ -8,6 +8,7 @@ import { distanceToPath, roundRect, drawCloseX } from './helpers.js';
 import {
   applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
+import { isBlockedByBarrier } from './enemy.js';
 
 // ============ Promotion / XP helpers ============
 export function xpMaxFor(t) {
@@ -243,11 +244,14 @@ export function updateTower(t, dt) {
   const includeMarked = !cfg.areaSweep;
   const minRange = cfg.minRange || 0;
 
+  // 단일 타워의 타게팅에서는 장벽 차단 검사 안 함 — 조준은 정상,
+  // 발사된 빔/투사체가 장벽에 막혀 장벽이 대신 데미지 받음.
   let target = null;
   if (cfg.targetMode === 'highestHp') {
     let bestHp = -Infinity;
     for (const e of game.enemies) {
       if (e.dead) continue;
+      if (e.isBarrier) continue;
       if (!attackTypes.includes(e.type)) continue;
       const d = Math.hypot(e.x - t.x, e.y - t.y);
       if (d < minRange) continue;
@@ -264,6 +268,7 @@ export function updateTower(t, dt) {
       let best = null;
       for (const e of game.enemies) {
         if (e.dead) continue;
+        if (e.isBarrier) continue;
         if (e.type !== wantType) continue;
         const d = Math.hypot(e.x - t.x, e.y - t.y);
         if (d < minRange) continue;
@@ -286,14 +291,16 @@ export function updateTower(t, dt) {
       const damage = getEffectiveDamage(t);
       if (cfg.areaSweep) {
         // 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer)
+        // areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
         const hitRange = range + 10;
+        const sweepBlocked = attackTypes.includes('air');
         for (const e of game.enemies) {
           if (e.dead) continue;
           if (!attackTypes.includes(e.type)) continue;
           const d = Math.hypot(e.x - t.x, e.y - t.y);
-          if (d <= hitRange) {
-            applyTowerHit(t, e, damage);
-          }
+          if (d > hitRange) continue;
+          if (!e.isBarrier && sweepBlocked && isBlockedByBarrier(t.x, t.y, e)) continue;
+          applyTowerHit(t, e, damage);
         }
         spawnZap(t.x, t.y, range, cfg.color);
       } else if (cfg.instantHit) {

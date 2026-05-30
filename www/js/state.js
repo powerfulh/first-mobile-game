@@ -11,6 +11,7 @@ export const game = {
   beams: [],
   splashes: [],
   zaps: [],
+  barrierSpawnFx: [],
   spawnTimer: 0,
   spawnInterval: 1.2,
   spawnedThisWave: 0,
@@ -36,6 +37,7 @@ export function resetGame() {
   game.beams = [];
   game.splashes = [];
   game.zaps = [];
+  game.barrierSpawnFx = [];
   game.spawnTimer = 0;
   game.spawnInterval = 1.2;
   game.spawnedThisWave = 0;
@@ -94,6 +96,7 @@ export function loadGame(data) {
   game.beams = [];
   game.splashes = [];
   game.zaps = [];
+  game.barrierSpawnFx = [];
   game.spawnTimer = 0;
   game.spawnedThisWave = 0;
   game.waveState = 'spawning';
