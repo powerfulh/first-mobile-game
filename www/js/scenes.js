@@ -28,6 +28,7 @@ import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
   INTRO_MODALS,
 } from './ui.js';
+import { wiki } from './wiki.js';
 
 export const scenes = {};
 let currentSceneName = null;
@@ -43,12 +44,16 @@ export function getCurrentScene() {
 }
 
 // ============ Title scene ============
+// 3개 버튼 배치: continueBtn(저장 있을 때만) / start / wiki
+// start, wiki 위치는 save 여부와 무관하게 동일 유지 → 사용자 시선 안정
 const titleButtonsWithSave = {
-  continueBtn: { x: 80, y: 372, w: 200, h: 64 },
-  start:       { x: 80, y: 460, w: 200, h: 64 },
+  continueBtn: { x: 80, y: 336, w: 200, h: 64 },
+  start:       { x: 80, y: 420, w: 200, h: 64 },
+  wiki:        { x: 80, y: 504, w: 200, h: 64 },
 };
 const titleButtonsNoSave = {
-  start: { x: 80, y: 400, w: 200, h: 64 },
+  start: { x: 80, y: 420, w: 200, h: 64 },
+  wiki:  { x: 80, y: 504, w: 200, h: 64 },
 };
 let titleAnim = 0;
 let titleSave = null;
@@ -106,10 +111,12 @@ scenes.title = {
       drawContinueButton(titleButtonsWithSave.continueBtn, titleSave.wave);
       ctx.globalAlpha = 1;
       drawButton(titleButtonsWithSave.start, '게임 시작');
+      drawButton(titleButtonsWithSave.wiki, '위키');
     } else {
       ctx.globalAlpha = 0.6 + 0.4 * pulse;
       drawButton(titleButtonsNoSave.start, '게임 시작');
       ctx.globalAlpha = 1;
+      drawButton(titleButtonsNoSave.wiki, '위키');
     }
   },
   pointerDown(p) {
@@ -118,14 +125,24 @@ scenes.title = {
       changeScene('playing');
       return;
     }
-    const startBtn = titleSave ? titleButtonsWithSave.start : titleButtonsNoSave.start;
-    if (hitButton(startBtn, p)) {
+    const buttons = titleSave ? titleButtonsWithSave : titleButtonsNoSave;
+    if (hitButton(buttons.start, p)) {
       resetGame();
       changeScene('playing');
       return;
     }
+    if (hitButton(buttons.wiki, p)) {
+      changeScene('wiki');
+      return;
+    }
+  },
+  backButton() {
+    // 타이틀에서 백 버튼 = 앱 종료 (Capacitor 환경 한정)
+    window.Capacitor?.Plugins?.App?.exitApp();
   },
 };
+
+scenes.wiki = wiki;
 
 // ============ Playing scene ============
 scenes.playing = {

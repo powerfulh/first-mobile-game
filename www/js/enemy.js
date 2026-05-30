@@ -9,8 +9,8 @@ import { getEnemySpeedFactor } from './tower.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
 export function getAirChance(wave) {
-  if (wave < 5) return 0;
-  return Math.min(0.5, (wave - 4) * 0.02);
+  if (wave < 6) return 0;
+  return Math.min(0.5, (wave - 5) * 0.02);
 }
 
 export function getAirHpRatio(wave) {

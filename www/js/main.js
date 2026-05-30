@@ -10,23 +10,35 @@ canvas.addEventListener('pointerdown', (e) => {
   getCurrentScene()?.pointerDown?.(p);
 });
 
-canvas.addEventListener('pointerup', () => {
+canvas.addEventListener('pointerup', (e) => {
   if (game.holdDelete) game.holdDelete = null;
+  const p = getLogicalPoint(e.clientX, e.clientY);
+  getCurrentScene()?.pointerUp?.(p);
 });
 
 canvas.addEventListener('pointermove', (e) => {
+  const p = getLogicalPoint(e.clientX, e.clientY);
   if (game.holdDelete) {
-    const p = getLogicalPoint(e.clientX, e.clientY);
     const dt = game.holdDelete.tower;
     if (Math.hypot(p.x - dt.x, p.y - dt.y) > TOWER.radius + 8) {
       game.holdDelete = null;
     }
   }
+  getCurrentScene()?.pointerMove?.(p);
 });
 
 canvas.addEventListener('pointercancel', () => {
   if (game.holdDelete) game.holdDelete = null;
+  getCurrentScene()?.pointerCancel?.();
 });
+
+// Android 하드웨어 백 버튼 / 제스처 (@capacitor/app). 브라우저에서는 무시됨.
+const capApp = (typeof window !== 'undefined') && window.Capacitor?.Plugins?.App;
+if (capApp) {
+  capApp.addListener('backButton', () => {
+    getCurrentScene()?.backButton?.();
+  });
+}
 
 canvas.addEventListener('contextmenu', (e) => {
   e.preventDefault();
