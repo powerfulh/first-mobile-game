@@ -71,6 +71,18 @@ const ENEMY_ENTRIES = [
       '어쌔신의 피격은 회복 능력을 영구 무력화함',
     ],
   },
+  {
+    key: 'barrier',
+    name: '장벽 적',
+    tagline: 'Wave 151+ · 처치 시 장벽 생성',
+    description: [
+      '출현 확률: Wave 151 0.4%부터 +0.4%/wave, Wave 160에 4% 상한',
+      '공중 타입, HP/속도는 일반 적과 동일',
+      '처치 시 그 자리에 반경 60 장벽 생성 (HP는 일반 적의 2배)',
+      '장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지',
+      '지상 전용 공격은 장벽 영향 없음',
+    ],
+  },
 ];
 
 // ============ 씬 상태 ============
@@ -287,6 +299,37 @@ function drawEnemyIcon(type, cx, cy) {
     ctx.fill();
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1;
+    ctx.stroke();
+  } else if (type === 'barrier') {
+    // 역삼각형 본체
+    const r = 11;
+    ctx.fillStyle = '#a569bd';
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
+    ctx.lineTo(cx + r * 0.9, cy - r * 0.6);
+    ctx.lineTo(cx, cy + r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // 내부 디스크 + 십자 (장벽 내포)
+    const inY = cy - r * 0.15;
+    const inR = 4;
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = '#aab7c4';
+    ctx.beginPath();
+    ctx.arc(cx, inY, inR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#d5dbdb';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - inR, inY);
+    ctx.lineTo(cx + inR, inY);
+    ctx.moveTo(cx, inY - inR);
+    ctx.lineTo(cx, inY + inR);
     ctx.stroke();
   }
 }
