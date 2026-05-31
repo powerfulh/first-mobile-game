@@ -24,10 +24,11 @@ import {
   updateProjectile, updateBeam, updateSplash, updateZap,
   drawProjectile, drawBeam, drawSplash, drawZap,
 } from './attack.js';
-import { startNextWave } from './wave.js';
+import { startNextWave, setupWave } from './wave.js';
 import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
   INTRO_MODALS,
+  setToast, updateToast, drawToast,
 } from './ui.js';
 import { wiki } from './wiki.js';
 
@@ -141,7 +142,42 @@ scenes.title = {
     // 타이틀에서 백 버튼 = 앱 종료 (Capacitor 환경 한정)
     window.Capacitor?.Plugins?.App?.exitApp();
   },
+  keyDown(e) {
+    // 데스크탑 디버그용 — 스페이스키로 샌드박스 진입 (Wave 1부터)
+    if (e.code === 'Space') {
+      e.preventDefault();
+      enterSandbox();
+    }
+  },
 };
+
+function enterSandbox() {
+  resetGame();
+  game.sandbox = true;
+  game.gold = 999999;
+  game.hp = 999999;
+  changeScene('playing');
+}
+
+// 샌드박스 — 임의 웨이브로 점프 (현재 진행 클리어)
+function jumpToWave(targetWave) {
+  game.enemies = [];
+  game.projectiles = [];
+  game.beams = [];
+  game.splashes = [];
+  game.zaps = [];
+  game.barrierSpawnFx = [];
+  game.spawnedThisWave = 0;
+  game.spawnTimer = 0;
+  game.bossActive = false;
+  game.intermissionTimer = 0;
+  game.selectedTower = null;
+  game.promotionChoiceOpen = false;
+  game.promotionTarget = null;
+  game.holdDelete = null;
+  game.modal = null;
+  setupWave(targetWave);
+}
 
 scenes.wiki = wiki;
 
@@ -151,6 +187,7 @@ scenes.playing = {
     // 호출자가 resetGame() 또는 loadGame() 호출
   },
   update(dt) {
+    updateToast(dt);
     if (game.modal) return;
     if (game.paused) return;
     if (game.holdDelete) {
@@ -305,6 +342,8 @@ scenes.playing = {
       const intro = INTRO_MODALS[game.modal.type];
       if (intro) intro.draw();
     }
+
+    drawToast();
   },
   pointerDown(p) {
     if (game.modal) {
@@ -398,6 +437,25 @@ scenes.playing = {
       return;
     }
     placeTower(p.x, p.y);
+  },
+  keyDown(e) {
+    // 샌드박스 한정 키
+    if (!game.sandbox) return;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      const input = prompt('이동할 웨이브?', String(game.wave));
+      if (input === null) return;
+      const wave = parseInt(input, 10);
+      if (isNaN(wave) || wave < 1) return;
+      jumpToWave(wave);
+    } else if (e.code === 'Delete') {
+      e.preventDefault();
+      for (const t of game.towers) t.totalDamage = 0;
+    } else if (e.code === 'KeyS') {
+      e.preventDefault();
+      game.sandboxShieldsEnabled = !game.sandboxShieldsEnabled;
+      setToast(`방어막 적 ${game.sandboxShieldsEnabled ? 'ON' : 'OFF'}`);
+    }
   },
 };
 

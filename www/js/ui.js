@@ -41,6 +41,43 @@ export function drawPauseButton() {
   }
 }
 
+// ============ Toast ============
+export function setToast(text, life = 1.5) {
+  game.toast = { text, life, maxLife: life };
+}
+
+export function updateToast(dt) {
+  if (!game.toast) return;
+  game.toast.life -= dt;
+  if (game.toast.life <= 0) game.toast = null;
+}
+
+export function drawToast() {
+  if (!game.toast) return;
+  const t = game.toast;
+  const alpha = Math.min(1, t.life / 0.3);
+
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'center';
+  const textW = ctx.measureText(t.text).width;
+  const w = textW + 32;
+  const h = 28;
+  const x = (LOGICAL_W - w) / 2;
+  const y = 100;
+
+  ctx.globalAlpha = alpha * 0.85;
+  ctx.fillStyle = '#000';
+  roundRect(x, y, w, h, 6);
+  ctx.fill();
+
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = '#fff';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(t.text, LOGICAL_W / 2, y + h / 2);
+  ctx.textBaseline = 'alphabetic';
+  ctx.globalAlpha = 1;
+}
+
 export function drawPausedOverlay() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
   ctx.fillRect(0, 60, LOGICAL_W, 32);

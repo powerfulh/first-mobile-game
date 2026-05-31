@@ -1,24 +1,25 @@
 import { game, saveGame } from './state.js';
-import { isBossWave, getBaseSpawnInterval, spawnBoss } from './enemy.js';
+import {
+  isBossWave, getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt,
+} from './enemy.js';
 
-export function startNextWave() {
-  game.wave++;
-  game.enemiesPerWave += game.wave >= 80 ? 0 : game.wave >= 40 ? 1 : 2;
+// 임의의 wave로 진입 — 일반 진행 + 샌드박스 점프 공용.
+// saveGame 호출 안 함 (호출자가 결정).
+export function setupWave(targetWave) {
+  game.wave = targetWave;
+  game.enemiesPerWave = getEnemiesPerWaveAt(targetWave);
 
-  if (isBossWave(game.wave)) {
-    // 보스 웨이브: base interval의 두 배, RNG 미적용
-    game.spawnInterval = getBaseSpawnInterval(game.wave) * 2;
+  if (isBossWave(targetWave)) {
+    game.spawnInterval = getBaseSpawnInterval(targetWave) * 2;
     game.bossActive = true;
     spawnBoss();
   } else {
-    let interval = getBaseSpawnInterval(game.wave);
-    if (game.wave >= 11) {
-      const ramp = Math.min(1, (game.wave - 10) / 20);
-      // Wave 101~110: 매 웨이브 minNarrow를 추가로 -0.01씩 (총 -0.10까지)
-      const extraReduction = Math.min(0.10, Math.max(0, game.wave - 100) * 0.01);
+    let interval = getBaseSpawnInterval(targetWave);
+    if (targetWave >= 11) {
+      const ramp = Math.min(1, (targetWave - 10) / 20);
+      const extraReduction = Math.min(0.10, Math.max(0, targetWave - 100) * 0.01);
       const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction);
-      // Wave 121~130: 매 웨이브 maxNarrow를 -0.01씩 (총 -0.10까지)
-      const maxReduction = Math.min(0.10, Math.max(0, game.wave - 120) * 0.01);
+      const maxReduction = Math.min(0.10, Math.max(0, targetWave - 120) * 0.01);
       const maxNarrow = Math.max(minNarrow, 1.0 - maxReduction);
       const narrow = minNarrow + Math.random() * (maxNarrow - minNarrow);
       interval *= narrow;
@@ -30,5 +31,9 @@ export function startNextWave() {
   game.spawnedThisWave = 0;
   game.spawnTimer = 0;
   game.waveState = 'spawning';
+}
+
+export function startNextWave() {
+  setupWave(game.wave + 1);
   saveGame();
 }

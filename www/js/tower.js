@@ -26,11 +26,11 @@ export function canPromote(t) {
 }
 
 export function isPromotionReady(t) {
-  return canPromote(t) && t.xp >= xpMaxFor(t);
+  return canPromote(t) && (game.sandbox || t.xp >= xpMaxFor(t));
 }
 
 export function canAffordPromotion(t) {
-  return game.gold >= promotionCostFor(t);
+  return game.sandbox || game.gold >= promotionCostFor(t);
 }
 
 // ============ Tier 4 helpers ============
@@ -63,14 +63,14 @@ export function promoteToTier4(secondTower) {
   if (!isCompatibleTier4Partner(target, secondTower)) return false;
   if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
   const cost = promotionCostFor(secondTower);
-  if (game.gold < cost) return false;
+  if (!game.sandbox && game.gold < cost) return false;
 
   const recipe = TIER4_RECIPES[secondTower.role];
   const resultRole = recipe.result;
   const cfg = TOWER_ROLES[resultRole];
   if (!cfg) return false;
 
-  game.gold -= cost;
+  if (!game.sandbox) game.gold -= cost;
 
   // 대상 타워 제거
   game.towers = game.towers.filter(x => x !== target);
@@ -164,7 +164,7 @@ export function getEnemySpeedFactor(e) {
 
 // ============ Placement ============
 export function canPlaceTower(x, y) {
-  if (game.gold < TOWER.cost) return false;
+  if (!game.sandbox && game.gold < TOWER.cost) return false;
   if (y < HUD_RESERVED_TOP + TOWER.radius) return false;
   if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
   if (y > LOGICAL_H - TOWER.radius) return false;
@@ -190,7 +190,7 @@ export function placeTower(x, y) {
     xp: 0,
     totalDamage: 0,
   });
-  game.gold -= TOWER.cost;
+  if (!game.sandbox) game.gold -= TOWER.cost;
   return true;
 }
 
@@ -201,7 +201,7 @@ export function promoteTower(t, role) {
   const cfg = TOWER_ROLES[role];
   if (!cfg) return false;
 
-  game.gold -= promotionCostFor(t);
+  if (!game.sandbox) game.gold -= promotionCostFor(t);
   t.role = role;
   t.tier += 1;
   t.range = cfg.range;
@@ -330,21 +330,24 @@ export function updateTower(t, dt) {
           });
         }
       } else if (cfg.scatterDeg) {
-        // 단발 직선 탄, t.angle에 ±scatterDeg/2 난수 적용
+        // 매 발사마다 projectileCount발, 각 발은 t.angle에 ±scatterDeg/2 난수
+        const count = cfg.projectileCount || 1;
         const scatterRad = cfg.scatterDeg * Math.PI / 180;
-        const angle = t.angle + (Math.random() - 0.5) * scatterRad;
-        game.projectiles.push({
-          x: t.x,
-          y: t.y,
-          vx: Math.cos(angle) * TOWER.projectileSpeed,
-          vy: Math.sin(angle) * TOWER.projectileSpeed,
-          damage,
-          shooter: t,
-          splash: cfg.splash || 0,
-          splashColor: cfg.color,
-          attackTypes: cfg.attackTypes || ['ground'],
-          straightMode: true,
-        });
+        for (let i = 0; i < count; i++) {
+          const angle = t.angle + (Math.random() - 0.5) * scatterRad;
+          game.projectiles.push({
+            x: t.x,
+            y: t.y,
+            vx: Math.cos(angle) * TOWER.projectileSpeed,
+            vy: Math.sin(angle) * TOWER.projectileSpeed,
+            damage,
+            shooter: t,
+            splash: cfg.splash || 0,
+            splashColor: cfg.color,
+            attackTypes: cfg.attackTypes || ['ground'],
+            straightMode: true,
+          });
+        }
       } else if (cfg.ballistic) {
         // 발사 시점의 좌표를 고정 착탄점으로 잡고 직선 발사. 적이 회피해도 그 자리 폭격.
         const tx = target.x;
@@ -801,7 +804,7 @@ export function getPromotionButtonState(t) {
       return { active: true, action: 'cancelTarget', label: '대상 취소' };
     }
     if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, t)) {
-      const afford = game.gold >= cost;
+      const afford = game.sandbox || game.gold >= cost;
       return {
         active: afford,
         action: afford ? 'openTier4Choice' : null,
@@ -818,8 +821,8 @@ export function getPromotionButtonState(t) {
   const active = ready && afford;
   let label;
   if (!ready) label = `전직 (XP ${t.xp} / ${xpMax})`;
-  else if (!afford) label = `전직 (${cost}G · 골드 부족)`;
-  else label = `전직 (${cost}G)`;
+  else if (!afford) label = `전직 (${cost.toLocaleString()}G · 골드 부족)`;
+  else label = `전직 (${cost.toLocaleString()}G)`;
   return { active, action: active ? 'openTier3Choice' : null, label };
 }
 

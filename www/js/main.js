@@ -40,6 +40,11 @@ if (capApp) {
   });
 }
 
+// 키보드 입력 (데스크탑 한정 — 모바일은 키보드 없음). 씬 콜백 dispatch.
+window.addEventListener('keydown', (e) => {
+  getCurrentScene()?.keyDown?.(e);
+});
+
 canvas.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 });

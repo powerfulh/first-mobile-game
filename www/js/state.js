@@ -25,6 +25,9 @@ export const game = {
   modal: null,
   paused: false,
   holdDelete: null,
+  sandbox: false,
+  sandboxShieldsEnabled: true,
+  toast: null,
 };
 
 export function resetGame() {
@@ -51,9 +54,13 @@ export function resetGame() {
   game.modal = null;
   game.paused = false;
   game.holdDelete = null;
+  game.sandbox = false;
+  game.sandboxShieldsEnabled = true;
+  game.toast = null;
 }
 
 export function saveGame() {
+  if (game.sandbox) return; // 샌드박스는 저장 안 함 (일반 게임 데이터 보호)
   const data = {
     version: 1,
     wave: game.wave,

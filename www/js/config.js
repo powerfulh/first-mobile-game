@@ -126,7 +126,7 @@ export const TOWER_ROLES = {
   interceptor: {
     name: '인터셉터', tagline: '7발 부채꼴 · 공중 (직선 비유도)',
     color: '#85c1e9', color2: '#5499c7',
-    range: 160, fireRate: 5, damage: 2.4,
+    range: 160, fireRate: 5, damage: 2.2,
     attackTypes: ['air'], splash: 0,
     promotions: [],
     fanShot: true,
@@ -204,10 +204,11 @@ export const TOWER_ROLES = {
   gatling: {
     name: '개틀링', tagline: '비유도 연사 탄막 · 공중',
     color: '#566573', color2: '#2c3e50',
-    range: 150, fireRate: 20, damage: 2.4,
+    range: 150, fireRate: 20, damage: 2.2,
     attackTypes: ['air'], splash: 0,
     promotions: [],
     scatterDeg: 12, // ±6° 흩어짐
+    projectileCount: 2, // 매 발사마다 2발
     description: [
       '약간 부정확하지만 폭발적인 공세를 퍼붓습니다',
       '지상 공격 능력을 잃습니다',

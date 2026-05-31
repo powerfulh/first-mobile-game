@@ -93,7 +93,8 @@ export function spawnEnemy() {
   const regen = barrierSpawner ? false : Math.random() < getRegenChance(game.wave);
   const isAirPlain = !barrierSpawner && !regen && Math.random() < getAirChance(game.wave);
   const isAir = barrierSpawner || isAirPlain; // 장벽 적은 공중 타입
-  const shielded = Math.random() < getShieldChance(game.wave);
+  const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
+  const shielded = shieldsAllowed && Math.random() < getShieldChance(game.wave);
   const baseHp = computeBaseHpAt(game.wave);
   // 장벽 적: 일반 적과 동일 HP/속도 (공중 HP 비율 미적용, 슬로우 미적용)
   let hp;
@@ -243,7 +244,7 @@ export function updateEnemy(e, dt) {
     e.hp = Math.min(e.hpMax, e.hp + e.hpMax * REGEN_HEAL_RATE * dt);
   }
   if (e.segment >= path.length - 1) {
-    game.hp -= 1;
+    if (!game.sandbox) game.hp -= 1;
     e.dead = true;
     return;
   }
