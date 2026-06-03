@@ -173,7 +173,7 @@ export const TOWER_ROLES = {
     ],
   },
   assassin: {
-    name: '어쌔신', tagline: '관통 빔 + 방어막·회복 무력화 · 지상 / 공중',
+    name: '어쌔신', tagline: '관통 빔 + 방어막 무력화 · 지상 / 공중',
     color: '#5b1b3a', color2: '#2d0a1d',
     range: 200, fireRate: 0.8, damage: 24,
     attackTypes: ['ground', 'air'], splash: 0,
@@ -183,7 +183,7 @@ export const TOWER_ROLES = {
     targetMode: 'highestHp',
     disablesModifiers: true,
     description: [
-      '피해를 입은 적의 방어막과 회복을 영구 무력화합니다',
+      '피해를 입은 적의 방어막을 영구 무력화합니다',
       '데몬의 버프 능력을 잃습니다',
     ],
   },

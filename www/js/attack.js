@@ -33,7 +33,6 @@ export function applyTowerHit(shooter, target, damage) {
       }
       if (shooterCfg.disablesModifiers) {
         target.shielded = false;
-        target.regenDisabled = true;
       }
     }
   }
