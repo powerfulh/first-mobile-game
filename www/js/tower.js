@@ -189,6 +189,7 @@ export function placeTower(x, y) {
     angle: 0,
     xp: 0,
     totalDamage: 0,
+    waveDamage: 0,
   });
   if (!game.sandbox) game.gold -= TOWER.cost;
   return true;
@@ -912,7 +913,9 @@ export function drawTowerInfoPanel(t) {
     : `사거리: ${t.range}`;
   ctx.fillText(rangeStr, sx + 160, sy);
   ctx.fillText(`공격 대상: ${atkText}`, sx + 160, sy + 18);
-  ctx.fillText(`누적 데미지: ${total.toLocaleString()}`, sx, sy + 36);
+  const wave = Math.round((t.waveDamage || 0) * 10) / 10;
+  ctx.fillText(`웨이브 누적 데미지: ${wave.toLocaleString()}`, sx, sy + 36);
+  ctx.fillText(`누적 데미지: ${total.toLocaleString()}`, sx + 160, sy + 36);
 
   if (canPromote(t)) {
     const xpMax = xpMaxFor(t);

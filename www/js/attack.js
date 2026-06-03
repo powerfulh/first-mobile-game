@@ -21,6 +21,7 @@ export function applyTowerHit(shooter, target, damage) {
   target.hp -= effective;
   if (shooter) {
     shooter.totalDamage = Math.round(((shooter.totalDamage || 0) + dealt) * 10) / 10;
+    shooter.waveDamage = Math.round(((shooter.waveDamage || 0) + dealt) * 10) / 10;
     if (canPromote(shooter)) {
       const next = Math.round((shooter.xp + xpGain) * 10) / 10;
       shooter.xp = Math.min(next, xpMaxFor(shooter));

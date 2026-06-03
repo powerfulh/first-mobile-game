@@ -124,6 +124,7 @@ export function loadGame(data) {
         range: cfg.range, fireRate: cfg.fireRate, damage: cfg.damage,
         cooldown: 0, angle: 0, xp: td.xp || 0,
         totalDamage: td.totalDamage || 0,
+        waveDamage: 0,
       };
     });
 
