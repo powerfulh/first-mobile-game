@@ -24,6 +24,12 @@ export function getRegenChance(wave) {
   return Math.min(0.04, (wave - 110) * 0.002);
 }
 
+export function getRegenHealRate(wave) {
+  // Wave 110~160: 12% / Wave 161~170: +1%/wave / Wave 171+: 22% 고정
+  const bonus = Math.min(0.10, Math.max(0, wave - 160) * 0.01);
+  return REGEN_HEAL_RATE + bonus;
+}
+
 export function getBarrierSpawnerChance(wave) {
   if (wave < 151) return 0;
   // Wave 151: 0.4%, Wave 152: 0.8%, ..., Wave 160+: 4.0% (고정)
@@ -241,7 +247,7 @@ export function updateEnemy(e, dt) {
     return;
   }
   if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
-    e.hp = Math.min(e.hpMax, e.hp + e.hpMax * REGEN_HEAL_RATE * dt);
+    e.hp = Math.min(e.hpMax, e.hp + e.hpMax * getRegenHealRate(game.wave) * dt);
   }
   if (e.segment >= path.length - 1) {
     if (!game.sandbox) game.hp -= 1;
