@@ -32,8 +32,11 @@ export function getRegenHealRate(wave) {
 
 export function getBarrierSpawnerChance(wave) {
   if (wave < 151) return 0;
-  // Wave 151: 0.4%, Wave 152: 0.8%, ..., Wave 160+: 4.0% (고정)
-  return Math.min(0.04, (wave - 150) * 0.004);
+  // Wave 151~160: +0.4%/wave (Wave 160 4%) / Wave 161~170 4% 고정
+  // Wave 171~180: +0.4%/wave 추가 (Wave 180 8%) / Wave 181+ 8% 고정
+  const base = Math.min(0.04, (wave - 150) * 0.004);
+  const lateBonus = Math.min(0.04, Math.max(0, wave - 170) * 0.004);
+  return base + lateBonus;
 }
 
 export function getShieldChance(wave) {

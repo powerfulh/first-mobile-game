@@ -17,10 +17,14 @@ export function setupWave(targetWave) {
     let interval = getBaseSpawnInterval(targetWave);
     if (targetWave >= 11) {
       const ramp = Math.min(1, (targetWave - 10) / 20);
+      // Wave 101~110: minNarrow 추가 감소 / Wave 171~180: minNarrow 추가 감소
       const extraReduction = Math.min(0.10, Math.max(0, targetWave - 100) * 0.01);
-      const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction);
+      const lateMinReduction = Math.min(0.10, Math.max(0, targetWave - 170) * 0.01);
+      const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction - lateMinReduction);
+      // Wave 121~130: maxNarrow 감소 / Wave 171~180: maxNarrow 추가 감소
       const maxReduction = Math.min(0.10, Math.max(0, targetWave - 120) * 0.01);
-      const maxNarrow = Math.max(minNarrow, 1.0 - maxReduction);
+      const lateMaxReduction = Math.min(0.10, Math.max(0, targetWave - 170) * 0.01);
+      const maxNarrow = Math.max(minNarrow, 1.0 - maxReduction - lateMaxReduction);
       const narrow = minNarrow + Math.random() * (maxNarrow - minNarrow);
       interval *= narrow;
     }
