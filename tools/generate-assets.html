@@ -18,10 +18,17 @@
   <h1>전직 타워 디펜스 — 스토어 자산</h1>
 
   <div class="asset">
-    <h2>앱 아이콘</h2>
+    <h2>앱 아이콘 (스토어용)</h2>
     <div class="spec">512 × 512 PNG (32-bit, alpha 가능)</div>
     <canvas id="icon" width="512" height="512"></canvas>
     <button onclick="download('icon', 'icon-512.png', 'image/png')">앱 아이콘 PNG 다운로드</button>
+  </div>
+
+  <div class="asset">
+    <h2>런처 아이콘 소스 (capacitor-assets용)</h2>
+    <div class="spec">1024 × 1024 PNG · 이 파일을 resources/icon.png로 저장하면 모든 mipmap 해상도 자동 생성</div>
+    <canvas id="iconHi" width="1024" height="1024"></canvas>
+    <button onclick="download('iconHi', 'icon.png', 'image/png')">런처 아이콘 소스 다운로드</button>
   </div>
 
   <div class="asset">
@@ -44,9 +51,10 @@ function download(id, filename, mime, quality) {
   }, mime, quality);
 }
 
-// ============ App Icon (512x512) ============
-(function drawIcon() {
-  const ctx = document.getElementById('icon').getContext('2d');
+// ============ App Icon (512 기준 좌표, scale로 1024까지 동일하게 렌더링) ============
+function drawAppIcon(ctx, scale) {
+  ctx.save();
+  ctx.scale(scale, scale);
 
   // 배경 그라데이션
   const bg = ctx.createLinearGradient(0, 0, 0, 512);
@@ -139,7 +147,12 @@ function download(id, filename, mime, quality) {
   ctx.moveTo(tx, ty);
   ctx.lineTo(370, 165);
   ctx.stroke();
-})();
+
+  ctx.restore();
+}
+
+drawAppIcon(document.getElementById('icon').getContext('2d'), 1);
+drawAppIcon(document.getElementById('iconHi').getContext('2d'), 2);
 
 // ============ Feature Graphic (1024x500) ============
 (function drawFeature() {
