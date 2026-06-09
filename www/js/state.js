@@ -25,6 +25,7 @@ export const game = {
   modal: null,
   paused: false,
   holdDelete: null,
+  settingsOpen: false,
   sandbox: false,
   sandboxShieldsEnabled: true,
   toast: null,
@@ -54,6 +55,7 @@ export function resetGame() {
   game.modal = null;
   game.paused = false;
   game.holdDelete = null;
+  game.settingsOpen = false;
   game.sandbox = false;
   game.sandboxShieldsEnabled = true;
   game.toast = null;

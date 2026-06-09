@@ -29,6 +29,7 @@ import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
   INTRO_MODALS,
   setToast, updateToast, drawToast,
+  settingsModal, drawSettingsModal,
 } from './ui.js';
 import { wiki } from './wiki.js';
 
@@ -189,6 +190,7 @@ scenes.playing = {
   update(dt) {
     updateToast(dt);
     if (game.modal) return;
+    if (game.settingsOpen) return;
     if (game.paused) return;
     if (game.holdDelete) {
       game.holdDelete.accumulated += dt;
@@ -335,7 +337,7 @@ scenes.playing = {
       ctx.fillText('타워를 꾹 눌러 삭제', LOGICAL_W / 2, LOGICAL_H - 12);
     }
 
-    if (!game.selectedTower && !game.modal) drawPauseButton();
+    if (!game.selectedTower && !game.modal && !game.settingsOpen) drawPauseButton();
     if (game.paused) drawPausedOverlay();
 
     if (game.modal) {
@@ -343,9 +345,18 @@ scenes.playing = {
       if (intro) intro.draw();
     }
 
+    if (game.settingsOpen) drawSettingsModal();
+
     drawToast();
   },
   pointerDown(p) {
+    if (game.settingsOpen) {
+      if (hitButton(settingsModal.toTitleBtn, p)) {
+        game.settingsOpen = false;
+        changeScene('title');
+      }
+      return;
+    }
     if (game.modal) {
       const intro = INTRO_MODALS[game.modal.type];
       if (intro && hitButton(intro.confirmBtn, p)) {
@@ -438,7 +449,16 @@ scenes.playing = {
     }
     placeTower(p.x, p.y);
   },
+  backButton() {
+    game.settingsOpen = !game.settingsOpen;
+  },
   keyDown(e) {
+    // 데스크탑에서 백 버튼 대체 — 설정 모달 토글
+    if (e.code === 'Backspace') {
+      e.preventDefault();
+      game.settingsOpen = !game.settingsOpen;
+      return;
+    }
     // 샌드박스 한정 키
     if (!game.sandbox) return;
     if (e.code === 'Space') {
