@@ -126,7 +126,7 @@ export const TOWER_ROLES = {
   interceptor: {
     name: '인터셉터', tagline: '7발 부채꼴 · 공중 (직선 비유도)',
     color: '#85c1e9', color2: '#5499c7',
-    range: 160, fireRate: 5, damage: 2,
+    range: 140, fireRate: 4.8, damage: 2,
     attackTypes: ['air'], splash: 0,
     promotions: [],
     fanShot: true,
