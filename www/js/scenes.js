@@ -450,13 +450,29 @@ scenes.playing = {
     placeTower(p.x, p.y);
   },
   backButton() {
-    game.settingsOpen = !game.settingsOpen;
+    // 설정 열린 상태 → 닫기
+    if (game.settingsOpen) {
+      game.settingsOpen = false;
+      return;
+    }
+    // 전직 카드 열린 상태 → 타워 선택 화면으로
+    if (game.selectedTower && game.promotionChoiceOpen) {
+      game.promotionChoiceOpen = false;
+      return;
+    }
+    // 타워 선택 상태 → 선택 해제
+    if (game.selectedTower) {
+      game.selectedTower = null;
+      return;
+    }
+    // 기본 → 설정 열기
+    game.settingsOpen = true;
   },
   keyDown(e) {
-    // 데스크탑에서 백 버튼 대체 — 설정 모달 토글
+    // 데스크탑에서 백 버튼 대체 — backButton과 동일 로직
     if (e.code === 'Backspace') {
       e.preventDefault();
-      game.settingsOpen = !game.settingsOpen;
+      this.backButton();
       return;
     }
     // 샌드박스 한정 키
