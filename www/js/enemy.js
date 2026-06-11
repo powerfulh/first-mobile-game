@@ -6,6 +6,7 @@ import {
 import { game, hasSeenIntro } from './state.js';
 import { roundRect, pointToSegmentDist } from './helpers.js';
 import { getEnemySpeedFactor } from './tower.js';
+import { getNarrowRange } from './wave.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
 export function getAirChance(wave) {
@@ -41,15 +42,20 @@ export function getBarrierSpawnerChance(wave) {
 
 export function getShieldChance(wave) {
   if (wave < 70) return 0;
-  // Wave 70~80: 1% ~ 20% (spawnInterval 기반 반비례)
-  // Wave 81~90: 상한이 점진적으로 20% → 40% 확장
-  // Wave 90~100: 상한 40% 고정
-  // Wave 101~110: 상한이 매 웨이브 +1%씩 추가 확장 → 최종 50%
-  const interval = game.spawnInterval;
-  const ratio = Math.max(0, Math.min(1, (interval - 0.2) / (0.5 - 0.2)));
+  // 그 웨이브의 narrow RNG 범위 기준 정규화 (sparse → 상한, dense → 1%).
+  // 후반에 narrow 상하한이 좁아져도 그 wave의 sparse일 때 정상 상한 도달.
+  const baseInterval = getBaseSpawnInterval(wave);
+  const { min: minN, max: maxN } = getNarrowRange(wave);
+  const span = maxN - minN;
+  const currentNarrow = baseInterval > 0 ? game.spawnInterval / baseInterval : 1;
+  const ratio = span > 0
+    ? Math.max(0, Math.min(1, (currentNarrow - minN) / span))
+    : 1;
+  // 상한 누적: Wave 81~90 +2%/wave, 101~110 +1%/wave, 181~190 +3%/wave
   const bonus = Math.min(0.2, Math.max(0, (wave - 80) * 0.02));
   const extraBonus = Math.min(0.10, Math.max(0, (wave - 100) * 0.01));
-  return 0.01 + ratio * (0.19 + bonus + extraBonus);
+  const lateBonus = Math.min(0.30, Math.max(0, (wave - 180) * 0.03));
+  return 0.01 + ratio * (0.19 + bonus + extraBonus + lateBonus);
 }
 
 // ============ Boss wave helpers ============
