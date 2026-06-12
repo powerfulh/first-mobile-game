@@ -65,10 +65,10 @@ const ENEMY_ENTRIES = [
     name: '재생 적',
     tagline: 'Wave 111+ · 자가 회복, 느린 지상',
     description: [
-      '출현 확률: Wave 111 0.2%부터 +0.2%/wave, Wave 130에 4% 상한',
+      '출현 확률: Wave 111~130 +0.2%/wave (4%), Wave 191~200 +0.4%/wave (8%)',
       'HP는 일반 지상과 동일, 이동 속도는 절반',
       'HP가 가득 차지 않을 때 매초 hpMax × 12% 회복',
-      'Wave 161~170에 회복률 +1%/wave (Wave 170+ 22% 상한)',
+      'Wave 161~170 회복률 +1%/wave (22%) → Wave 191~200 추가 +1%/wave (32%)',
     ],
   },
   {

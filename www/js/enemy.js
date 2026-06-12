@@ -21,14 +21,18 @@ export function getAirHpRatio(wave) {
 
 export function getRegenChance(wave) {
   if (wave < 111) return 0;
-  // Wave 111: 0.2%, Wave 112: 0.4%, ..., Wave 130+: 4.0% (고정)
-  return Math.min(0.04, (wave - 110) * 0.002);
+  // Wave 111~130: +0.2%/wave (4%) / Wave 191~200: +0.4%/wave 추가 (8%)
+  const base = Math.min(0.04, (wave - 110) * 0.002);
+  const lateBonus = Math.min(0.04, Math.max(0, wave - 190) * 0.004);
+  return base + lateBonus;
 }
 
 export function getRegenHealRate(wave) {
-  // Wave 110~160: 12% / Wave 161~170: +1%/wave / Wave 171+: 22% 고정
-  const bonus = Math.min(0.10, Math.max(0, wave - 160) * 0.01);
-  return REGEN_HEAL_RATE + bonus;
+  // Wave 110~160: 12% / Wave 161~170: +1%/wave (22%) /
+  // Wave 191~200: +1%/wave 추가 (32%) / 그 외 구간 고정
+  const bonus1 = Math.min(0.10, Math.max(0, wave - 160) * 0.01);
+  const bonus2 = Math.min(0.10, Math.max(0, wave - 190) * 0.01);
+  return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
 
 export function getBarrierSpawnerChance(wave) {
