@@ -175,7 +175,7 @@ export const TOWER_ROLES = {
   assassin: {
     name: '어쌔신', tagline: '관통 빔 + 방어막 무력화 · 지상 / 공중',
     color: '#5b1b3a', color2: '#2d0a1d',
-    range: 200, fireRate: 0.8, damage: 24,
+    range: 200, fireRate: 0.8, damage: 20,
     attackTypes: ['ground', 'air'], splash: 0,
     promotions: [],
     instantHit: true,
