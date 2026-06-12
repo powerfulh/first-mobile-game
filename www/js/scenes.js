@@ -264,7 +264,9 @@ scenes.playing = {
       // 잔여 장벽 정리 (웨이브 종료 시 사라짐)
       game.enemies = game.enemies.filter(e => !e.isBarrier);
       game.waveState = 'intermission';
-      game.intermissionTimer = game.wave >= 40 ? 1 : game.wave >= 20 ? 2 : 3;
+      // 이전 판 최고 도달 / 현재 wave 중 큰 값 기준 — 1회 도달 후 다음 판부터 짧은 인터미션
+      const benchmark = Math.max(game.wave, game.bestWaveReached);
+      game.intermissionTimer = benchmark >= 40 ? 1 : benchmark >= 20 ? 2 : 3;
     }
 
     if (!game.modal && !hasSeenIntro(TIER4_INTRO_KEY) && hasReadyTier4Candidate()) {

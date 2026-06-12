@@ -1,4 +1,4 @@
-import { SAVE_KEY, TOWER_ROLES } from './config.js';
+import { SAVE_KEY, BEST_WAVE_KEY, TOWER_ROLES } from './config.js';
 import { isBossWave, spawnBoss } from './enemy.js';
 
 export const game = {
@@ -29,7 +29,23 @@ export const game = {
   sandbox: false,
   sandboxShieldsEnabled: true,
   toast: null,
+  bestWaveReached: 0,
 };
+
+function loadBestWave() {
+  try {
+    const v = parseInt(localStorage.getItem(BEST_WAVE_KEY), 10);
+    return isNaN(v) ? 0 : v;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function persistBestWave(wave) {
+  try {
+    if (wave > loadBestWave()) localStorage.setItem(BEST_WAVE_KEY, String(wave));
+  } catch (e) {}
+}
 
 export function resetGame() {
   game.hp = 20;
@@ -59,10 +75,12 @@ export function resetGame() {
   game.sandbox = false;
   game.sandboxShieldsEnabled = true;
   game.toast = null;
+  game.bestWaveReached = loadBestWave();
 }
 
 export function saveGame() {
   if (game.sandbox) return; // 샌드박스는 저장 안 함 (일반 게임 데이터 보호)
+  persistBestWave(game.wave);
   const data = {
     version: 1,
     wave: game.wave,
@@ -117,6 +135,7 @@ export function loadGame(data) {
   game.modal = null;
   game.paused = false;
   game.holdDelete = null;
+  game.bestWaveReached = Math.max(loadBestWave(), game.wave);
   game.towers = (data.towers || [])
     .filter(td => TOWER_ROLES[td.role])
     .map(td => {

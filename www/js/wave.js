@@ -44,6 +44,9 @@ export function setupWave(targetWave) {
 
   // 웨이브별 누적 카운터 리셋
   for (const tower of game.towers) tower.waveDamage = 0;
+
+  // 최고 도달 웨이브 추적 — 다음 판 인터미션 결정에 사용
+  if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
 }
 
 export function startNextWave() {

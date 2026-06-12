@@ -231,6 +231,7 @@ export const BARRIER_START_WAVE = 151;
 export const BARRIER_RADIUS = 60;
 
 export const SAVE_KEY = 'td_save_v1';
+export const BEST_WAVE_KEY = 'td_best_wave';
 export const AIR_INTRO_KEY = 'td_seen_air_intro';
 export const BUFF_INTRO_KEY = 'td_seen_buff_intro';
 export const BOSS_INTRO_KEY = 'td_seen_boss_intro';
