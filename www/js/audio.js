@@ -3,7 +3,8 @@
 //   - Android는 MainActivity에서 자동재생을 허용 → 타이틀 진입 즉시 재생
 //   - 그래도 막히는 환경(데스크탑 브라우저 등)에서는 play() 실패를 잡아
 //     첫 사용자 제스처(pointerdown/keydown)에서 재시도 (폴백)
-import { MUTE_KEY } from './config.js';
+// 볼륨은 0~1 (0이면 무음). 설정 모달의 슬라이더가 setVolume으로 조절.
+import { VOLUME_KEY } from './config.js';
 
 const tracks = {
   normal: new Audio('assets/audio/bgm.mp3'),
@@ -11,15 +12,19 @@ const tracks = {
 };
 for (const a of Object.values(tracks)) {
   a.loop = true;
-  a.volume = 0.5;
 }
 
 let current = null; // 'normal' | 'boss' | null
-let muted = loadMuted();
+let volume = loadVolume();
 let gestureArmed = false;
 
-function loadMuted() {
-  try { return localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { return false; }
+function loadVolume() {
+  try {
+    const v = parseFloat(localStorage.getItem(VOLUME_KEY));
+    return isNaN(v) ? 0.5 : Math.min(1, Math.max(0, v));
+  } catch (e) {
+    return 0.5;
+  }
 }
 
 // 자동재생이 막혔을 때 — 다음 사용자 제스처 한 번에 현재 트랙 재생 재시도
@@ -36,9 +41,9 @@ function armGesture() {
   window.addEventListener('keydown', resume);
 }
 
-// current 트랙을 음소거 상태에 맞춰 재생, 나머지 트랙은 정지
+// current 트랙을 볼륨에 맞춰 재생, 나머지 트랙은 정지.
+// 볼륨 0이어도 정지하지 않고 무음 재생 유지 → 드래그 중 play/pause 깜빡임 방지.
 function applyCurrent() {
-  // current가 아닌 트랙은 정지하고 처음으로 되감음 (트랙 전환)
   for (const [name, a] of Object.entries(tracks)) {
     if (name !== current && !a.paused) {
       a.pause();
@@ -47,21 +52,16 @@ function applyCurrent() {
   }
   const a = current ? tracks[current] : null;
   if (!a) return;
-  if (muted) {
-    if (!a.paused) a.pause(); // 음소거: 재생 위치는 유지한 채 정지
-    return;
+  a.volume = volume;
+  if (a.paused) {
+    const pr = a.play();
+    if (pr && pr.catch) pr.catch(() => armGesture());
   }
-  const pr = a.play();
-  if (pr && pr.catch) pr.catch(() => armGesture());
 }
 
-// 'normal' | 'boss' 전환. 같은 트랙이면 사실상 no-op라 매 프레임 호출해도 안전.
+// 'normal' | 'boss' 전환. 같은 트랙이면 볼륨/재생 상태만 보정.
 export function playBgm(track) {
-  if (current === track) {
-    if (!muted && tracks[track].paused) applyCurrent(); // 멈춰 있으면 보정
-    return;
-  }
-  current = track;
+  if (current !== track) current = track;
   applyCurrent();
 }
 
@@ -70,11 +70,11 @@ export function syncBattleMusic(bossActive) {
   playBgm(bossActive ? 'boss' : 'normal');
 }
 
-export function isMuted() { return muted; }
+export function getVolume() { return volume; }
 
-export function toggleMuted() {
-  muted = !muted;
-  try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) {}
-  applyCurrent();
-  return muted;
+export function setVolume(v) {
+  volume = Math.min(1, Math.max(0, v));
+  try { localStorage.setItem(VOLUME_KEY, String(volume)); } catch (e) {}
+  for (const a of Object.values(tracks)) a.volume = volume;
+  applyCurrent(); // 정지 상태였으면 재생 보장
 }

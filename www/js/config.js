@@ -240,5 +240,5 @@ export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';
 export const REGEN_INTRO_KEY = 'td_seen_regen_intro';
 export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 
-// 음소거 설정 — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외
-export const MUTE_KEY = 'td_muted';
+// BGM 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외
+export const VOLUME_KEY = 'td_volume';

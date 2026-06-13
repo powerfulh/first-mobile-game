@@ -6,6 +6,7 @@ import {
 } from './config.js';
 import { game } from './state.js';
 import { roundRect, drawButton } from './helpers.js';
+import { getVolume, setVolume } from './audio.js';
 
 // ============ HUD ============
 export function updateHUD() {
@@ -95,6 +96,77 @@ export function drawPausedOverlay() {
 // 하단 가이드 문구는 모달 소스에 고정.
 export const settingsModalPanel = { x: 30, y: 210, w: 300, h: 230 };
 
+// ---- 볼륨 슬라이더 ----
+// track: x ~ x+w (가로), cy 중심. 패널 가로 중앙 대칭 배치.
+export const volumeSlider = { x: 78, cy: 322, w: 204, knobR: 11 };
+let volumeDragging = false;
+
+function volumeFromPointer(px) {
+  const s = volumeSlider;
+  return Math.min(1, Math.max(0, (px - s.x) / s.w));
+}
+
+export function hitVolumeSlider(p) {
+  const s = volumeSlider;
+  // 트랙 양끝 여유 + 세로 터치 영역 넉넉히
+  return p.x >= s.x - 22 && p.x <= s.x + s.w + 22 && Math.abs(p.y - s.cy) <= 26;
+}
+
+// 슬라이더 드래그 — 설정 모달이 열린 씬에서 pointer 콜백이 위임.
+// 이벤트를 소비하면 true 반환 (씬은 그 경우 다른 처리 스킵).
+export function volumePointerDown(p) {
+  if (!hitVolumeSlider(p)) return false;
+  volumeDragging = true;
+  setVolume(volumeFromPointer(p.x));
+  return true;
+}
+export function volumePointerMove(p) {
+  if (!volumeDragging) return false;
+  setVolume(volumeFromPointer(p.x));
+  return true;
+}
+export function volumePointerUp() {
+  const was = volumeDragging;
+  volumeDragging = false;
+  return was;
+}
+
+function drawVolumeSlider() {
+  const s = volumeSlider;
+  const v = getVolume();
+  const knobX = s.x + v * s.w;
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#cdd';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText(`볼륨  ${Math.round(v * 100)}%`, LOGICAL_W / 2, s.cy - 18);
+
+  ctx.lineCap = 'round';
+  // 트랙 배경
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(s.x, s.cy);
+  ctx.lineTo(s.x + s.w, s.cy);
+  ctx.stroke();
+  // 채워진 구간
+  ctx.strokeStyle = '#5dade2';
+  ctx.beginPath();
+  ctx.moveTo(s.x, s.cy);
+  ctx.lineTo(knobX, s.cy);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  // 노브
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(knobX, s.cy, s.knobR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
 export function drawSettingsModal(buttons) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
   ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
@@ -113,8 +185,9 @@ export function drawSettingsModal(buttons) {
   ctx.font = 'bold 22px sans-serif';
   ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
 
-  // label은 문자열 또는 () => string (음소거 토글처럼 상태에 따라 바뀌는 버튼용)
-  for (const b of buttons) drawButton(b.btn, typeof b.label === 'function' ? b.label() : b.label);
+  drawVolumeSlider();
+
+  for (const b of buttons) drawButton(b.btn, b.label);
 
   ctx.fillStyle = '#9ab';
   ctx.font = '12px sans-serif';

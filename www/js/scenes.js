@@ -30,25 +30,15 @@ import {
   INTRO_MODALS,
   setToast, updateToast, drawToast,
   drawSettingsModal,
+  volumePointerDown, volumePointerMove, volumePointerUp,
 } from './ui.js';
-import { playBgm, syncBattleMusic, isMuted, toggleMuted } from './audio.js';
+import { playBgm, syncBattleMusic } from './audio.js';
 
 // 설정 모달 버튼 구성 — 씬별로 자체 버튼 + 액션. action()이 truthy 반환 시 모달 닫음.
-// 음소거 토글은 양쪽 씬 공통 (위), 씬별 액션은 그 아래.
-const MUTE_BTN_GEO = { x: 80, y: 292, w: 200, h: 52 };
+// 모달 상단엔 볼륨 슬라이더(ui.js), 아래에 씬별 액션 버튼.
 const ACTION_BTN_GEO = { x: 80, y: 352, w: 200, h: 52 };
 
-const muteButton = {
-  btn: MUTE_BTN_GEO,
-  label: () => (isMuted() ? '🔇 소리 꺼짐' : '🔊 소리 켜짐'),
-  action() {
-    toggleMuted();
-    return false; // 모달 유지 (라벨은 다음 프레임에 갱신)
-  },
-};
-
 const titleSettingsButtons = [
-  muteButton,
   {
     btn: ACTION_BTN_GEO,
     label: '저장 정보 초기화',
@@ -62,7 +52,6 @@ const titleSettingsButtons = [
 ];
 
 const playingSettingsButtons = [
-  muteButton,
   {
     btn: ACTION_BTN_GEO,
     label: '메인으로 나가기',
@@ -174,6 +163,7 @@ scenes.title = {
   },
   pointerDown(p) {
     if (this.settingsOpen) {
+      if (volumePointerDown(p)) return;
       for (const b of titleSettingsButtons) {
         if (hitButton(b.btn, p)) {
           if (b.action()) this.settingsOpen = false;
@@ -201,6 +191,15 @@ scenes.title = {
       this.settingsOpen = true;
       return;
     }
+  },
+  pointerMove(p) {
+    if (this.settingsOpen) volumePointerMove(p);
+  },
+  pointerUp() {
+    volumePointerUp();
+  },
+  pointerCancel() {
+    volumePointerUp();
   },
   backButton() {
     if (this.settingsOpen) {
@@ -426,6 +425,7 @@ scenes.playing = {
   },
   pointerDown(p) {
     if (game.settingsOpen) {
+      if (volumePointerDown(p)) return;
       for (const b of playingSettingsButtons) {
         if (hitButton(b.btn, p)) {
           if (b.action()) game.settingsOpen = false;
@@ -525,6 +525,15 @@ scenes.playing = {
       return;
     }
     placeTower(p.x, p.y);
+  },
+  pointerMove(p) {
+    if (game.settingsOpen) volumePointerMove(p);
+  },
+  pointerUp() {
+    volumePointerUp();
+  },
+  pointerCancel() {
+    volumePointerUp();
   },
   backButton() {
     // 설정 열린 상태 → 닫기
