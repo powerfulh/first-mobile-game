@@ -93,7 +93,7 @@ export function drawPausedOverlay() {
 // 게임 중 백 버튼 / 타이틀 설정 버튼 모두 동일 모달 사용.
 // 호출자가 buttons 배열을 넘김 — 각 { btn: {x,y,w,h}, label: string }.
 // 하단 가이드 문구는 모달 소스에 고정.
-export const settingsModalPanel = { x: 30, y: 220, w: 300, h: 200 };
+export const settingsModalPanel = { x: 30, y: 210, w: 300, h: 230 };
 
 export function drawSettingsModal(buttons) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -113,7 +113,8 @@ export function drawSettingsModal(buttons) {
   ctx.font = 'bold 22px sans-serif';
   ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
 
-  for (const b of buttons) drawButton(b.btn, b.label);
+  // label은 문자열 또는 () => string (음소거 토글처럼 상태에 따라 바뀌는 버튼용)
+  for (const b of buttons) drawButton(b.btn, typeof b.label === 'function' ? b.label() : b.label);
 
   ctx.fillStyle = '#9ab';
   ctx.font = '12px sans-serif';

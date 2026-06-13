@@ -31,13 +31,26 @@ import {
   setToast, updateToast, drawToast,
   drawSettingsModal,
 } from './ui.js';
+import { playBgm, syncBattleMusic, isMuted, toggleMuted } from './audio.js';
 
 // 설정 모달 버튼 구성 — 씬별로 자체 버튼 + 액션. action()이 truthy 반환 시 모달 닫음.
-const SETTINGS_BTN_GEO = { x: 80, y: 326, w: 200, h: 56 };
+// 음소거 토글은 양쪽 씬 공통 (위), 씬별 액션은 그 아래.
+const MUTE_BTN_GEO = { x: 80, y: 292, w: 200, h: 52 };
+const ACTION_BTN_GEO = { x: 80, y: 352, w: 200, h: 52 };
+
+const muteButton = {
+  btn: MUTE_BTN_GEO,
+  label: () => (isMuted() ? '🔇 소리 꺼짐' : '🔊 소리 켜짐'),
+  action() {
+    toggleMuted();
+    return false; // 모달 유지 (라벨은 다음 프레임에 갱신)
+  },
+};
 
 const titleSettingsButtons = [
+  muteButton,
   {
-    btn: SETTINGS_BTN_GEO,
+    btn: ACTION_BTN_GEO,
     label: '저장 정보 초기화',
     action() {
       if (typeof confirm === 'function' && !confirm('저장 정보를 초기화할까요?')) return false;
@@ -49,8 +62,9 @@ const titleSettingsButtons = [
 ];
 
 const playingSettingsButtons = [
+  muteButton,
   {
-    btn: SETTINGS_BTN_GEO,
+    btn: ACTION_BTN_GEO,
     label: '메인으로 나가기',
     action() {
       changeScene('title');
@@ -114,6 +128,7 @@ scenes.title = {
     titleAnim = 0;
     titleSave = loadSaveData();
     this.settingsOpen = false;
+    playBgm('normal'); // 타이틀·일반 웨이브 공용 BGM
   },
   update(dt) {
     titleAnim += dt;
@@ -246,6 +261,7 @@ scenes.playing = {
   },
   update(dt) {
     updateToast(dt);
+    syncBattleMusic(game.bossActive); // 보스 웨이브 ↔ 일반 BGM 전환
     if (game.modal) return;
     if (game.settingsOpen) return;
     if (game.paused) return;
@@ -563,7 +579,9 @@ const gameOverButtons = {
 };
 
 scenes.gameOver = {
-  enter() {},
+  enter() {
+    playBgm('normal'); // 보스전 중 사망해도 일반 BGM으로 복귀
+  },
   update() {},
   draw() {
     scenes.playing.draw();
