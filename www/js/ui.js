@@ -89,17 +89,17 @@ export function drawPausedOverlay() {
   ctx.textBaseline = 'alphabetic';
 }
 
-// ============ Title settings modal (타이틀 신 설정 버튼) ============
-export const titleSettingsModal = {
-  panel: { x: 30, y: 220, w: 300, h: 200 },
-  resetBtn: { x: 80, y: 326, w: 200, h: 56 },
-};
+// ============ Settings modal (통합) ============
+// 게임 중 백 버튼 / 타이틀 설정 버튼 모두 동일 모달 사용.
+// 호출자가 buttons 배열을 넘김 — 각 { btn: {x,y,w,h}, label: string }.
+// 하단 가이드 문구는 모달 소스에 고정.
+export const settingsModalPanel = { x: 30, y: 220, w: 300, h: 200 };
 
-export function drawTitleSettingsModal() {
+export function drawSettingsModal(buttons) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
   ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 
-  const p = titleSettingsModal.panel;
+  const p = settingsModalPanel;
   ctx.fillStyle = '#1a2535';
   roundRect(p.x, p.y, p.w, p.h, 12);
   ctx.fill();
@@ -113,43 +113,11 @@ export function drawTitleSettingsModal() {
   ctx.font = 'bold 22px sans-serif';
   ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
 
-  drawButton(titleSettingsModal.resetBtn, '저장 정보 초기화');
+  for (const b of buttons) drawButton(b.btn, b.label);
 
   ctx.fillStyle = '#9ab';
   ctx.font = '12px sans-serif';
-  ctx.fillText('이전 버튼을 다시 누르면 닫힙니다', LOGICAL_W / 2, p.y + p.h - 16);
-}
-
-// ============ Settings modal (게임 중 백 버튼) ============
-export const settingsModal = {
-  panel: { x: 30, y: 220, w: 300, h: 200 },
-  toTitleBtn: { x: 80, y: 326, w: 200, h: 56 },
-};
-
-export function drawSettingsModal() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-  const p = settingsModal.panel;
-  ctx.fillStyle = '#1a2535';
-  roundRect(p.x, p.y, p.w, p.h, 12);
-  ctx.fill();
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px sans-serif';
-  ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
-
-  drawButton(settingsModal.toTitleBtn, '메인으로 나가기');
-
-  // 가이드 문구 — 모달 하단
-  ctx.fillStyle = '#9ab';
-  ctx.font = '12px sans-serif';
-  ctx.fillText('이전 버튼을 다시 누르면 게임으로 돌아갑니다', LOGICAL_W / 2, p.y + p.h - 16);
+  ctx.fillText('이전 버튼을 눌러 닫습니다', LOGICAL_W / 2, p.y + p.h - 16);
 }
 
 // ============ Intro modals ============

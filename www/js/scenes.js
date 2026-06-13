@@ -29,9 +29,35 @@ import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
   INTRO_MODALS,
   setToast, updateToast, drawToast,
-  settingsModal, drawSettingsModal,
-  titleSettingsModal, drawTitleSettingsModal,
+  drawSettingsModal,
 } from './ui.js';
+
+// 설정 모달 버튼 구성 — 씬별로 자체 버튼 + 액션. action()이 truthy 반환 시 모달 닫음.
+const SETTINGS_BTN_GEO = { x: 80, y: 326, w: 200, h: 56 };
+
+const titleSettingsButtons = [
+  {
+    btn: SETTINGS_BTN_GEO,
+    label: '저장 정보 초기화',
+    action() {
+      if (typeof confirm === 'function' && !confirm('저장 정보를 초기화할까요?')) return false;
+      resetLocalData();
+      changeScene('title');
+      return true;
+    },
+  },
+];
+
+const playingSettingsButtons = [
+  {
+    btn: SETTINGS_BTN_GEO,
+    label: '메인으로 나가기',
+    action() {
+      changeScene('title');
+      return true;
+    },
+  },
+];
 import { wiki } from './wiki.js';
 
 export const scenes = {};
@@ -129,15 +155,14 @@ scenes.title = {
       drawButton(titleButtonsNoSave.settings, '설정');
     }
 
-    if (this.settingsOpen) drawTitleSettingsModal();
+    if (this.settingsOpen) drawSettingsModal(titleSettingsButtons);
   },
   pointerDown(p) {
     if (this.settingsOpen) {
-      if (hitButton(titleSettingsModal.resetBtn, p)) {
-        if (typeof confirm === 'function' && confirm('저장 정보를 초기화할까요?')) {
-          resetLocalData();
-          this.settingsOpen = false;
-          changeScene('title');
+      for (const b of titleSettingsButtons) {
+        if (hitButton(b.btn, p)) {
+          if (b.action()) this.settingsOpen = false;
+          return;
         }
       }
       return;
@@ -379,15 +404,17 @@ scenes.playing = {
       if (intro) intro.draw();
     }
 
-    if (game.settingsOpen) drawSettingsModal();
+    if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
     drawToast();
   },
   pointerDown(p) {
     if (game.settingsOpen) {
-      if (hitButton(settingsModal.toTitleBtn, p)) {
-        game.settingsOpen = false;
-        changeScene('title');
+      for (const b of playingSettingsButtons) {
+        if (hitButton(b.btn, p)) {
+          if (b.action()) game.settingsOpen = false;
+          return;
+        }
       }
       return;
     }
