@@ -89,6 +89,37 @@ export function drawPausedOverlay() {
   ctx.textBaseline = 'alphabetic';
 }
 
+// ============ Title settings modal (타이틀 신 설정 버튼) ============
+export const titleSettingsModal = {
+  panel: { x: 30, y: 220, w: 300, h: 200 },
+  resetBtn: { x: 80, y: 326, w: 200, h: 56 },
+};
+
+export function drawTitleSettingsModal() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+  const p = titleSettingsModal.panel;
+  ctx.fillStyle = '#1a2535';
+  roundRect(p.x, p.y, p.w, p.h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
+
+  drawButton(titleSettingsModal.resetBtn, '저장 정보 초기화');
+
+  ctx.fillStyle = '#9ab';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('이전 버튼을 다시 누르면 닫힙니다', LOGICAL_W / 2, p.y + p.h - 16);
+}
+
 // ============ Settings modal (게임 중 백 버튼) ============
 export const settingsModal = {
   panel: { x: 30, y: 220, w: 300, h: 200 },

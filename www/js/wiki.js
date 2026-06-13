@@ -171,6 +171,14 @@ export const wiki = {
   backButton() {
     changeScene('title');
   },
+
+  keyDown(e) {
+    // 데스크탑 — 백스페이스도 백 버튼과 동일
+    if (e.code === 'Backspace') {
+      e.preventDefault();
+      this.backButton();
+    }
+  },
 };
 
 function clampScroll(v) {

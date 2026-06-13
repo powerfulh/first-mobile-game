@@ -4,7 +4,7 @@ import {
 } from './config.js';
 import {
   game, resetGame, loadGame, loadSaveData,
-  hasSeenIntro, setIntroSeen,
+  hasSeenIntro, setIntroSeen, resetLocalData,
 } from './state.js';
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
@@ -30,6 +30,7 @@ import {
   INTRO_MODALS,
   setToast, updateToast, drawToast,
   settingsModal, drawSettingsModal,
+  titleSettingsModal, drawTitleSettingsModal,
 } from './ui.js';
 import { wiki } from './wiki.js';
 
@@ -47,16 +48,18 @@ export function getCurrentScene() {
 }
 
 // ============ Title scene ============
-// 3개 버튼 배치: continueBtn(저장 있을 때만) / start / wiki
-// start, wiki 위치는 save 여부와 무관하게 동일 유지 → 사용자 시선 안정
+// 4개 버튼 배치: continueBtn(저장 있을 때만) / start / wiki / settings
+// start·wiki·settings 위치는 save 여부와 무관하게 동일 유지 → 사용자 시선 안정
 const titleButtonsWithSave = {
-  continueBtn: { x: 80, y: 336, w: 200, h: 64 },
-  start:       { x: 80, y: 420, w: 200, h: 64 },
-  wiki:        { x: 80, y: 504, w: 200, h: 64 },
+  continueBtn: { x: 80, y: 290, w: 200, h: 64 },
+  start:       { x: 80, y: 366, w: 200, h: 64 },
+  wiki:        { x: 80, y: 442, w: 200, h: 64 },
+  settings:    { x: 80, y: 518, w: 200, h: 64 },
 };
 const titleButtonsNoSave = {
-  start: { x: 80, y: 420, w: 200, h: 64 },
-  wiki:  { x: 80, y: 504, w: 200, h: 64 },
+  start:    { x: 80, y: 366, w: 200, h: 64 },
+  wiki:     { x: 80, y: 442, w: 200, h: 64 },
+  settings: { x: 80, y: 518, w: 200, h: 64 },
 };
 let titleAnim = 0;
 let titleSave = null;
@@ -80,9 +83,11 @@ function drawContinueButton(btn, wave) {
 }
 
 scenes.title = {
+  settingsOpen: false,
   enter() {
     titleAnim = 0;
     titleSave = loadSaveData();
+    this.settingsOpen = false;
   },
   update(dt) {
     titleAnim += dt;
@@ -96,16 +101,16 @@ scenes.title = {
 
     ctx.fillStyle = '#f1c40f';
     ctx.font = 'bold 22px sans-serif';
-    ctx.fillText('PROMOTION', LOGICAL_W / 2, 162);
+    ctx.fillText('PROMOTION', LOGICAL_W / 2, 122);
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 48px sans-serif';
-    ctx.fillText('TOWER', LOGICAL_W / 2, 210);
-    ctx.fillText('DEFENSE', LOGICAL_W / 2, 266);
+    ctx.fillText('TOWER', LOGICAL_W / 2, 170);
+    ctx.fillText('DEFENSE', LOGICAL_W / 2, 226);
 
     ctx.fillStyle = '#9ab39a';
     ctx.font = '13px sans-serif';
-    ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 296);
+    ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 256);
 
     const pulse = 0.5 + 0.5 * Math.sin(titleAnim * 3);
 
@@ -115,14 +120,28 @@ scenes.title = {
       ctx.globalAlpha = 1;
       drawButton(titleButtonsWithSave.start, '게임 시작');
       drawButton(titleButtonsWithSave.wiki, '위키');
+      drawButton(titleButtonsWithSave.settings, '설정');
     } else {
       ctx.globalAlpha = 0.6 + 0.4 * pulse;
       drawButton(titleButtonsNoSave.start, '게임 시작');
       ctx.globalAlpha = 1;
       drawButton(titleButtonsNoSave.wiki, '위키');
+      drawButton(titleButtonsNoSave.settings, '설정');
     }
+
+    if (this.settingsOpen) drawTitleSettingsModal();
   },
   pointerDown(p) {
+    if (this.settingsOpen) {
+      if (hitButton(titleSettingsModal.resetBtn, p)) {
+        if (typeof confirm === 'function' && confirm('저장 정보를 초기화할까요?')) {
+          resetLocalData();
+          this.settingsOpen = false;
+          changeScene('title');
+        }
+      }
+      return;
+    }
     if (titleSave && hitButton(titleButtonsWithSave.continueBtn, p)) {
       loadGame(titleSave);
       changeScene('playing');
@@ -138,12 +157,25 @@ scenes.title = {
       changeScene('wiki');
       return;
     }
+    if (hitButton(buttons.settings, p)) {
+      this.settingsOpen = true;
+      return;
+    }
   },
   backButton() {
+    if (this.settingsOpen) {
+      this.settingsOpen = false;
+      return;
+    }
     // 타이틀에서 백 버튼 = 앱 종료 (Capacitor 환경 한정)
     window.Capacitor?.Plugins?.App?.exitApp();
   },
   keyDown(e) {
+    if (e.code === 'Backspace' && this.settingsOpen) {
+      e.preventDefault();
+      this.settingsOpen = false;
+      return;
+    }
     // 데스크탑 디버그용 — 스페이스키로 샌드박스 진입 (Wave 1부터)
     if (e.code === 'Space') {
       e.preventDefault();

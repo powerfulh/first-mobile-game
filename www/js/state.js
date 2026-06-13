@@ -1,4 +1,9 @@
-import { SAVE_KEY, BEST_WAVE_KEY, TOWER_ROLES } from './config.js';
+import {
+  SAVE_KEY, BEST_WAVE_KEY,
+  AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
+  TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
+  TOWER_ROLES,
+} from './config.js';
 import { isBossWave, spawnBoss } from './enemy.js';
 
 export const game = {
@@ -156,6 +161,18 @@ export function loadGame(data) {
 }
 
 // ============ Intro 플래그 ============
+// 로컬 저장 정보 전체 초기화 (타이틀 설정에서 호출)
+export function resetLocalData() {
+  const keys = [
+    SAVE_KEY, BEST_WAVE_KEY,
+    AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
+    TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
+  ];
+  for (const key of keys) {
+    try { localStorage.removeItem(key); } catch (e) {}
+  }
+}
+
 export function hasSeenIntro(key) {
   try { return localStorage.getItem(key) === '1'; } catch (e) { return false; }
 }
