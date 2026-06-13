@@ -29,18 +29,15 @@ import {
   updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
   INTRO_MODALS,
   setToast, updateToast, drawToast,
-  drawSettingsModal,
+  drawSettingsModal, settingsLayout,
   volumePointerDown, volumePointerMove, volumePointerUp,
 } from './ui.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 
-// 설정 모달 버튼 구성 — 씬별로 자체 버튼 + 액션. action()이 truthy 반환 시 모달 닫음.
-// 모달 상단엔 볼륨 슬라이더(ui.js), 아래에 씬별 액션 버튼.
-const ACTION_BTN_GEO = { x: 80, y: 352, w: 200, h: 52 };
-
+// 설정 모달 버튼 구성 — 씬별 { label, action }. action()이 truthy 반환 시 모달 닫음.
+// 위치/패널 높이는 ui.js의 settingsLayout이 개수에 맞춰 계산.
 const titleSettingsButtons = [
   {
-    btn: ACTION_BTN_GEO,
     label: '저장 정보 초기화',
     action() {
       if (typeof confirm === 'function' && !confirm('저장 정보를 초기화할까요?')) return false;
@@ -53,7 +50,14 @@ const titleSettingsButtons = [
 
 const playingSettingsButtons = [
   {
-    btn: ACTION_BTN_GEO,
+    label: '위키',
+    action() {
+      wiki.returnTo = 'playing'; // 위키에서 나갈 때 진행 중 게임으로 복귀
+      changeScene('wiki');
+      return true;
+    },
+  },
+  {
     label: '메인으로 나가기',
     action() {
       changeScene('title');
@@ -164,9 +168,10 @@ scenes.title = {
   pointerDown(p) {
     if (this.settingsOpen) {
       if (volumePointerDown(p)) return;
-      for (const b of titleSettingsButtons) {
-        if (hitButton(b.btn, p)) {
-          if (b.action()) this.settingsOpen = false;
+      const { btns } = settingsLayout(titleSettingsButtons.length);
+      for (let i = 0; i < titleSettingsButtons.length; i++) {
+        if (hitButton(btns[i], p)) {
+          if (titleSettingsButtons[i].action()) this.settingsOpen = false;
           return;
         }
       }
@@ -184,6 +189,7 @@ scenes.title = {
       return;
     }
     if (hitButton(buttons.wiki, p)) {
+      wiki.returnTo = 'title';
       changeScene('wiki');
       return;
     }
@@ -426,9 +432,10 @@ scenes.playing = {
   pointerDown(p) {
     if (game.settingsOpen) {
       if (volumePointerDown(p)) return;
-      for (const b of playingSettingsButtons) {
-        if (hitButton(b.btn, p)) {
-          if (b.action()) game.settingsOpen = false;
+      const { btns } = settingsLayout(playingSettingsButtons.length);
+      for (let i = 0; i < playingSettingsButtons.length; i++) {
+        if (hitButton(btns[i], p)) {
+          if (playingSettingsButtons[i].action()) game.settingsOpen = false;
           return;
         }
       }

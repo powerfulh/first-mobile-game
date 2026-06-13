@@ -92,9 +92,26 @@ export function drawPausedOverlay() {
 
 // ============ Settings modal (통합) ============
 // 게임 중 백 버튼 / 타이틀 설정 버튼 모두 동일 모달 사용.
-// 호출자가 buttons 배열을 넘김 — 각 { btn: {x,y,w,h}, label: string }.
+// 호출자가 buttons 배열을 넘김 — 각 { label, action }. 버튼 위치/패널 높이는
+// settingsLayout이 버튼 개수에 맞춰 계산 (씬의 hit-test도 동일 함수 사용).
 // 하단 가이드 문구는 모달 소스에 고정.
-export const settingsModalPanel = { x: 30, y: 210, w: 300, h: 230 };
+const SETTINGS_BTN = { x: 80, w: 200, h: 50, gap: 12, top: 350 };
+const SETTINGS_PANEL = { x: 30, y: 210, w: 300 };
+
+export function settingsLayout(count) {
+  const btns = [];
+  for (let i = 0; i < count; i++) {
+    btns.push({
+      x: SETTINGS_BTN.x,
+      y: SETTINGS_BTN.top + i * (SETTINGS_BTN.h + SETTINGS_BTN.gap),
+      w: SETTINGS_BTN.w,
+      h: SETTINGS_BTN.h,
+    });
+  }
+  const lastBottom = count ? btns[count - 1].y + SETTINGS_BTN.h : SETTINGS_BTN.top;
+  const panel = { ...SETTINGS_PANEL, h: lastBottom + 40 - SETTINGS_PANEL.y };
+  return { panel, btns, guideY: panel.y + panel.h - 16 };
+}
 
 // ---- 볼륨 슬라이더 ----
 // track: x ~ x+w (가로), cy 중심. 패널 가로 중앙 대칭 배치.
@@ -168,10 +185,11 @@ function drawVolumeSlider() {
 }
 
 export function drawSettingsModal(buttons) {
+  const { panel: p, btns, guideY } = settingsLayout(buttons.length);
+
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
   ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 
-  const p = settingsModalPanel;
   ctx.fillStyle = '#1a2535';
   roundRect(p.x, p.y, p.w, p.h, 12);
   ctx.fill();
@@ -187,11 +205,11 @@ export function drawSettingsModal(buttons) {
 
   drawVolumeSlider();
 
-  for (const b of buttons) drawButton(b.btn, b.label);
+  for (let i = 0; i < buttons.length; i++) drawButton(btns[i], buttons[i].label);
 
   ctx.fillStyle = '#9ab';
   ctx.font = '12px sans-serif';
-  ctx.fillText('이전 버튼을 눌러 닫습니다', LOGICAL_W / 2, p.y + p.h - 16);
+  ctx.fillText('이전 버튼을 눌러 닫습니다', LOGICAL_W / 2, guideY);
 }
 
 // ============ Intro modals ============

@@ -92,6 +92,7 @@ export const wiki = {
   expandedKey: null, // 'tower:base', 'tower:radar', ...
   drag: null,
   contentMax: 0, // 마지막 draw에서 계산된 컨텐츠 끝 y (스크롤 한계 산정용)
+  returnTo: 'title', // 나갈 때 돌아갈 씬 — 호출 측이 changeScene 전에 설정
 
   enter() {
     wiki.scroll = 0;
@@ -138,7 +139,7 @@ export const wiki = {
     // 헤더 탭
     if (drag.inHeader) {
       if (hitButton(backBtn, drag.startPos)) {
-        changeScene('title');
+        changeScene(wiki.returnTo);
         return;
       }
       if (hitButton(tabTower, drag.startPos)) {
@@ -169,7 +170,7 @@ export const wiki = {
   },
 
   backButton() {
-    changeScene('title');
+    changeScene(wiki.returnTo);
   },
 
   keyDown(e) {
