@@ -2,6 +2,7 @@ import { ctx } from './canvas.js';
 import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES } from './config.js';
 import { roundRect, hitButton } from './helpers.js';
 import { changeScene } from './scenes.js';
+import { drawTowerSprite } from './tower.js';
 
 // ============ 레이아웃 ============
 const HEADER_H = 60;
@@ -436,16 +437,8 @@ function drawTowerItem(y, role, cfg, expanded) {
       ctx.stroke();
     }
 
-    // 외관 미리보기 (작은 원)
-    const orbX = 28;
-    const orbY = y + ITEM_H / 2;
-    ctx.fillStyle = cfg.color;
-    ctx.beginPath();
-    ctx.arc(orbX, orbY, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = cfg.color2;
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    // 외관 미리보기 — 게임과 동일한 타워 그래픽 (tower.js 공용 스프라이트)
+    drawTowerSprite(role, 28, y + ITEM_H / 2);
 
     // 이름 + tagline
     ctx.textAlign = 'left';

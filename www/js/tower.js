@@ -699,22 +699,9 @@ function drawRadarAntenna(t) {
   ctx.restore();
 }
 
-export function drawTower(t) {
-  const cfg = TOWER_ROLES[t.role];
-  const selected = (t === game.selectedTower);
-  const isTarget = (t === game.promotionTarget);
-
-  if (isPromotionReady(t)) {
-    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
-    ctx.globalAlpha = 0.35 + 0.45 * pulse;
-    ctx.strokeStyle = isTarget ? '#1abc9c' : '#f1c40f';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, TOWER.radius + 5, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-
+// 타워 외형(4티어 후광 + 본체 + 레이더 안테나)만 그림.
+// 게임 전용 요소(전직 펄스·XP 바)는 제외 → drawTower와 위키가 공유하는 단일 소스.
+function drawTowerBody(t, cfg, selected) {
   if (t.tier === 4) drawTier4Halo(t.x, t.y, TOWER.radius + 8);
 
   if (cfg.disablesModifiers) {
@@ -734,6 +721,41 @@ export function drawTower(t) {
   }
 
   if (cfg.marksEnemies) drawRadarAntenna(t);
+}
+
+// 게임 밖(위키 등)에서 타워 외형을 그릴 때 사용. (cx, cy) 중심·게임과 동일 크기.
+// 합성 타워 객체를 만들어 drawTowerBody를 재사용 — 외형 정의는 한 곳뿐.
+export function drawTowerSprite(role, cx, cy, opts = {}) {
+  const cfg = TOWER_ROLES[role];
+  if (!cfg) return;
+  const isTier4 = Object.values(TIER4_RECIPES).some(r => r.result === role);
+  const t = {
+    x: cx, y: cy, role,
+    tier: isTier4 ? 4 : 1,
+    angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
+    cooldown: 0,
+    fireRate: cfg.fireRate || 1,
+  };
+  drawTowerBody(t, cfg, false);
+}
+
+export function drawTower(t) {
+  const cfg = TOWER_ROLES[t.role];
+  const selected = (t === game.selectedTower);
+  const isTarget = (t === game.promotionTarget);
+
+  if (isPromotionReady(t)) {
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
+    ctx.globalAlpha = 0.35 + 0.45 * pulse;
+    ctx.strokeStyle = isTarget ? '#1abc9c' : '#f1c40f';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, TOWER.radius + 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  drawTowerBody(t, cfg, selected);
 
   if (canPromote(t)) {
     const xpMax = xpMaxFor(t);
