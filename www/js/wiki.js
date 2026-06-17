@@ -407,7 +407,6 @@ function drawTowerItem(y, role, cfg, expanded) {
 }
 
 function drawTowerDetail(y, role, cfg) {
-  const startY = y;
   let cy = y + DETAIL_TOP_PAD;
 
   // 펼친 상세 배경

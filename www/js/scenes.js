@@ -12,7 +12,7 @@ import {
   updateBarrierSpawnFx, drawBarrierSpawnFx,
 } from './enemy.js';
 import {
-  canPlaceTower, placeTower, canPromote, isPromotionReady, canAffordPromotion,
+  placeTower, canPromote,
   promoteTower, updateTower, drawTower, drawTowerRange,
   drawTowerInfoPanel, drawPromotionPanel,
   towerInfoPanel, infoCloseButton, infoPromotionButton,
