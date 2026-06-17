@@ -730,13 +730,19 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
   if (!cfg) return;
   const isTier4 = Object.values(TIER4_RECIPES).some(r => r.result === role);
   const t = {
-    x: cx, y: cy, role,
+    x: 0, y: 0, role, // 원점에 그린 뒤 translate/scale로 배치
     tier: isTier4 ? 4 : 1,
     angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
     cooldown: 0,
     fireRate: cfg.fireRate || 1,
   };
+  // 본체는 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
+  const scale = (opts.radius || TOWER.radius) / TOWER.radius;
+  ctx.save();
+  ctx.translate(cx, cy);
+  if (scale !== 1) ctx.scale(scale, scale);
   drawTowerBody(t, cfg, false);
+  ctx.restore();
 }
 
 export function drawTower(t) {
@@ -976,13 +982,7 @@ function drawPromotionCard(slot, role, cost) {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  ctx.fillStyle = cfg.color;
-  ctx.beginPath();
-  ctx.arc(slot.x + 36, slot.y + slot.h / 2, 18, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = cfg.color2;
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  drawTowerSprite(role, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
 
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
@@ -1017,18 +1017,8 @@ function drawTier4ResultCard(slot, role, cost) {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // 외관 미리보기 — 큰 원 + 4티어 공통 회전 6점
-  const orbCx = slot.x + 42;
-  const orbCy = slot.y + 42;
-  drawTier4Halo(orbCx, orbCy, 30);
-
-  ctx.fillStyle = cfg.color;
-  ctx.beginPath();
-  ctx.arc(orbCx, orbCy, 22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = cfg.color2;
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  // 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
+  drawTowerSprite(role, slot.x + 42, slot.y + 42, { radius: 22 });
 
   // 이름 + 비용
   ctx.textAlign = 'left';
