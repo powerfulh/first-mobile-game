@@ -431,66 +431,84 @@ function drawRegenAura(cx, cy, baseR) {
   ctx.lineCap = 'butt';
 }
 
-function drawRegenEnemy(e) {
-  const r = e.radius;
-  const w = r * 1.8;
-  const x = e.x - w / 2;
-  const y = e.y - w / 2;
+// 적 외형(본체 모양)만 그림 — HP바·마크링·재생 오라 등 게임 오버레이는 제외.
+// drawEnemy(게임)와 위키·인트로가 공유하는 단일 소스. (cx,cy) 중심·r 반지름.
+export function drawEnemySprite(type, cx, cy, r, opts = {}) {
+  const stroke = opts.shielded ? '#5dade2' : '#000';
+  const strokeW = opts.shielded ? 2 : 1;
 
-  // 외곽 옅은 초록 글로우 (회복 분위기)
-  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
-  ctx.globalAlpha = 0.25 + 0.25 * pulse;
-  ctx.fillStyle = '#2ecc71';
-  roundRect(x - 3, y - 3, w + 6, w + 6, 5);
-  ctx.fill();
-  ctx.globalAlpha = 1;
+  if (type === 'ground') {
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeW;
+    ctx.stroke();
+  } else if (type === 'air') {
+    ctx.fillStyle = '#a569bd';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
+    ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeW;
+    ctx.stroke();
+  } else if (type === 'regen') {
+    const w = r * 1.8;
+    const x = cx - w / 2;
+    const y = cy - w / 2;
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
+    ctx.globalAlpha = 0.25 + 0.25 * pulse;
+    ctx.fillStyle = '#2ecc71';
+    roundRect(x - 3, y - 3, w + 6, w + 6, 5);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#1e8449';
+    roundRect(x, y, w, w, 3);
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeW;
+    ctx.stroke();
+  } else if (type === 'barrier') {
+    ctx.fillStyle = '#a569bd';
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
+    ctx.lineTo(cx + r * 0.9, cy - r * 0.6);
+    ctx.lineTo(cx, cy + r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeW;
+    ctx.stroke();
 
-  // 본체
-  ctx.fillStyle = '#1e8449';
-  roundRect(x, y, w, w, 3);
-  ctx.fill();
-  ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
-  ctx.lineWidth = e.shielded ? 2 : 1;
-  ctx.stroke();
-
-  drawEnemyHpBar(e, e.y);
-  if (!e.regenDisabled) drawRegenAura(e.x, e.y, r + 4);
+    // 내부 장벽 미니어처 (반투명 디스크 + 십자)
+    const inY = cy - r * 0.15;
+    const inR = 5;
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = '#aab7c4';
+    ctx.beginPath();
+    ctx.arc(cx, inY, inR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#d5dbdb';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - inR, inY);
+    ctx.lineTo(cx + inR, inY);
+    ctx.moveTo(cx, inY - inR);
+    ctx.lineTo(cx, inY + inR);
+    ctx.stroke();
+  }
 }
 
-function drawBarrierSpawnerEnemy(e, cy) {
-  const r = e.radius;
-  // 역삼각형 본체 — 위쪽이 넓고 아래 꼭짓점
-  ctx.fillStyle = '#a569bd';
-  ctx.beginPath();
-  ctx.moveTo(e.x - r * 0.9, cy - r * 0.6);
-  ctx.lineTo(e.x + r * 0.9, cy - r * 0.6);
-  ctx.lineTo(e.x, cy + r);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
-  ctx.lineWidth = e.shielded ? 2 : 1;
-  ctx.stroke();
-
-  // 내부 장벽 미니어처 — 반투명 회청 디스크 + 격자 1줄로 장벽 느낌
-  const cx = e.x;
-  const inY = cy - r * 0.15;
-  const inR = 5;
-  ctx.globalAlpha = 0.55;
-  ctx.fillStyle = '#aab7c4';
-  ctx.beginPath();
-  ctx.arc(cx, inY, inR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = '#d5dbdb';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  // 격자(십자) — 장벽의 견고함 암시
-  ctx.beginPath();
-  ctx.moveTo(cx - inR, inY);
-  ctx.lineTo(cx + inR, inY);
-  ctx.moveTo(cx, inY - inR);
-  ctx.lineTo(cx, inY + inR);
-  ctx.stroke();
+function drawRegenEnemy(e) {
+  drawEnemySprite('regen', e.x, e.y, e.radius, { shielded: e.shielded });
+  drawEnemyHpBar(e, e.y);
+  if (!e.regenDisabled) drawRegenAura(e.x, e.y, e.radius + 4);
 }
 
 function drawBarrier(e) {
@@ -574,34 +592,11 @@ export function drawEnemy(e) {
   if (e.type === 'air') {
     const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
     const cy = e.y + bobY - 3;
-    const r = e.radius;
-
-    if (e.barrierSpawner) {
-      drawBarrierSpawnerEnemy(e, cy);
-    } else {
-      ctx.fillStyle = '#a569bd';
-      ctx.beginPath();
-      ctx.moveTo(e.x, cy - r);
-      ctx.lineTo(e.x - r * 0.9, cy + r * 0.6);
-      ctx.lineTo(e.x + r * 0.9, cy + r * 0.6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
-      ctx.lineWidth = e.shielded ? 2 : 1;
-      ctx.stroke();
-    }
-
+    drawEnemySprite(e.barrierSpawner ? 'barrier' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
     drawEnemyHpBar(e, cy);
     if (e.marked) drawMarkRing(e, cy);
   } else {
-    ctx.fillStyle = '#c0392b';
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = e.shielded ? '#5dade2' : '#000';
-    ctx.lineWidth = e.shielded ? 2 : 1;
-    ctx.stroke();
-
+    drawEnemySprite('ground', e.x, e.y, e.radius, { shielded: e.shielded });
     drawEnemyHpBar(e, e.y);
     if (e.marked) drawMarkRing(e, e.y);
   }

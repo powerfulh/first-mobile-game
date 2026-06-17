@@ -3,6 +3,7 @@ import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES } from './config.js';
 import { roundRect, hitButton } from './helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
+import { drawEnemySprite } from './enemy.js';
 
 // ============ 레이아웃 ============
 const HEADER_H = 60;
@@ -276,72 +277,8 @@ function drawEnemyCategory(y) {
 }
 
 function drawEnemyIcon(type, cx, cy) {
-  if (type === 'ground') {
-    ctx.fillStyle = '#c0392b';
-    ctx.beginPath();
-    ctx.arc(cx, cy, 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  } else if (type === 'air') {
-    ctx.fillStyle = '#a569bd';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 11);
-    ctx.lineTo(cx - 10, cy + 7);
-    ctx.lineTo(cx + 10, cy + 7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  } else if (type === 'regen') {
-    // 외곽 초록 글로우 (펄스)
-    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
-    ctx.globalAlpha = 0.25 + 0.25 * pulse;
-    ctx.fillStyle = '#2ecc71';
-    roundRect(cx - 10, cy - 10, 20, 20, 4);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    // 본체 사각형
-    ctx.fillStyle = '#1e8449';
-    roundRect(cx - 7, cy - 7, 14, 14, 3);
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  } else if (type === 'barrier') {
-    // 역삼각형 본체
-    const r = 11;
-    ctx.fillStyle = '#a569bd';
-    ctx.beginPath();
-    ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
-    ctx.lineTo(cx + r * 0.9, cy - r * 0.6);
-    ctx.lineTo(cx, cy + r);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // 내부 디스크 + 십자 (장벽 내포)
-    const inY = cy - r * 0.15;
-    const inR = 4;
-    ctx.globalAlpha = 0.55;
-    ctx.fillStyle = '#aab7c4';
-    ctx.beginPath();
-    ctx.arc(cx, inY, inR, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#d5dbdb';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx - inR, inY);
-    ctx.lineTo(cx + inR, inY);
-    ctx.moveTo(cx, inY - inR);
-    ctx.lineTo(cx, inY + inR);
-    ctx.stroke();
-  }
+  // 게임과 동일한 적 그래픽 (enemy.js 공용 스프라이트)
+  drawEnemySprite(type, cx, cy, 12);
 }
 
 function drawEnemyItem(y, entry, expanded) {

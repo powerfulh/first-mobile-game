@@ -7,6 +7,7 @@ import {
 import { game } from './state.js';
 import { roundRect, drawButton } from './helpers.js';
 import { getVolume, setVolume } from './audio.js';
+import { drawEnemySprite } from './enemy.js';
 
 // ============ HUD ============
 export function updateHUD() {
@@ -241,17 +242,7 @@ export const INTRO_MODALS = {
 
       const iconCx = LOGICAL_W / 2;
       const iconCy = p.y + 50;
-      const r = 14;
-      ctx.fillStyle = '#a569bd';
-      ctx.beginPath();
-      ctx.moveTo(iconCx, iconCy - r);
-      ctx.lineTo(iconCx - r * 0.9, iconCy + r * 0.6);
-      ctx.lineTo(iconCx + r * 0.9, iconCy + r * 0.6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      drawEnemySprite('air', iconCx, iconCy, 14);
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
@@ -369,13 +360,7 @@ export const INTRO_MODALS = {
 
       const iconCx = LOGICAL_W / 2;
       const iconCy = p.y + 56;
-      ctx.fillStyle = '#c0392b';
-      ctx.beginPath();
-      ctx.arc(iconCx, iconCy, 14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#5dade2';
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      drawEnemySprite('ground', iconCx, iconCy, 14, { shielded: true });
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
@@ -447,39 +432,10 @@ export const INTRO_MODALS = {
       const p = this.panel;
       drawIntroBackdrop(p, '#aab7c4');
 
-      // 아이콘: 역삼각형 + 내부 디스크 (장벽 적 미니어처)
+      // 아이콘: 장벽 적 (역삼각형 + 내부 디스크)
       const iconCx = LOGICAL_W / 2;
       const iconCy = p.y + 56;
-      const r = 14;
-      ctx.fillStyle = '#a569bd';
-      ctx.beginPath();
-      ctx.moveTo(iconCx - r * 0.9, iconCy - r * 0.6);
-      ctx.lineTo(iconCx + r * 0.9, iconCy - r * 0.6);
-      ctx.lineTo(iconCx, iconCy + r);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // 내부 디스크
-      const inY = iconCy - r * 0.15;
-      const inR = 5;
-      ctx.globalAlpha = 0.55;
-      ctx.fillStyle = '#aab7c4';
-      ctx.beginPath();
-      ctx.arc(iconCx, inY, inR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = '#d5dbdb';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(iconCx - inR, inY);
-      ctx.lineTo(iconCx + inR, inY);
-      ctx.moveTo(iconCx, inY - inR);
-      ctx.lineTo(iconCx, inY + inR);
-      ctx.stroke();
+      drawEnemySprite('barrier', iconCx, iconCy, 14);
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
@@ -505,30 +461,10 @@ export const INTRO_MODALS = {
       const p = this.panel;
       drawIntroBackdrop(p, '#2ecc71');
 
-      // 재생 적 아이콘: 사각형 + 위쪽 + 마크
+      // 재생 적 아이콘 (사각형 + 초록 글로우)
       const iconCx = LOGICAL_W / 2;
       const iconCy = p.y + 56;
-      const w = 22;
-      ctx.fillStyle = '#1e8449';
-      roundRect(iconCx - w / 2, iconCy - w / 2, w, w, 3);
-      ctx.fill();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // + 마크
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      const ms = 5;
-      const mcy = iconCy - w / 2 - 10;
-      ctx.beginPath();
-      ctx.moveTo(iconCx - ms, mcy);
-      ctx.lineTo(iconCx + ms, mcy);
-      ctx.moveTo(iconCx, mcy - ms);
-      ctx.lineTo(iconCx, mcy + ms);
-      ctx.stroke();
-      ctx.lineCap = 'butt';
+      drawEnemySprite('regen', iconCx, iconCy, 13);
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
