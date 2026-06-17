@@ -1,7 +1,12 @@
 import { game, saveGame } from './state.js';
 import {
-  isBossWave, getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt,
+  getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt,
 } from './enemy.js';
+
+// 보스 웨이브 판정 (20웨이브마다). 순수 웨이브 번호 로직 — wave.js에 거주.
+export function isBossWave(wave) {
+  return wave > 0 && wave % 20 === 0;
+}
 
 // 매 웨이브 RNG narrow factor 범위 [min, max]. interval = baseInterval × narrow.
 // setupWave / getShieldChance가 공통 사용.

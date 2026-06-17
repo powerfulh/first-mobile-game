@@ -4,7 +4,8 @@ import {
   TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
   TOWER_ROLES,
 } from './config.js';
-import { isBossWave, spawnBoss } from './enemy.js';
+import { spawnBoss } from './enemy.js';
+import { isBossWave } from './wave.js';
 
 export const game = {
   hp: 20,

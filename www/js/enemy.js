@@ -63,10 +63,7 @@ export function getShieldChance(wave) {
 }
 
 // ============ Boss wave helpers ============
-export function isBossWave(wave) {
-  return wave > 0 && wave % 20 === 0;
-}
-
+// 보스 웨이브 판정(isBossWave)은 웨이브 스케줄 로직이라 wave.js로 이동
 export function getBossType(wave) {
   // 20=ground, 40=air, 60=ground, 80=air, ...
   const idx = wave / 20;
