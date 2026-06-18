@@ -6,7 +6,8 @@ import {
 } from './config.js';
 import { game } from './state.js';
 import { roundRect, drawButton } from './helpers.js';
-import { getVolume, setVolume } from './audio.js';
+import { getBgmVolume, setBgmVolume } from './audio.js';
+import { getSfxVolume, setSfxVolume } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
 
 // ============ HUD ============
@@ -159,75 +160,94 @@ export function settingsLayout(count) {
   return { panel, btns, guideY: panel.y + panel.h - 16 };
 }
 
-// ---- 볼륨 슬라이더 ----
-// track: x ~ x+w (가로), cy 중심. 패널 가로 중앙 대칭 배치.
-export const volumeSlider = { x: 78, cy: 322, w: 204, knobR: 11 };
-let volumeDragging = false;
+// ---- 볼륨 슬라이더 (배경음 / 효과음 마스터 분리) ----
+// 가로 1줄 레이아웃: 라벨(왼쪽) · 트랙 · % (오른쪽). 각 슬라이더는 get/set로 연결.
+const SLIDER_TRACK = { x: 108, w: 150, knobR: 9 };
+const SLIDERS = [
+  { label: '배경음', cy: 300, get: getBgmVolume, set: setBgmVolume },
+  { label: '효과음', cy: 330, get: getSfxVolume, set: setSfxVolume },
+];
+let activeSlider = -1; // 드래그 중인 슬라이더 인덱스 (-1 = 없음)
 
-function volumeFromPointer(px) {
-  const s = volumeSlider;
+function sliderValueFromX(px) {
+  const s = SLIDER_TRACK;
   return Math.min(1, Math.max(0, (px - s.x) / s.w));
 }
 
-export function hitVolumeSlider(p) {
-  const s = volumeSlider;
-  // 트랙 양끝 여유 + 세로 터치 영역 넉넉히
-  return p.x >= s.x - 22 && p.x <= s.x + s.w + 22 && Math.abs(p.y - s.cy) <= 26;
+// 포인터가 어느 슬라이더 트랙 위인지 반환 (없으면 -1)
+function hitSlider(p) {
+  const s = SLIDER_TRACK;
+  if (p.x < s.x - 22 || p.x > s.x + s.w + 22) return -1;
+  for (let i = 0; i < SLIDERS.length; i++) {
+    if (Math.abs(p.y - SLIDERS[i].cy) <= 14) return i;
+  }
+  return -1;
 }
 
 // 슬라이더 드래그 — 설정 모달이 열린 씬에서 pointer 콜백이 위임.
 // 이벤트를 소비하면 true 반환 (씬은 그 경우 다른 처리 스킵).
 export function volumePointerDown(p) {
-  if (!hitVolumeSlider(p)) return false;
-  volumeDragging = true;
-  setVolume(volumeFromPointer(p.x));
+  const i = hitSlider(p);
+  if (i < 0) return false;
+  activeSlider = i;
+  SLIDERS[i].set(sliderValueFromX(p.x));
   return true;
 }
 export function volumePointerMove(p) {
-  if (!volumeDragging) return false;
-  setVolume(volumeFromPointer(p.x));
+  if (activeSlider < 0) return false;
+  SLIDERS[activeSlider].set(sliderValueFromX(p.x));
   return true;
 }
 export function volumePointerUp() {
-  const was = volumeDragging;
-  volumeDragging = false;
+  const was = activeSlider >= 0;
+  activeSlider = -1;
   return was;
 }
 
-function drawVolumeSlider() {
-  const s = volumeSlider;
-  const v = getVolume();
-  const knobX = s.x + v * s.w;
+function drawVolumeSliders() {
+  const tr = SLIDER_TRACK;
+  for (const sl of SLIDERS) {
+    const v = sl.get();
+    const knobX = tr.x + v * tr.w;
 
-  ctx.textAlign = 'center';
+    // 라벨 (왼쪽)
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#cdd';
+    ctx.fillText(sl.label, 44, sl.cy);
+
+    // 트랙 배경 + 채움
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(tr.x, sl.cy);
+    ctx.lineTo(tr.x + tr.w, sl.cy);
+    ctx.stroke();
+    ctx.strokeStyle = '#5dade2';
+    ctx.beginPath();
+    ctx.moveTo(tr.x, sl.cy);
+    ctx.lineTo(knobX, sl.cy);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+
+    // 노브
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(knobX, sl.cy, tr.knobR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#5dade2';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // % (오른쪽)
+    ctx.fillStyle = '#9ab';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${Math.round(v * 100)}%`, tr.x + tr.w + 40, sl.cy);
+  }
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = '#cdd';
-  ctx.font = 'bold 14px sans-serif';
-  ctx.fillText(`볼륨  ${Math.round(v * 100)}%`, LOGICAL_W / 2, s.cy - 18);
-
-  ctx.lineCap = 'round';
-  // 트랙 배경
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(s.x, s.cy);
-  ctx.lineTo(s.x + s.w, s.cy);
-  ctx.stroke();
-  // 채워진 구간
-  ctx.strokeStyle = '#5dade2';
-  ctx.beginPath();
-  ctx.moveTo(s.x, s.cy);
-  ctx.lineTo(knobX, s.cy);
-  ctx.stroke();
-  ctx.lineCap = 'butt';
-  // 노브
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(knobX, s.cy, s.knobR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 2;
-  ctx.stroke();
 }
 
 export function drawSettingsModal(buttons) {
@@ -249,7 +269,7 @@ export function drawSettingsModal(buttons) {
   ctx.font = 'bold 22px sans-serif';
   ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
 
-  drawVolumeSlider();
+  drawVolumeSliders();
 
   for (let i = 0; i < buttons.length; i++) drawButton(btns[i], buttons[i].label);
 

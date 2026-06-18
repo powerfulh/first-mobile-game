@@ -240,5 +240,7 @@ export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';
 export const REGEN_INTRO_KEY = 'td_seen_regen_intro';
 export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 
-// BGM 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외
-export const VOLUME_KEY = 'td_volume';
+// 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.
+// 배경음·효과음 마스터를 분리해 각각 저장.
+export const BGM_VOLUME_KEY = 'td_volume';
+export const SFX_VOLUME_KEY = 'td_sfx_volume';

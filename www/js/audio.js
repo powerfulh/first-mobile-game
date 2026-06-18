@@ -3,8 +3,8 @@
 //   - Android는 MainActivity에서 자동재생을 허용 → 타이틀 진입 즉시 재생
 //   - 그래도 막히는 환경(데스크탑 브라우저 등)에서는 play() 실패를 잡아
 //     첫 사용자 제스처(pointerdown/keydown)에서 재시도 (폴백)
-// 볼륨은 0~1 (0이면 무음). 설정 모달의 슬라이더가 setVolume으로 조절.
-import { VOLUME_KEY } from './config.js';
+// 볼륨은 0~1 (0이면 무음). 설정 모달의 배경음 슬라이더가 setBgmVolume으로 조절.
+import { BGM_VOLUME_KEY } from './config.js';
 
 const tracks = {
   normal: new Audio('assets/audio/bgm.mp3'),
@@ -20,7 +20,7 @@ let gestureArmed = false;
 
 function loadVolume() {
   try {
-    const v = parseFloat(localStorage.getItem(VOLUME_KEY));
+    const v = parseFloat(localStorage.getItem(BGM_VOLUME_KEY));
     return isNaN(v) ? 0.5 : Math.min(1, Math.max(0, v));
   } catch (e) {
     return 0.5;
@@ -70,11 +70,11 @@ export function syncBattleMusic(bossActive) {
   playBgm(bossActive ? 'boss' : 'normal');
 }
 
-export function getVolume() { return volume; }
+export function getBgmVolume() { return volume; }
 
-export function setVolume(v) {
+export function setBgmVolume(v) {
   volume = Math.min(1, Math.max(0, v));
-  try { localStorage.setItem(VOLUME_KEY, String(volume)); } catch (e) {}
+  try { localStorage.setItem(BGM_VOLUME_KEY, String(volume)); } catch (e) {}
   for (const a of Object.values(tracks)) a.volume = volume;
   applyCurrent(); // 정지 상태였으면 재생 보장
 }

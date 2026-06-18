@@ -1,9 +1,26 @@
 // 효과음 시스템 — Web Audio API로 합성 (오디오 파일 없음).
-// BGM(audio.js, HTMLAudio)과 별개. 볼륨은 슬라이더 값(getVolume)을 마스터로 공유.
+// BGM(audio.js)과 별개이며, 효과음 볼륨도 배경음과 독립된 자체 마스터(SFX_VOLUME_KEY).
 // 새 효과음은 export function 하나씩 추가 (getCtx로 AudioContext 확보 후 합성).
-import { getVolume } from './audio.js';
+import { SFX_VOLUME_KEY } from './config.js';
 
 let ctx = null;
+let sfxVolume = loadSfxVolume();
+
+function loadSfxVolume() {
+  try {
+    const v = parseFloat(localStorage.getItem(SFX_VOLUME_KEY));
+    return isNaN(v) ? 0.5 : Math.min(1, Math.max(0, v));
+  } catch (e) {
+    return 0.5;
+  }
+}
+
+export function getSfxVolume() { return sfxVolume; }
+
+export function setSfxVolume(v) {
+  sfxVolume = Math.min(1, Math.max(0, v));
+  try { localStorage.setItem(SFX_VOLUME_KEY, String(sfxVolume)); } catch (e) {}
+}
 
 // AudioContext는 사용자 제스처 후에야 동작 → 첫 호출(탭) 시점에 생성/resume.
 function getCtx() {
@@ -21,7 +38,7 @@ function getCtx() {
 export function playTowerSelect() {
   const ac = getCtx();
   if (!ac) return;
-  const vol = getVolume();
+  const vol = getSfxVolume();
   if (vol <= 0) return;
   const t0 = ac.currentTime;
   const dur = 0.26;
