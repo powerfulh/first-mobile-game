@@ -46,6 +46,7 @@ export function setupWave(targetWave) {
   game.spawnedThisWave = 0;
   game.spawnTimer = 0;
   game.waveState = 'spawning';
+  game.waveSpawnCounts = {}; // 새 웨이브 — 출현 요약 초기화
 
   // 웨이브별 누적 카운터 리셋
   for (const tower of game.towers) tower.waveDamage = 0;

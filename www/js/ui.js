@@ -16,6 +16,51 @@ export function updateHUD() {
   waveEl.textContent = `Wave: ${game.wave}`;
 }
 
+// ============ 웨이브 적 출현 요약 ============
+// HUD 웨이브 아래(우측 상단)에 작게 — 적 스프라이트 + 누적 개수.
+// 아직 출현하지 않은 종류는 표시 안 함 (count>0 만, 순서: 일반·공중·재생·장벽).
+const SPAWN_SUMMARY_ORDER = ['ground', 'air', 'regen', 'barrier'];
+
+export function drawWaveSpawnSummary() {
+  const counts = game.waveSpawnCounts || {};
+  const entries = SPAWN_SUMMARY_ORDER.filter(t => counts[t] > 0);
+  if (entries.length === 0) return;
+
+  const iconBox = 16; // 스프라이트가 차지할 가로 폭
+  const iconR = 7;
+  const gap = 3;      // 스프라이트 ↔ 숫자 간격
+  const sep = '  |  ';
+  const cy = 34;      // HUD 텍스트(상단)·경로와 겹치지 않는 높이
+
+  ctx.font = '11px sans-serif';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+
+  // 전체 폭 측정 → 우측 정렬 (웨이브 아래)
+  let total = 0;
+  for (let i = 0; i < entries.length; i++) {
+    total += iconBox + gap + ctx.measureText(`: ${counts[entries[i]]}`).width;
+    if (i < entries.length - 1) total += ctx.measureText(sep).width;
+  }
+
+  let x = LOGICAL_W - 10 - total;
+  for (let i = 0; i < entries.length; i++) {
+    const t = entries[i];
+    drawEnemySprite(t, x + iconBox / 2, cy, iconR);
+    x += iconBox + gap;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    const label = `: ${counts[t]}`;
+    ctx.fillText(label, x, cy);
+    x += ctx.measureText(label).width;
+    if (i < entries.length - 1) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillText(sep, x, cy);
+      x += ctx.measureText(sep).width;
+    }
+  }
+  ctx.textBaseline = 'alphabetic';
+}
+
 // ============ Pause button ============
 export const pauseButton = { x: 8, y: 592, w: 44, h: 44 };
 

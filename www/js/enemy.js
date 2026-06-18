@@ -133,6 +133,9 @@ export function spawnEnemy() {
     regen,
     barrierSpawner,
   });
+  // 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
+  const cat = barrierSpawner ? 'barrier' : regen ? 'regen' : isAirPlain ? 'air' : 'ground';
+  game.waveSpawnCounts[cat] = (game.waveSpawnCounts[cat] || 0) + 1;
   if (isAirPlain && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
     game.modal = { type: 'airIntro' };
   }

@@ -36,6 +36,7 @@ export const game = {
   sandboxShieldsEnabled: true,
   toast: null,
   bestWaveReached: 0,
+  waveSpawnCounts: {}, // 현재 웨이브 적 타입별 출현 누적 (HUD 요약용)
 };
 
 function loadBestWave() {
@@ -82,6 +83,7 @@ export function resetGame() {
   game.sandboxShieldsEnabled = true;
   game.toast = null;
   game.bestWaveReached = loadBestWave();
+  game.waveSpawnCounts = {};
 }
 
 export function saveGame() {
@@ -141,6 +143,7 @@ export function loadGame(data) {
   game.modal = null;
   game.paused = false;
   game.holdDelete = null;
+  game.waveSpawnCounts = {};
   game.bestWaveReached = Math.max(loadBestWave(), game.wave);
   game.towers = (data.towers || [])
     .filter(td => TOWER_ROLES[td.role])

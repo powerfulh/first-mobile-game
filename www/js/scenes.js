@@ -26,7 +26,7 @@ import {
 } from './attack.js';
 import { startNextWave, setupWave } from './wave.js';
 import {
-  updateHUD, pauseButton, drawPauseButton, drawPausedOverlay,
+  updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
   INTRO_MODALS,
   setToast, updateToast, drawToast,
   drawSettingsModal, settingsLayout,
@@ -381,6 +381,7 @@ scenes.playing = {
     for (const fx of game.barrierSpawnFx) drawBarrierSpawnFx(fx);
 
     drawBossHpBar();
+    drawWaveSpawnSummary();
 
     if (game.holdDelete) {
       const progress = Math.min(1, game.holdDelete.accumulated / HOLD_DELETE_SECONDS);
