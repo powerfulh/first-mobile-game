@@ -146,6 +146,7 @@ export const wiki = {
         return;
       }
       if (hitButton(tabTower, drag.startPos)) {
+        playButton();
         if (wiki.category !== 'tower') {
           wiki.category = 'tower';
           wiki.scroll = 0;
@@ -154,6 +155,7 @@ export const wiki = {
         return;
       }
       if (hitButton(tabEnemy, drag.startPos)) {
+        playButton();
         if (wiki.category !== 'enemy') {
           wiki.category = 'enemy';
           wiki.scroll = 0;
