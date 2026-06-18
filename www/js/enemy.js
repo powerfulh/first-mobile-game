@@ -45,7 +45,7 @@ export function getBarrierSpawnerChance(wave) {
 }
 
 export function getShieldChance(wave) {
-  if (wave < 70) return 0;
+  if (wave < 51) return 0;
   // 그 웨이브의 narrow RNG 범위 기준 정규화 (sparse → 상한, dense → 1%).
   // 후반에 narrow 상하한이 좁아져도 그 wave의 sparse일 때 정상 상한 도달.
   const baseInterval = getBaseSpawnInterval(wave);
