@@ -33,7 +33,7 @@ import {
   volumePointerDown, volumePointerMove, volumePointerUp,
 } from './ui.js';
 import { playBgm, syncBattleMusic } from './audio.js';
-import { playTowerSelect } from './sfx.js';
+import { playTowerSelect, playButton, playPauseToggle, playPromote } from './sfx.js';
 
 // 설정 모달 버튼 구성 — 씬별 { label, action }. action()이 truthy 반환 시 모달 닫음.
 // 위치/패널 높이는 ui.js의 settingsLayout이 개수에 맞춰 계산.
@@ -446,6 +446,7 @@ scenes.playing = {
     if (game.modal) {
       const intro = INTRO_MODALS[game.modal.type];
       if (intro && hitButton(intro.confirmBtn, p)) {
+        playButton();
         setIntroSeen(intro.key);
         game.modal = null;
       }
@@ -454,6 +455,7 @@ scenes.playing = {
 
     if (!game.selectedTower && hitButton(pauseButton, p)) {
       game.paused = !game.paused;
+      playPauseToggle(game.paused);
       return;
     }
     if (game.selectedTower && game.promotionChoiceOpen) {
@@ -466,6 +468,7 @@ scenes.playing = {
         if (hitButton(tier4ResultCardSlot, p)) {
           const second = game.selectedTower;
           if (promoteToTier4(second)) {
+            playPromote();
             game.promotionChoiceOpen = false;
             game.selectedTower = second; // 변환된 4티어 그대로 선택 유지
           }
@@ -480,6 +483,7 @@ scenes.playing = {
       for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
         if (hitButton(promotionCardSlots[i], p)) {
           if (promoteTower(game.selectedTower, promotions[i])) {
+            playPromote();
             game.promotionChoiceOpen = false;
           }
           return;
@@ -500,6 +504,7 @@ scenes.playing = {
       if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
         const state = getPromotionButtonState(game.selectedTower);
         if (!state.active || !state.action) return;
+        playButton();
         if (state.action === 'openTier3Choice') {
           game.promotionChoiceOpen = true;
         } else if (state.action === 'setTarget') {

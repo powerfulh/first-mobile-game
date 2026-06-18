@@ -33,6 +33,23 @@ function getCtx() {
   return ctx;
 }
 
+// 단순 톤 1개 (osc + 게인 엔벨로프) — 여러 효과음의 빌딩 블록.
+// f1 지정 시 f0→f1로 피치 스윕. dest 미지정 시 destination 직결.
+function tone({ type = 'square', f0, f1, start, dur, peak, attack = 0.008, dest = null }) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f0, start);
+  if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, start + dur * 0.9);
+  g.gain.setValueAtTime(0.0001, start);
+  g.gain.exponentialRampToValueAtTime(peak, start + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+  o.connect(g);
+  g.connect(dest || ctx.destination);
+  o.start(start);
+  o.stop(start + dur + 0.02);
+}
+
 // 타워 선택 — 디지털 콘솔 전원이 켜지는 느낌.
 // 필터가 빠르게 열리는 상승 스윕(전원 인입) + 끝에 짧은 디지털 확인음(블립).
 export function playTowerSelect() {
@@ -82,4 +99,50 @@ export function playTowerSelect() {
   blipEnv.connect(ac.destination);
   blip.start(t0 + 0.1);
   blip.stop(t0 + 0.24);
+}
+
+// 범용 버튼 — 짧고 깔끔한 디지털 클릭 (자주 울리므로 가볍게)
+export function playButton() {
+  const ac = getCtx();
+  if (!ac) return;
+  const vol = getSfxVolume();
+  if (vol <= 0) return;
+  const t = ac.currentTime;
+  tone({ type: 'square', f0: 520, f1: 660, start: t, dur: 0.085, peak: vol * 0.26 });
+}
+
+// 일시정지 토글 — 두 음. 일시정지는 하강(전원 내림), 재개는 상승.
+export function playPauseToggle(paused) {
+  const ac = getCtx();
+  if (!ac) return;
+  const vol = getSfxVolume();
+  if (vol <= 0) return;
+  const t = ac.currentTime;
+  const notes = paused ? [523, 392] : [392, 523];
+  notes.forEach((f, i) => {
+    tone({ type: 'triangle', f0: f, start: t + i * 0.075, dur: 0.11, peak: vol * 0.3 });
+  });
+}
+
+// 전직 확정 — 밝은 상승 아르페지오(C·E·G·C) + 옥타브 반짝임. 업그레이드 보상감.
+export function playPromote() {
+  const ac = getCtx();
+  if (!ac) return;
+  const vol = getSfxVolume();
+  if (vol <= 0) return;
+  const t = ac.currentTime;
+
+  // 점점 밝아지는 로우패스 (상승감 강조)
+  const filter = ac.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(900, t);
+  filter.frequency.exponentialRampToValueAtTime(6000, t + 0.3);
+  filter.connect(ac.destination);
+
+  const arp = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+  arp.forEach((f, i) => {
+    tone({ type: 'sawtooth', f0: f, start: t + i * 0.06, dur: 0.2, peak: vol * 0.32, dest: filter });
+  });
+  // 끝에 옥타브 위 반짝임
+  tone({ type: 'sine', f0: 2093, start: t + 0.26, dur: 0.16, peak: vol * 0.16 });
 }

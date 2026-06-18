@@ -4,6 +4,7 @@ import { roundRect, hitButton } from './helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
 import { drawEnemySprite } from './enemy.js';
+import { playButton } from './sfx.js';
 
 // ============ 레이아웃 ============
 const HEADER_H = 60;
@@ -546,6 +547,7 @@ function handleContentTap(p) {
         const itemTop = y;
         const itemBottom = y + ITEM_H;
         if (p.y >= itemTop && p.y < itemBottom) {
+          playButton();
           wiki.expandedKey = expanded ? null : key;
           return;
         }
@@ -569,6 +571,7 @@ function handleContentTap(p) {
       const itemTop = y;
       const itemBottom = y + ITEM_H;
       if (p.y >= itemTop && p.y < itemBottom) {
+        playButton();
         wiki.expandedKey = expanded ? null : key;
         return;
       }
