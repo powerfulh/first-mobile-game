@@ -332,7 +332,7 @@ export function drawBossHpBar() {
   if (!boss) return;
 
   const bx = 20;
-  const by = 38;
+  const by = 48; // 웨이브 적 출현 요약(상단)과 겹치지 않게 살짝 내림
   const bw = LOGICAL_W - 40;
   const bh = 14;
 
