@@ -146,3 +146,18 @@ export function playPromote() {
   // 끝에 옥타브 위 반짝임
   tone({ type: 'sine', f0: 2093, start: t + 0.26, dur: 0.16, peak: vol * 0.16 });
 }
+
+// 타워 배치 — 유닛이 자리에 내려앉아 고정되는 "전개" 느낌.
+export function playTowerPlace() {
+  const ac = getCtx();
+  if (!ac) return;
+  const vol = getSfxVolume();
+  if (vol <= 0) return;
+  const t = ac.currentTime;
+  // 낮은 thump — 자리에 내려앉음
+  tone({ type: 'triangle', f0: 180, f1: 90, start: t, dur: 0.16, peak: vol * 0.42, attack: 0.004 });
+  // 짧은 락 클릭 — 고정되는 전환음
+  tone({ type: 'square', f0: 320, f1: 220, start: t, dur: 0.05, peak: vol * 0.2 });
+  // 배치 완료 확인 — 짧은 상승 블립
+  tone({ type: 'square', f0: 600, f1: 900, start: t + 0.07, dur: 0.1, peak: vol * 0.2 });
+}

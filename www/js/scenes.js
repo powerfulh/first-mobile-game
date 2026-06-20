@@ -33,7 +33,7 @@ import {
   volumePointerDown, volumePointerMove, volumePointerUp,
 } from './ui.js';
 import { playBgm, syncBattleMusic } from './audio.js';
-import { playTowerSelect, playButton, playPauseToggle, playPromote } from './sfx.js';
+import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
 
 // 설정 모달 버튼 구성 — 씬별 { label, action }. action()이 truthy 반환 시 모달 닫음.
 // 위치/패널 높이는 ui.js의 settingsLayout이 개수에 맞춰 계산.
@@ -539,7 +539,7 @@ scenes.playing = {
       game.promotionChoiceOpen = false;
       return;
     }
-    placeTower(p.x, p.y);
+    if (placeTower(p.x, p.y)) playTowerPlace();
   },
   pointerMove(p) {
     if (game.settingsOpen) volumePointerMove(p);
