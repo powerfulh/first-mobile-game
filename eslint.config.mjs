@@ -22,6 +22,8 @@ export default [
       'no-unused-vars': ['warn', { args: 'none', caughtErrors: 'none' }],
       // localStorage 등 의도적 빈 catch 허용
       'no-empty': ['error', { allowEmptyCatch: true }],
+      // 들여쓰기 탭 강제
+      'indent': ['error', 'tab', { SwitchCase: 1 }],
     },
   },
 ];
