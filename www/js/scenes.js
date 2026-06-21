@@ -14,7 +14,7 @@ import {
 import {
 	placeTower, canPromote,
 	promoteTower, updateTower, drawTower, drawTowerRange,
-	drawTowerInfoPanel, drawTowerSettingsCard, drawPromotionPanel,
+	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	towerInfoPanel, infoSettingsButton, infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	xpMaxFor, getXpGainAtWaveEnd,
@@ -464,7 +464,11 @@ scenes.playing = {
 			return;
 		}
 		if (game.selectedTower && game.towerSettingsOpen) {
-			if (hitButton(towerInfoPanel, p)) return; // 카드 내부 탭 소비 (우선순위 영역 — 내용 다음 단계)
+			if (handleTowerSettingsTap(game.selectedTower, p)) {
+				playButton();
+				return;
+			}
+			if (hitButton(towerInfoPanel, p)) return; // 카드 다른 영역 탭 소비
 			game.towerSettingsOpen = false; // 카드 밖 탭 → 정보 카드로 복귀
 			return;
 		}

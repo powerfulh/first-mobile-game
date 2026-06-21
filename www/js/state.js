@@ -6,6 +6,7 @@ import {
 } from './config.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave } from './wave.js';
+import { applyTowerPriorityDefaults } from './tower.js';
 
 export const game = {
 	hp: 20,
@@ -101,6 +102,8 @@ export function saveGame() {
 		towers: game.towers.map(t => ({
 			x: t.x, y: t.y, role: t.role, tier: t.tier, xp: t.xp,
 			totalDamage: t.totalDamage || 0,
+			canGround: t.canGround, canAir: t.canAir,
+			gaPriority: t.gaPriority, targetPriority: t.targetPriority,
 		})),
 	};
 	try {
@@ -152,13 +155,19 @@ export function loadGame(data) {
 		.filter(td => TOWER_ROLES[td.role])
 		.map(td => {
 			const cfg = TOWER_ROLES[td.role];
-			return {
+			const tw = {
 				x: td.x, y: td.y, role: td.role, tier: td.tier,
 				range: cfg.range, fireRate: cfg.fireRate, damage: cfg.damage,
 				cooldown: 0, angle: 0, xp: td.xp || 0,
 				totalDamage: td.totalDamage || 0,
 				waveDamage: 0,
 			};
+			applyTowerPriorityDefaults(tw); // 역할 기준 기본값 → 저장값으로 덮어쓰기
+			if (td.canGround !== undefined) tw.canGround = td.canGround;
+			if (td.canAir !== undefined) tw.canAir = td.canAir;
+			if (td.gaPriority) tw.gaPriority = td.gaPriority;
+			if (td.targetPriority) tw.targetPriority = td.targetPriority;
+			return tw;
 		});
 
 	if (isBossWave(game.wave)) {
