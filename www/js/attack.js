@@ -3,7 +3,7 @@ import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD } from './config.j
 import { game } from './state.js';
 import { pointToSegmentDist } from './helpers.js';
 import {
-	canPromote, xpMaxFor, getEffectiveRange,
+	canPromote, xpMaxFor, getEffectiveRange, allowedTypesOf,
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
@@ -68,7 +68,7 @@ export function applySplashHit(shooter, impactX, impactY, damage, radius, attack
 export function fireInstantBeam(t, target, damage) {
 	const cfg = TOWER_ROLES[t.role];
 	const dmg = damage !== undefined ? damage : t.damage;
-	const attackTypes = cfg.attackTypes || ['ground'];
+	const attackTypes = allowedTypesOf(t); // 인스턴스 토글(canGround/canAir) 반영
 	// 공중 공격일 때만 장벽 차단. 지상 전용 빔은 통과.
 	const canBeBlocked = attackTypes.includes('air');
 	let blocker = null;
@@ -102,7 +102,7 @@ export function fireLineBeam(t, target, damage) {
 	const targetDist = Math.hypot(target.x - t.x, target.y - t.y);
 	let beamLen = Math.max(range, targetDist);
 
-	const attackTypes = cfg.attackTypes || ['ground'];
+	const attackTypes = allowedTypesOf(t); // 인스턴스 토글(canGround/canAir) 반영
 	// 공중 공격은 target에 상관없이 장벽에서 빔이 짤림 (지상 전용은 통과)
 	if (attackTypes.includes('air')) {
 		const blockDist = findBarrierBlockDist(t.x, t.y, angle, beamLen, null);

@@ -145,7 +145,7 @@ export function applyTowerPriorityDefaults(t) {
 	t.targetPriority = cfg.targetMode === 'highestHp' ? 'strongest' : 'closest';
 }
 
-function allowedTypesOf(t) {
+export function allowedTypesOf(t) {
 	const types = [];
 	if (t.canGround) types.push('ground');
 	if (t.canAir) types.push('air');
