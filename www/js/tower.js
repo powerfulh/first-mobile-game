@@ -152,6 +152,20 @@ function allowedTypesOf(t) {
 	return types;
 }
 
+function gaCapsOf(cfg) {
+	const types = cfg.attackTypes || [];
+	return (types.includes('ground') ? 'G' : '') + (types.includes('air') ? 'A' : '');
+}
+
+// 전직 시: 지상/공중 가능 여부가 그대로이고 새 역할에 지정 기본값(targetMode)이 없으면
+// 기존 우선순위 설정 유지, 아니면 새 역할 기준 기본값으로 리셋.
+function applyTowerPriorityOnPromote(t, oldRole) {
+	const newCfg = TOWER_ROLES[t.role];
+	const sameCaps = gaCapsOf(TOWER_ROLES[oldRole]) === gaCapsOf(newCfg);
+	if (sameCaps && !newCfg.targetMode) return;
+	applyTowerPriorityDefaults(t);
+}
+
 // ============ Placement ============
 export function canPlaceTower(x, y) {
 	if (!game.sandbox && game.gold < TOWER.cost) return false;
@@ -195,6 +209,7 @@ export function promoteTower(t, role) {
 	if (!cfg) return false;
 
 	if (!game.sandbox) game.gold -= promotionCostFor(t);
+	const prevRole = t.role;
 	t.role = role;
 	t.tier += 1;
 	t.range = cfg.range;
@@ -202,7 +217,7 @@ export function promoteTower(t, role) {
 	t.damage = cfg.damage;
 	t.cooldown = 0;
 	t.xp = 0;
-	applyTowerPriorityDefaults(t); // 전직 시 새 역할 기준으로 우선순위 재설정
+	applyTowerPriorityOnPromote(t, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
@@ -231,6 +246,7 @@ export function promoteToTier4(secondTower) {
 	game.promotionTarget = null;
 
 	// 두 번째 타워 자리에 4티어로 변환
+	const prevRole = secondTower.role;
 	secondTower.role = resultRole;
 	secondTower.tier = 4;
 	secondTower.range = cfg.range;
@@ -238,7 +254,7 @@ export function promoteToTier4(secondTower) {
 	secondTower.damage = cfg.damage;
 	secondTower.cooldown = 0;
 	secondTower.xp = 0;
-	applyTowerPriorityDefaults(secondTower); // 4티어 전직 시 우선순위 재설정
+	applyTowerPriorityOnPromote(secondTower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 	return true;
 }
 
