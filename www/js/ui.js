@@ -9,12 +9,21 @@ import { roundRect, drawButton, drawPanel, hitButton } from './helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
+import { canCallExtraWave } from './wave.js';
 
 // ============ HUD ============
 export function updateHUD() {
 	hpEl.textContent = `HP: ${game.hp}`;
 	goldEl.textContent = `Gold: ${game.gold}${game.bossActive ? ' 🔒' : ''}`;
-	waveEl.textContent = `Wave: ${game.wave}`;
+	// 병렬 웨이브 진행 중이면 {기존}~{가장 최근 호출} 범위로 표기
+	const waves = game.waves || [];
+	if (waves.length > 1) {
+		let lo = waves[0].wave, hi = waves[0].wave;
+		for (const s of waves) { if (s.wave < lo) lo = s.wave; if (s.wave > hi) hi = s.wave; }
+		waveEl.textContent = `Wave: ${lo}~${hi}`;
+	} else {
+		waveEl.textContent = `Wave: ${game.wave}`;
+	}
 }
 
 // ============ 웨이브 적 출현 요약 ============
@@ -94,6 +103,8 @@ export function drawPauseButton() {
 export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
 
 export function drawNextWaveButton() {
+	// 호출 불가(보스·인터미션·최대 병렬 수)일 때 흐리게
+	ctx.globalAlpha = canCallExtraWave() ? 1 : 0.35;
 	ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
 	roundRect(nextWaveButton.x, nextWaveButton.y, nextWaveButton.w, nextWaveButton.h, 8);
 	ctx.fill();
@@ -101,7 +112,7 @@ export function drawNextWaveButton() {
 	ctx.lineWidth = 1;
 	ctx.stroke();
 
-	// ⏩ 빨리감기 — 다음 웨이브 즉시 호출
+	// ⏩ 빨리감기 — 다음 웨이브 병렬 호출
 	ctx.fillStyle = '#fff';
 	const x = nextWaveButton.x, y = nextWaveButton.y;
 	ctx.beginPath();
@@ -116,6 +127,7 @@ export function drawNextWaveButton() {
 	ctx.lineTo(x + 33, y + 22);
 	ctx.closePath();
 	ctx.fill();
+	ctx.globalAlpha = 1;
 }
 
 // ============ Toast ============

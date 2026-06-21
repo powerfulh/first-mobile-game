@@ -22,31 +22,61 @@ export function getNarrowRange(wave) {
 	return { min: minNarrow, max: maxNarrow };
 }
 
-// 임의의 wave로 진입 — 일반 진행 + 샌드박스 점프 공용.
+// 동시에 진행 가능한 최대 웨이브 수 (기존 + 추가 웨이브).
+export const MAX_CONCURRENT_WAVES = 2;
+
+// 단일 웨이브 스포너 구성 — 스폰 간격/총 적 수/보스 여부 계산.
+// 보스 적 자체는 호출자(setupWave)가 spawnBoss로 추가.
+function createSpawner(targetWave) {
+	const enemiesPerWave = getEnemiesPerWaveAt(targetWave);
+	const boss = isBossWave(targetWave);
+	let spawnInterval;
+	if (boss) {
+		spawnInterval = getBaseSpawnInterval(targetWave) * 2;
+	} else {
+		spawnInterval = getBaseSpawnInterval(targetWave);
+		if (targetWave >= 11) {
+			const { min, max } = getNarrowRange(targetWave);
+			spawnInterval *= min + Math.random() * (max - min);
+		}
+	}
+	return {
+		wave: targetWave,
+		spawnInterval,
+		spawnTimer: 0,
+		spawnedThisWave: 0,
+		enemiesPerWave,
+		isBoss: boss,
+	};
+}
+
+// 현재 game.* 스폰 필드(저장/복원값)로 베이스 스포너 1개 구성.
+// resetGame / loadGame 가 사용 — RNG 재굴림 없이 저장된 간격 그대로.
+export function makeBaseSpawners() {
+	return [{
+		wave: game.wave,
+		spawnInterval: game.spawnInterval,
+		spawnTimer: 0,
+		spawnedThisWave: 0,
+		enemiesPerWave: game.enemiesPerWave,
+		isBoss: isBossWave(game.wave),
+	}];
+}
+
+// 임의의 wave로 진입 — 일반 진행 + 샌드박스 점프 공용. 병렬 웨이브 초기화.
 // saveGame 호출 안 함 (호출자가 결정).
 export function setupWave(targetWave) {
 	game.wave = targetWave;
-	game.enemiesPerWave = getEnemiesPerWaveAt(targetWave);
-
-	if (isBossWave(targetWave)) {
-		game.spawnInterval = getBaseSpawnInterval(targetWave) * 2;
-		game.bossActive = true;
-		spawnBoss();
-	} else {
-		let interval = getBaseSpawnInterval(targetWave);
-		if (targetWave >= 11) {
-			const { min: minNarrow, max: maxNarrow } = getNarrowRange(targetWave);
-			const narrow = minNarrow + Math.random() * (maxNarrow - minNarrow);
-			interval *= narrow;
-		}
-		game.spawnInterval = interval;
-		game.bossActive = false;
-	}
-
-	game.spawnedThisWave = 0;
-	game.spawnTimer = 0;
+	const sp = createSpawner(targetWave);
+	game.waves = [sp];
+	// 저장/HUD용 미러 — 베이스 웨이브 기준
+	game.enemiesPerWave = sp.enemiesPerWave;
+	game.spawnInterval = sp.spawnInterval;
+	game.bossActive = sp.isBoss;
 	game.waveState = 'spawning';
 	game.waveSpawnCounts = {}; // 새 웨이브 — 출현 요약 초기화
+
+	if (sp.isBoss) spawnBoss();
 
 	// 웨이브별 누적 카운터 리셋
 	for (const tower of game.towers) tower.waveDamage = 0;
@@ -58,4 +88,23 @@ export function setupWave(targetWave) {
 export function startNextWave() {
 	setupWave(game.wave + 1);
 	saveGame();
+}
+
+// 추가 웨이브 호출 가능 여부 — 버튼 활성/비활성 판정.
+// 보스 웨이브(현재/다음)·인터미션·최대 병렬 수 초과 시 불가.
+export function canCallExtraWave() {
+	if (game.waveState !== 'spawning') return false;
+	if (game.bossActive) return false;
+	if (game.waves.length >= MAX_CONCURRENT_WAVES) return false;
+	const latest = Math.max(...game.waves.map(s => s.wave));
+	if (isBossWave(latest + 1)) return false;
+	return true;
+}
+
+// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 추가.
+export function callExtraWave() {
+	const latest = Math.max(...game.waves.map(s => s.wave));
+	game.waves.push(createSpawner(latest + 1));
+	// 새 웨이브 호출 시 타워별 웨이브 누적 데미지 초기화
+	for (const tower of game.towers) tower.waveDamage = 0;
 }

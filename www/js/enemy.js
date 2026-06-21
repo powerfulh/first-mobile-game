@@ -44,14 +44,14 @@ export function getBarrierSpawnerChance(wave) {
 	return base + lateBonus;
 }
 
-export function getShieldChance(wave) {
+export function getShieldChance(wave, spawnInterval) {
 	if (wave < 51) return 0;
 	// 그 웨이브의 narrow RNG 범위 기준 정규화 (sparse → 상한, dense → 1%).
 	// 후반에 narrow 상하한이 좁아져도 그 wave의 sparse일 때 정상 상한 도달.
 	const baseInterval = getBaseSpawnInterval(wave);
 	const { min: minN, max: maxN } = getNarrowRange(wave);
 	const span = maxN - minN;
-	const currentNarrow = baseInterval > 0 ? game.spawnInterval / baseInterval : 1;
+	const currentNarrow = baseInterval > 0 ? spawnInterval / baseInterval : 1;
 	const ratio = span > 0
 		? Math.max(0, Math.min(1, (currentNarrow - minN) / span))
 		: 1;
@@ -103,21 +103,23 @@ export function getBaseSpawnInterval(wave) {
 }
 
 // ============ Spawn ============
-export function spawnEnemy() {
+export function spawnEnemy(spawner) {
+	// 스폰 스탯은 그 스포너의 웨이브 기준 (병렬 웨이브는 각자 다른 웨이브일 수 있음).
+	const wave = spawner.wave;
 	// 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
-	const barrierSpawner = Math.random() < getBarrierSpawnerChance(game.wave);
-	const regen = barrierSpawner ? false : Math.random() < getRegenChance(game.wave);
-	const isAirPlain = !barrierSpawner && !regen && Math.random() < getAirChance(game.wave);
+	const barrierSpawner = Math.random() < getBarrierSpawnerChance(wave);
+	const regen = barrierSpawner ? false : Math.random() < getRegenChance(wave);
+	const isAirPlain = !barrierSpawner && !regen && Math.random() < getAirChance(wave);
 	const isAir = barrierSpawner || isAirPlain; // 장벽 적은 공중 타입
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
-	const shielded = shieldsAllowed && Math.random() < getShieldChance(game.wave);
-	const baseHp = computeBaseHpAt(game.wave);
+	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
+	const baseHp = computeBaseHpAt(wave);
 	// 장벽 적: 일반 적과 동일 HP/속도 (공중 HP 비율 미적용, 슬로우 미적용)
 	let hp;
 	if (barrierSpawner) hp = baseHp;
-	else if (isAir) hp = Math.round(baseHp * getAirHpRatio(game.wave) * 10) / 10;
+	else if (isAir) hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
 	else hp = baseHp;
-	const baseSpeed = 50 + (Math.min(100, game.wave) - 1) * 2;
+	const baseSpeed = 50 + (Math.min(100, wave) - 1) * 2;
 	const speed = regen ? baseSpeed * 0.5 : baseSpeed;
 	game.enemies.push({
 		x: path[0].x,

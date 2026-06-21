@@ -6,7 +6,7 @@ import {
 	TOWER_ROLES,
 } from './config.js';
 import { spawnBoss } from './enemy.js';
-import { isBossWave } from './wave.js';
+import { isBossWave, makeBaseSpawners } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';
 
 export const game = {
@@ -24,6 +24,8 @@ export const game = {
 	spawnInterval: 1.2,
 	spawnedThisWave: 0,
 	enemiesPerWave: 8,
+	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개). reset/loadGame 에서 재구성.
+	waves: [{ wave: 1, spawnInterval: 1.2, spawnTimer: 0, spawnedThisWave: 0, enemiesPerWave: 8, isBoss: false }],
 	waveState: 'spawning',
 	intermissionTimer: 0,
 	bossActive: false,
@@ -73,6 +75,7 @@ export function resetGame() {
 	game.spawnInterval = 1.2;
 	game.spawnedThisWave = 0;
 	game.enemiesPerWave = 8;
+	game.waves = makeBaseSpawners();
 	game.waveState = 'spawning';
 	game.intermissionTimer = 0;
 	game.bossActive = false;
@@ -134,6 +137,7 @@ export function loadGame(data) {
 	game.gold = data.gold;
 	game.spawnInterval = data.spawnInterval;
 	game.enemiesPerWave = data.enemiesPerWave;
+	game.waves = makeBaseSpawners();
 	game.enemies = [];
 	game.projectiles = [];
 	game.beams = [];

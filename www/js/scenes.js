@@ -24,7 +24,7 @@ import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawSplash, drawZap,
 } from './attack.js';
-import { startNextWave, setupWave } from './wave.js';
+import { startNextWave, setupWave, callExtraWave, canCallExtraWave } from './wave.js';
 import {
 	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
@@ -365,12 +365,14 @@ scenes.playing = {
 			}
 		}
 		if (game.waveState === 'spawning') {
-			game.spawnTimer += dt;
-			const canSpawn = game.bossActive || game.spawnedThisWave < game.enemiesPerWave;
-			if (game.spawnTimer >= game.spawnInterval && canSpawn) {
-				game.spawnTimer = 0;
-				game.spawnedThisWave++;
-				spawnEnemy();
+			for (const sp of game.waves) {
+				sp.spawnTimer += dt;
+				const canSpawn = sp.isBoss || sp.spawnedThisWave < sp.enemiesPerWave;
+				if (sp.spawnTimer >= sp.spawnInterval && canSpawn) {
+					sp.spawnTimer = 0;
+					sp.spawnedThisWave++;
+					spawnEnemy(sp);
+				}
 			}
 		} else if (game.waveState === 'intermission') {
 			game.intermissionTimer -= dt;
@@ -403,10 +405,12 @@ scenes.playing = {
 					waveEnded = true;
 				}
 			} else {
-				// 장벽은 일반 적 카운트에서 제외 / 장벽 생성 fx 진행 중에도 wave 안 끝남
+				// 병렬 웨이브 전부 스폰 완료 + 잔여 적/장벽 fx 없음일 때만 종료.
+				// (추가 웨이브가 먼저 끝나도 기존 웨이브가 남아 있으면 대기)
+				const allSpawned = game.waves.every(sp => sp.spawnedThisWave >= sp.enemiesPerWave);
 				const remainingNonBarrier = game.enemies.some(e => !e.isBarrier);
 				const fxPending = game.barrierSpawnFx.length > 0;
-				if (game.spawnedThisWave >= game.enemiesPerWave && !remainingNonBarrier && !fxPending) {
+				if (allSpawned && !remainingNonBarrier && !fxPending) {
 					waveEnded = true;
 				}
 			}
@@ -420,6 +424,14 @@ scenes.playing = {
 			}
 			// 잔여 장벽 정리 (웨이브 종료 시 사라짐)
 			game.enemies = game.enemies.filter(e => !e.isBarrier);
+			// 병렬 웨이브 종료 — 진행 기준을 가장 최근 웨이브로 끌어올림 (다음은 +1)
+			let latest = game.waves[0];
+			for (const s of game.waves) if (s.wave > latest.wave) latest = s;
+			game.wave = latest.wave;
+			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
+			game.spawnInterval = latest.spawnInterval;
+			game.enemiesPerWave = latest.enemiesPerWave;
+			game.waves = [latest];
 			game.waveState = 'intermission';
 			// 이전 판 최고 도달 / 현재 wave 중 큰 값 기준 — 1회 도달 후 다음 판부터 짧은 인터미션
 			const benchmark = Math.max(game.wave, game.bestWaveReached);
@@ -551,10 +563,12 @@ scenes.playing = {
 			playPauseToggle(game.paused);
 			return;
 		}
-		// 추가 웨이브 — 현재 웨이브 종료를 기다리지 않고 즉시 다음 웨이브 호출
+		// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 호출 (비활성 시 무동작)
 		if (!game.selectedTower && hitButton(nextWaveButton, p)) {
-			startNextWave();
-			playButton();
+			if (canCallExtraWave()) {
+				callExtraWave();
+				playButton();
+			}
 			return;
 		}
 		// 2단계 배치: 고스트 활성 중 — 확정 / 재드래그 / 취소
