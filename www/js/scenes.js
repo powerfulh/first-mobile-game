@@ -25,7 +25,7 @@ import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawSplash, drawZap,
 } from './attack.js';
-import { startNextWave, setupWave, callExtraWave, canCallExtraWave } from './wave.js';
+import { startNextWave, setupWave, callExtraWave, canCallExtraWave, extraWaveBossBlocked } from './wave.js';
 import {
 	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
@@ -569,11 +569,14 @@ scenes.playing = {
 			playPauseToggle(game.paused);
 			return;
 		}
-		// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 호출 (비활성 시 무동작)
+		// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 호출.
+		// 비활성 시 무동작, 단 보스 사유로 막힌 경우만 토스트 안내.
 		if (!game.selectedTower && hitButton(nextWaveButton, p)) {
 			if (canCallExtraWave()) {
 				callExtraWave();
 				playButton();
+			} else if (extraWaveBossBlocked()) {
+				setToast('보스 웨이브는 병렬로 호출할 수 없습니다');
 			}
 			return;
 		}

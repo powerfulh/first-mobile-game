@@ -88,15 +88,28 @@ export function startNextWave() {
 	saveGame();
 }
 
-// 추가 웨이브 호출 가능 여부 — 버튼 활성/비활성 판정.
-// 진행 중 웨이브가 정확히 1개(병렬 여지 있음)이고, 보스(현재/다음)·인터미션이 아닐 때만.
-// 활성 웨이브 수는 완료된 웨이브가 제거되며 줄어들므로, 하나 끝나면 다시 호출 가능해짐.
+// 보스 여부를 뺀 추가 웨이브 호출 전제 — 스폰 중이고 병렬 슬롯이 남았는지
+// (진행 중 웨이브가 1개여서 하나 더 부를 여지가 있는지). 완료된 웨이브가 빠지면 다시 열림.
+function extraWaveSlotOpen() {
+	return game.waveState === 'spawning'
+		&& game.waves.length >= 1
+		&& game.waves.length < MAX_CONCURRENT_WAVES;
+}
+
+// 추가 호출이 보스에 걸리는지 — 현재 보스 웨이브거나 다음 호출 웨이브(frontier+1)가 보스.
+function extraWaveHitsBoss() {
+	return game.bossActive || isBossWave(game.waveFrontier + 1);
+}
+
+// 추가 웨이브 호출 가능 여부 — 슬롯이 열려 있고 보스에 안 걸릴 때. (버튼 활성/비활성 판정)
 export function canCallExtraWave() {
-	if (game.waveState !== 'spawning') return false;
-	if (game.bossActive) return false;
-	if (game.waves.length < 1 || game.waves.length >= MAX_CONCURRENT_WAVES) return false;
-	if (isBossWave(game.waveFrontier + 1)) return false; // 다음 호출 웨이브가 보스
-	return true;
+	return extraWaveSlotOpen() && !extraWaveHitsBoss();
+}
+
+// 비활성 사유가 '보스 웨이브' 인지 — 슬롯은 열렸는데 보스에 걸려서 막힌 경우만.
+// (최대 병렬 초과·인터미션 등 다른 사유면 false) 비활성 버튼 탭 시 토스트 안내용.
+export function extraWaveBossBlocked() {
+	return extraWaveSlotOpen() && extraWaveHitsBoss();
 }
 
 // 추가 웨이브 — 진행 중 웨이브를 유지한 채 frontier+1 웨이브를 병렬로 추가.
