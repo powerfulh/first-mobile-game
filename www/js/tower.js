@@ -807,7 +807,7 @@ export function drawTowerRange(t, fillAlpha, strokeAlpha) {
 
 // ============ Tower info panel / Promotion panel ============
 export const towerInfoPanel = { x: 16, y: 496, w: 328, h: 144 };
-export const infoCloseButton = { x: 308, y: 504, w: 28, h: 28 };
+export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
@@ -966,7 +966,72 @@ export function drawTowerInfoPanel(t) {
 		drawPromotionButton(t);
 	}
 
-	drawCloseX(infoCloseButton);
+	drawGearButton(infoSettingsButton);
+}
+
+// 정보 카드 우상단 기어 버튼 (닫기 X를 대체) — 터치 시 타워 설정 카드 진입.
+function drawGearButton(btn) {
+	const cx = btn.x + btn.w / 2;
+	const cy = btn.y + btn.h / 2;
+	ctx.fillStyle = '#2c3e50';
+	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	// 기어 아이콘 (이빨 + 링 + 중심)
+	ctx.strokeStyle = '#fff';
+	ctx.fillStyle = '#fff';
+	const r = 5;
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	for (let i = 0; i < 8; i++) {
+		const a = (Math.PI * 2 * i) / 8;
+		ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+		ctx.lineTo(cx + Math.cos(a) * (r + 2.5), cy + Math.sin(a) * (r + 2.5));
+	}
+	ctx.stroke();
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+	ctx.fill();
+}
+
+// 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 우선순위 영역(내용은 다음 단계).
+export function drawTowerSettingsCard(t) {
+	const cfg = TOWER_ROLES[t.role];
+	const p = towerInfoPanel;
+	ctx.globalAlpha = 0.9;
+	ctx.fillStyle = '#1a2535';
+	roundRect(p.x, p.y, p.w, p.h, 10);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+	ctx.strokeStyle = cfg.color;
+	ctx.lineWidth = 2;
+	ctx.stroke();
+
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.fillText(`${cfg.name} 설정`, p.x + 14, p.y + 22);
+
+	// 우선순위 영역 (내부 내용은 다음 단계)
+	ctx.fillStyle = '#9ab';
+	ctx.font = 'bold 11px sans-serif';
+	ctx.fillText('우선순위', p.x + 14, p.y + 46);
+
+	const ax = p.x + 14;
+	const ay = p.y + 54;
+	const aw = p.w - 28;
+	const ah = p.y + p.h - 14 - ay;
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+	ctx.lineWidth = 1;
+	roundRect(ax, ay, aw, ah, 6);
+	ctx.stroke();
 }
 
 function drawPromotionCard(slot, role, cost) {

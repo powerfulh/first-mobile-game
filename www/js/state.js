@@ -27,6 +27,7 @@ export const game = {
 	bossActive: false,
 	selectedTower: null,
 	promotionChoiceOpen: false,
+	towerSettingsOpen: false,
 	promotionTarget: null,
 	modal: null,
 	paused: false,
@@ -74,6 +75,7 @@ export function resetGame() {
 	game.bossActive = false;
 	game.selectedTower = null;
 	game.promotionChoiceOpen = false;
+	game.towerSettingsOpen = false;
 	game.promotionTarget = null;
 	game.modal = null;
 	game.paused = false;
@@ -139,6 +141,7 @@ export function loadGame(data) {
 	game.bossActive = false;
 	game.selectedTower = null;
 	game.promotionChoiceOpen = false;
+	game.towerSettingsOpen = false;
 	game.promotionTarget = null;
 	game.modal = null;
 	game.paused = false;
