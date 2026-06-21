@@ -315,8 +315,9 @@ function drawGhostTower() {
 	ctx.arc(g.x, g.y, TOWER.radius + 5, 0, Math.PI * 2);
 	ctx.stroke();
 	ctx.setLineDash([]);
-	// 확정 버튼 (✅)
+	// 확정 버튼 (✅) — 배치 불가 시 흐리게(비활성)
 	const r = ghostConfirmRect();
+	ctx.globalAlpha = ok ? 1 : 0.4;
 	ctx.fillStyle = ok ? '#27ae60' : '#7f8c8d';
 	roundRect(r.x, r.y, r.w, r.h, 10);
 	ctx.fill();
@@ -332,6 +333,7 @@ function drawGhostTower() {
 	ctx.lineTo(r.x + r.w - 11, r.y + 14);
 	ctx.stroke();
 	ctx.lineCap = 'butt';
+	ctx.globalAlpha = 1;
 }
 
 // ============ Playing scene ============
@@ -549,11 +551,11 @@ scenes.playing = {
 		if (game.ghostTower) {
 			const g = game.ghostTower;
 			if (hitButton(ghostConfirmRect(), p)) {
-				if (placeTower(g.x, g.y)) {
+				// 유효 위치일 때만 배치 (배치 불가 시 버튼 비활성 — 무동작)
+				if (canPlaceTower(g.x, g.y)) {
+					placeTower(g.x, g.y);
 					playTowerPlace();
 					game.ghostTower = null;
-				} else {
-					setToast('여기엔 배치할 수 없어요');
 				}
 				return;
 			}
