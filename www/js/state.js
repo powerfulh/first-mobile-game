@@ -2,7 +2,7 @@ import {
 	SAVE_KEY, BEST_WAVE_KEY,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
-	ONE_TOUCH_KEY,
+	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES,
 } from './config.js';
 import { spawnBoss } from './enemy.js';
@@ -210,4 +210,13 @@ export function getOneTouchPlace() {
 }
 export function setOneTouchPlace(on) {
 	try { localStorage.setItem(ONE_TOUCH_KEY, on ? '1' : '0'); } catch (e) {}
+}
+
+// 웨이브 간 인터미션 설정 (미설정 기본 on). off일 때만 '0' 저장.
+// off면 한 배치 종료 즉시 다음 웨이브 호출 (대기 없음).
+export function getIntermissionEnabled() {
+	try { return localStorage.getItem(INTERMISSION_KEY) !== '0'; } catch (e) { return true; }
+}
+export function setIntermissionEnabled(on) {
+	try { localStorage.setItem(INTERMISSION_KEY, on ? '1' : '0'); } catch (e) {}
 }

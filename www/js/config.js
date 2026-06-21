@@ -245,3 +245,4 @@ export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 export const BGM_VOLUME_KEY = 'td_volume';
 export const SFX_VOLUME_KEY = 'td_sfx_volume';
 export const ONE_TOUCH_KEY = 'td_one_touch'; // 원터치 배치 on/off (기본 on)
+export const INTERMISSION_KEY = 'td_intermission'; // 웨이브 간 인터미션 on/off (기본 on)

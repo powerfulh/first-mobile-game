@@ -5,6 +5,7 @@ import {
 import {
 	game, resetGame, loadGame, loadSaveData,
 	hasSeenIntro, setIntroSeen, resetLocalData, getOneTouchPlace,
+	getIntermissionEnabled,
 } from './state.js';
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
@@ -429,13 +430,18 @@ scenes.playing = {
 			for (const s of game.waves) if (s.wave > latest.wave) latest = s;
 			game.wave = latest.wave;
 			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
-			game.spawnInterval = latest.spawnInterval;
-			game.enemiesPerWave = latest.enemiesPerWave;
-			game.waves = [latest];
-			game.waveState = 'intermission';
-			// 이전 판 최고 도달 / 현재 wave 중 큰 값 기준 — 1회 도달 후 다음 판부터 짧은 인터미션
-			const benchmark = Math.max(game.wave, game.bestWaveReached);
-			game.intermissionTimer = benchmark >= 40 ? 1 : benchmark >= 20 ? 2 : 3;
+			if (getIntermissionEnabled()) {
+				game.spawnInterval = latest.spawnInterval;
+				game.enemiesPerWave = latest.enemiesPerWave;
+				game.waves = [latest];
+				game.waveState = 'intermission';
+				// 이전 판 최고 도달 / 현재 wave 중 큰 값 기준 — 1회 도달 후 다음 판부터 짧은 인터미션
+				const benchmark = Math.max(game.wave, game.bestWaveReached);
+				game.intermissionTimer = benchmark >= 40 ? 1 : benchmark >= 20 ? 2 : 3;
+			} else {
+				// 인터미션 off — 대기 없이 즉시 다음 웨이브 (setupWave가 game.waves 재구성, saveGame 포함)
+				startNextWave();
+			}
 		}
 
 		if (!game.modal && !hasSeenIntro(TIER4_INTRO_KEY) && hasReadyTier4Candidate()) {
