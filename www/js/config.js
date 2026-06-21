@@ -239,6 +239,7 @@ export const SHIELD_INTRO_KEY = 'td_seen_shield_intro';
 export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';
 export const REGEN_INTRO_KEY = 'td_seen_regen_intro';
 export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
+export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(병렬 호출) 안내 모달
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.
 // 배경음·효과음 마스터를 분리해 각각 저장.

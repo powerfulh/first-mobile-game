@@ -1,6 +1,7 @@
 import { ctx, hudEl } from './canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
+	PARALLEL_INTRO_KEY,
 } from './config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -570,9 +571,12 @@ scenes.playing = {
 			return;
 		}
 		// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 호출.
-		// 비활성 시 무동작, 단 보스 사유로 막힌 경우만 토스트 안내.
+		// 첫 탭(미열람)은 호출 대신 안내 모달. 이후엔 비활성 시 무동작(보스 사유면 토스트).
 		if (!game.selectedTower && hitButton(nextWaveButton, p)) {
-			if (canCallExtraWave()) {
+			if (!hasSeenIntro(PARALLEL_INTRO_KEY)) {
+				playButton();
+				game.modal = { type: 'parallelIntro' };
+			} else if (canCallExtraWave()) {
 				callExtraWave();
 				playButton();
 			} else if (extraWaveBossBlocked()) {

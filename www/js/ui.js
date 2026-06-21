@@ -2,11 +2,11 @@ import { ctx, hpEl, goldEl, waveEl } from './canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
+	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 } from './config.js';
 import {
 	game, getOneTouchPlace, setOneTouchPlace,
-	getIntermissionEnabled, setIntermissionEnabled,
+	getIntermissionEnabled, setIntermissionEnabled, hasSeenIntro,
 } from './state.js';
 import { roundRect, drawButton, drawPanel, hitButton } from './helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
@@ -132,6 +132,22 @@ export function drawNextWaveButton() {
 	ctx.closePath();
 	ctx.fill();
 	ctx.globalAlpha = 1;
+
+	// 아직 안내 모달을 안 본 경우 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)
+	if (!hasSeenIntro(PARALLEL_INTRO_KEY)) {
+		const bx = nextWaveButton.x + nextWaveButton.w - 3;
+		const by = nextWaveButton.y + 3;
+		ctx.fillStyle = '#f1c40f';
+		ctx.beginPath();
+		ctx.arc(bx, by, 8, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.fillStyle = '#1a2535';
+		ctx.font = 'bold 12px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('?', bx, by + 1);
+		ctx.textBaseline = 'alphabetic';
+	}
 }
 
 // ============ Toast ============
@@ -446,6 +462,20 @@ function drawTier4Icon(cx, cy) {
 	ctx.textBaseline = 'alphabetic';
 }
 
+function drawParallelIcon(cx, cy) {
+	// ⏩ 빨리감기 두 삼각형 — 추가 웨이브 버튼과 동일 모티프
+	ctx.fillStyle = '#5dade2';
+	const w = 11, h = 20;
+	for (const dx of [-w, 1]) {
+		ctx.beginPath();
+		ctx.moveTo(cx + dx, cy - h / 2);
+		ctx.lineTo(cx + dx, cy + h / 2);
+		ctx.lineTo(cx + dx + w, cy);
+		ctx.closePath();
+		ctx.fill();
+	}
+}
+
 // 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
 function makeIntro(opts) {
 	const {
@@ -540,5 +570,21 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawEnemySprite('regen', cx, cy, 13),
 		title: '재생 적 등장!',
 		lines: ['초록색 사각형은 재생 적입니다.', '이동 속도가 절반이지만', '피해를 입어도 매초 체력을 회복합니다.'],
+	}),
+
+	parallelIntro: makeIntro({
+		key: PARALLEL_INTRO_KEY, accent: '#5dade2', dimAlpha: 0.7,
+		panel: { x: 20, y: 160, w: 320, h: 320 },
+		confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
+		drawIcon: drawParallelIcon, iconY: 54,
+		title: '추가 웨이브 (병렬 호출)', titleSize: 20, titleY: 100,
+		lines: ['현재 웨이브가 끝나기 전에', '다음 웨이브를 즉시 병렬로 진행합니다.'],
+		lineSize: 13, lineStart: 138, lineGap: 22,
+		drawExtra: (p, cx) => {
+			ctx.fillStyle = '#f39c12';
+			ctx.font = 'bold 13px sans-serif';
+			ctx.fillText('• 병렬로 부른 웨이브는 저장되지 않습니다.', cx, p.y + 202);
+			ctx.fillText('• 적이 겹쳐 방어 부담이 큽니다. 신중히!', cx, p.y + 226);
+		},
 	}),
 };
