@@ -27,7 +27,7 @@ export const MAX_CONCURRENT_WAVES = 2;
 
 // 단일 웨이브 스포너 구성 — 스폰 간격/총 적 수/보스 여부 계산.
 // 보스 적 자체는 호출자(setupWave)가 spawnBoss로 추가.
-function createSpawner(targetWave) {
+export function createSpawner(targetWave) {
 	const enemiesPerWave = getEnemiesPerWaveAt(targetWave);
 	const boss = isBossWave(targetWave);
 	let spawnInterval;
@@ -50,17 +50,17 @@ function createSpawner(targetWave) {
 	};
 }
 
-// 현재 game.* 스폰 필드(저장/복원값)로 베이스 스포너 1개 구성.
-// resetGame / loadGame 가 사용 — RNG 재굴림 없이 저장된 간격 그대로.
-export function makeBaseSpawners() {
-	return [{
-		wave: game.wave,
-		spawnInterval: game.spawnInterval,
+// 저장값으로 베이스 스포너 복원 — 간격은 RNG가 섞여 재계산 불가하므로 저장본 그대로 사용.
+// loadGame 전용 (새 진행 웨이브는 createSpawner로 계산).
+export function restoreBaseSpawner(wave, spawnInterval, enemiesPerWave) {
+	return {
+		wave,
+		spawnInterval,
 		spawnTimer: 0,
 		spawnedThisWave: 0,
-		enemiesPerWave: game.enemiesPerWave,
-		isBoss: isBossWave(game.wave),
-	}];
+		enemiesPerWave,
+		isBoss: isBossWave(wave),
+	};
 }
 
 // 임의의 wave로 진입 — 일반 진행 + 샌드박스 점프 공용. 병렬 웨이브 초기화.
@@ -70,9 +70,6 @@ export function setupWave(targetWave) {
 	game.waveFrontier = targetWave;
 	const sp = createSpawner(targetWave);
 	game.waves = [sp];
-	// 저장/HUD용 미러 — 베이스 웨이브 기준
-	game.enemiesPerWave = sp.enemiesPerWave;
-	game.spawnInterval = sp.spawnInterval;
 	game.bossActive = sp.isBoss;
 	game.waveState = 'spawning';
 	game.waveSpawnCounts = {}; // 새 웨이브 — 출현 요약 초기화

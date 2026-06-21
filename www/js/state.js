@@ -6,7 +6,7 @@ import {
 	TOWER_ROLES,
 } from './config.js';
 import { spawnBoss } from './enemy.js';
-import { isBossWave, makeBaseSpawners } from './wave.js';
+import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';
 
 export const game = {
@@ -20,12 +20,8 @@ export const game = {
 	splashes: [],
 	zaps: [],
 	barrierSpawnFx: [],
-	spawnTimer: 0,
-	spawnInterval: 1.2,
-	spawnedThisWave: 0,
-	enemiesPerWave: 8,
 	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개). reset/loadGame 에서 재구성.
-	// 각 스포너는 자기 웨이브 적이 소멸하면 개별 제거됨 (완료 추적).
+	// 각 스포너가 자기 spawnTimer/spawnedThisWave/spawnInterval/enemiesPerWave 보유 — 자기 적 소멸 시 개별 제거(완료 추적).
 	waves: [{ wave: 1, spawnInterval: 1.2, spawnTimer: 0, spawnedThisWave: 0, enemiesPerWave: 8, isBoss: false }],
 	waveFrontier: 1, // 이번 배치에서 호출된 최고 웨이브 번호 (다음 추가/진행 기준)
 	waveState: 'spawning',
@@ -73,11 +69,7 @@ export function resetGame() {
 	game.splashes = [];
 	game.zaps = [];
 	game.barrierSpawnFx = [];
-	game.spawnTimer = 0;
-	game.spawnInterval = 1.2;
-	game.spawnedThisWave = 0;
-	game.enemiesPerWave = 8;
-	game.waves = makeBaseSpawners();
+	game.waves = [createSpawner(1)];
 	game.waveFrontier = game.wave;
 	game.waveState = 'spawning';
 	game.intermissionTimer = 0;
@@ -101,13 +93,16 @@ export function resetGame() {
 export function saveGame() {
 	if (game.sandbox) return; // 샌드박스는 저장 안 함 (일반 게임 데이터 보호)
 	persistBestWave(game.wave);
+	// saveGame은 웨이브 경계(setupWave 직후)에서만 호출 → game.waves는 베이스 스포너 1개.
+	// 간격엔 RNG가 섞여 있어 그 값을 그대로 저장해야 같은 페이스/방어막 확률로 복원됨.
+	const base = game.waves[0] || createSpawner(game.wave);
 	const data = {
 		version: 1,
 		wave: game.wave,
 		hp: game.hp,
 		gold: game.gold,
-		spawnInterval: game.spawnInterval,
-		enemiesPerWave: game.enemiesPerWave,
+		spawnInterval: base.spawnInterval,
+		enemiesPerWave: base.enemiesPerWave,
 		towers: game.towers.map(t => ({
 			x: t.x, y: t.y, role: t.role, tier: t.tier, xp: t.xp,
 			totalDamage: t.totalDamage || 0,
@@ -138,9 +133,7 @@ export function loadGame(data) {
 	game.wave = data.wave;
 	game.hp = data.hp;
 	game.gold = data.gold;
-	game.spawnInterval = data.spawnInterval;
-	game.enemiesPerWave = data.enemiesPerWave;
-	game.waves = makeBaseSpawners();
+	game.waves = [restoreBaseSpawner(data.wave, data.spawnInterval, data.enemiesPerWave)];
 	game.waveFrontier = game.wave;
 	game.enemies = [];
 	game.projectiles = [];
@@ -148,8 +141,6 @@ export function loadGame(data) {
 	game.splashes = [];
 	game.zaps = [];
 	game.barrierSpawnFx = [];
-	game.spawnTimer = 0;
-	game.spawnedThisWave = 0;
 	game.waveState = 'spawning';
 	game.intermissionTimer = 0;
 	game.bossActive = false;

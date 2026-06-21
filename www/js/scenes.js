@@ -249,8 +249,6 @@ function jumpToWave(targetWave) {
 	game.splashes = [];
 	game.zaps = [];
 	game.barrierSpawnFx = [];
-	game.spawnedThisWave = 0;
-	game.spawnTimer = 0;
 	game.bossActive = false;
 	game.intermissionTimer = 0;
 	game.selectedTower = null;
