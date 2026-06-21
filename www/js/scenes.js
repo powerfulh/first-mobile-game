@@ -261,11 +261,26 @@ function jumpToWave(targetWave) {
 
 scenes.wiki = wiki;
 
-// 모든 타워 카드 닫고 선택 해제 (카드 밖 영역 터치 시 — 기본 상태로).
+// 모든 타워 카드 닫고 선택 해제 (카드 밖 빈 곳 터치 시 — 기본 상태로).
 function deselectTower() {
 	game.selectedTower = null;
 	game.promotionChoiceOpen = false;
 	game.towerSettingsOpen = false;
+}
+
+// 좌표에 타워가 있으면 그 타워로 선택 전환(카드 닫음) 후 true, 없으면 false.
+function selectTowerAt(p) {
+	for (const t of game.towers) {
+		if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
+			game.selectedTower = t;
+			game.promotionChoiceOpen = false;
+			game.towerSettingsOpen = false;
+			game.holdDelete = { tower: t, accumulated: 0 };
+			playTowerSelect();
+			return true;
+		}
+	}
+	return false;
 }
 
 // ============ Playing scene ============
@@ -476,7 +491,7 @@ scenes.playing = {
 				return;
 			}
 			if (hitButton(towerInfoPanel, p)) return; // 카드 내부 빈 영역 탭 소비
-			deselectTower(); // 카드 밖 탭 → 모든 카드 닫고 기본 상태
+			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 전체 닫기
 			return;
 		}
 		if (game.selectedTower && game.promotionChoiceOpen) {
@@ -496,7 +511,7 @@ scenes.playing = {
 					return;
 				}
 				if (hitButton(promotionPanel, p)) return;
-				deselectTower(); // 카드 밖 탭 → 기본 상태
+				if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 닫기
 				return;
 			}
 
@@ -513,7 +528,7 @@ scenes.playing = {
 			if (hitButton(promotionPanel, p)) {
 				return;
 			}
-			deselectTower(); // 카드 밖 탭 → 기본 상태
+			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 닫기
 			return;
 		}
 
@@ -542,16 +557,7 @@ scenes.playing = {
 		}
 
 		// 타워 hit는 정보 패널 안 빈 영역보다 먼저 검사
-		for (const t of game.towers) {
-			if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
-				game.selectedTower = t;
-				game.promotionChoiceOpen = false;
-				game.towerSettingsOpen = false;
-				game.holdDelete = { tower: t, accumulated: 0 };
-				playTowerSelect();
-				return;
-			}
-		}
+		if (selectTowerAt(p)) return;
 
 		if (game.selectedTower && hitButton(towerInfoPanel, p)) {
 			return;
