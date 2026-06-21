@@ -652,6 +652,7 @@ scenes.playing = {
 			if (placeTower(p.x, p.y)) playTowerPlace();
 		} else {
 			game.ghostTower = { x: p.x, y: p.y, dragging: true }; // 2단계 배치 고스트
+			playButton();
 		}
 	},
 	pointerMove(p) {
