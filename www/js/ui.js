@@ -284,256 +284,159 @@ function drawIntroBackdrop(panel, accent, dimAlpha = 0.65) {
 	drawPanel(panel.x, panel.y, panel.w, panel.h, { radius: 12, stroke: accent });
 }
 
-// 각 인트로: { key, panel, confirmBtn, draw }
+// ---- 인트로 모달: 데이터 + 공용 makeIntro ----
+// 아이콘만 개별 함수, 나머지(backdrop·제목·본문·버튼)는 makeIntro가 공통 처리.
+// 새 인트로 추가: 아이콘(필요 시) + INTRO_MODALS 항목 + config 키.
+
+function drawBossIcon(cx, cy) {
+	ctx.fillStyle = '#922b21';
+	ctx.beginPath();
+	ctx.ellipse(cx, cy, 22, 14, 0, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.strokeStyle = '#000';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+}
+
+function drawBuffIcon(cx, cy) {
+	const ir = 14;
+	const auraPulse = 0.5 + 0.5 * Math.sin(performance.now() / 700);
+	ctx.globalAlpha = 0.4 + 0.3 * auraPulse;
+	ctx.strokeStyle = '#d4ac0d';
+	ctx.lineWidth = 2;
+	ctx.setLineDash([4, 3]);
+	ctx.beginPath();
+	ctx.arc(cx, cy, ir + 7, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.globalAlpha = 1;
+
+	ctx.fillStyle = '#d4ac0d';
+	ctx.beginPath();
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4 + Math.PI / 8;
+		const px = cx + ir * Math.cos(a);
+		const py = cy + ir * Math.sin(a);
+		if (i === 0) ctx.moveTo(px, py);
+		else ctx.lineTo(px, py);
+	}
+	ctx.closePath();
+	ctx.fill();
+	ctx.strokeStyle = '#9a7d0a';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+}
+
+function drawTier4Icon(cx, cy) {
+	ctx.fillStyle = '#1abc9c';
+	ctx.beginPath();
+	ctx.arc(cx - 12, cy, 12, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = '#f1c40f';
+	ctx.beginPath();
+	ctx.arc(cx + 12, cy, 12, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 18px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('+', cx, cy);
+	ctx.textBaseline = 'alphabetic';
+}
+
+// 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
+function makeIntro(opts) {
+	const {
+		key, accent, dimAlpha = 0.65,
+		panel = STD_PANEL, confirmBtn = STD_BTN,
+		drawIcon, iconY = 54,
+		title, titleColor = '#fff', titleSize = 22, titleY = 108,
+		lines = [], lineColor = '#cdd', lineSize = 14, lineStart = 150, lineGap = 26,
+		drawExtra,
+	} = opts;
+	return {
+		key, panel, confirmBtn,
+		draw() {
+			drawIntroBackdrop(panel, accent, dimAlpha);
+			const cx = LOGICAL_W / 2;
+			if (drawIcon) drawIcon(cx, panel.y + iconY);
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'alphabetic';
+			ctx.fillStyle = titleColor;
+			ctx.font = `bold ${titleSize}px sans-serif`;
+			ctx.fillText(title, cx, panel.y + titleY);
+			ctx.fillStyle = lineColor;
+			ctx.font = `${lineSize}px sans-serif`;
+			lines.forEach((line, i) => ctx.fillText(line, cx, panel.y + lineStart + i * lineGap));
+			if (drawExtra) drawExtra(panel, cx);
+			drawButton(confirmBtn, '확인');
+		},
+	};
+}
+
 // 새 인트로 추가 시 이 dict에 항목 하나만 추가하면 됨.
 export const INTRO_MODALS = {
-	airIntro: {
-		key: AIR_INTRO_KEY,
-		panel: STD_PANEL,
-		confirmBtn: STD_BTN,
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#a569bd');
+	airIntro: makeIntro({
+		key: AIR_INTRO_KEY, accent: '#a569bd',
+		drawIcon: (cx, cy) => drawEnemySprite('air', cx, cy, 14),
+		title: '공중 적 등장!',
+		lines: ['보라색 삼각형은 공중 적입니다.', '지상 전담 타워는 공격할 수 없으니', '스카웃을 활용해 대비하세요.'],
+	}),
 
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 50;
-			drawEnemySprite('air', iconCx, iconCy, 14);
-
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 22px sans-serif';
-			ctx.fillText('공중 적 등장!', iconCx, p.y + 102);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '14px sans-serif';
-			ctx.fillText('보라색 삼각형은 공중 적입니다.', iconCx, p.y + 142);
-			ctx.fillText('지상 전담 타워는 공격할 수 없으니', iconCx, p.y + 168);
-			ctx.fillText('스카웃을 활용해 대비하세요.', iconCx, p.y + 194);
-
-			drawButton(this.confirmBtn, '확인');
-		},
-	},
-
-	buffIntro: {
-		key: BUFF_INTRO_KEY,
-		panel: STD_PANEL,
-		confirmBtn: STD_BTN,
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#d4ac0d');
-
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 56;
-			const ir = 14;
-
-			const auraPulse = 0.5 + 0.5 * Math.sin(performance.now() / 700);
-			ctx.globalAlpha = 0.4 + 0.3 * auraPulse;
-			ctx.strokeStyle = '#d4ac0d';
-			ctx.lineWidth = 2;
-			ctx.setLineDash([4, 3]);
-			ctx.beginPath();
-			ctx.arc(iconCx, iconCy, ir + 7, 0, Math.PI * 2);
-			ctx.stroke();
-			ctx.setLineDash([]);
-			ctx.globalAlpha = 1;
-
-			ctx.fillStyle = '#d4ac0d';
-			ctx.beginPath();
-			for (let i = 0; i < 8; i++) {
-				const a = i * Math.PI / 4 + Math.PI / 8;
-				const px = iconCx + ir * Math.cos(a);
-				const py = iconCy + ir * Math.sin(a);
-				if (i === 0) ctx.moveTo(px, py);
-				else ctx.lineTo(px, py);
-			}
-			ctx.closePath();
-			ctx.fill();
-			ctx.strokeStyle = '#9a7d0a';
-			ctx.lineWidth = 2;
-			ctx.stroke();
-
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 22px sans-serif';
-			ctx.fillText('티어별 버프율', iconCx, p.y + 112);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '14px sans-serif';
-			ctx.fillText('버프를 받는 타워의 티어에 따라', iconCx, p.y + 152);
-			ctx.fillText('효과가 달라집니다.', iconCx, p.y + 178);
-
+	buffIntro: makeIntro({
+		key: BUFF_INTRO_KEY, accent: '#d4ac0d',
+		drawIcon: drawBuffIcon,
+		title: '티어별 버프율',
+		lines: ['버프를 받는 타워의 티어에 따라', '효과가 달라집니다.'],
+		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#d4ac0d';
 			ctx.font = 'bold 16px sans-serif';
-			ctx.fillText('T0 +10%   T1 +10%   T2 +20%   T3 +30%', iconCx, p.y + 218);
-
-			drawButton(this.confirmBtn, '확인');
+			ctx.fillText('T0 +10%   T1 +10%   T2 +20%   T3 +30%', cx, p.y + 218);
 		},
-	},
+	}),
 
-	bossIntro: {
-		key: BOSS_INTRO_KEY,
-		panel: STD_PANEL,
-		confirmBtn: STD_BTN,
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#c0392b');
+	bossIntro: makeIntro({
+		key: BOSS_INTRO_KEY, accent: '#c0392b',
+		drawIcon: drawBossIcon,
+		title: '보스 등장!',
+		lines: ['20 웨이브마다 보스가 등장합니다.', '일반 적보다 훨씬 단단하지만 느리게 이동합니다.'],
+	}),
 
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 56;
-			ctx.fillStyle = '#922b21';
-			ctx.beginPath();
-			ctx.ellipse(iconCx, iconCy, 22, 14, 0, 0, Math.PI * 2);
-			ctx.fill();
-			ctx.strokeStyle = '#000';
-			ctx.lineWidth = 2;
-			ctx.stroke();
+	shieldIntro: makeIntro({
+		key: SHIELD_INTRO_KEY, accent: '#5dade2',
+		drawIcon: (cx, cy) => drawEnemySprite('ground', cx, cy, 14, { shielded: true }),
+		title: '방어막 적 등장!',
+		lines: ['일부 적이 방어막을 두르고 등장합니다.', '받는 데미지가 감소합니다.'],
+	}),
 
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 22px sans-serif';
-			ctx.fillText('보스 등장!', iconCx, p.y + 108);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '14px sans-serif';
-			ctx.fillText('20 웨이브마다 보스가 등장합니다.', iconCx, p.y + 152);
-			ctx.fillText('일반 적보다 훨씬 단단하지만 느리게 이동합니다.', iconCx, p.y + 178);
-
-			drawButton(this.confirmBtn, '확인');
-		},
-	},
-
-	shieldIntro: {
-		key: SHIELD_INTRO_KEY,
-		panel: STD_PANEL,
-		confirmBtn: STD_BTN,
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#5dade2');
-
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 56;
-			drawEnemySprite('ground', iconCx, iconCy, 14, { shielded: true });
-
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 22px sans-serif';
-			ctx.fillText('방어막 적 등장!', iconCx, p.y + 108);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '14px sans-serif';
-			ctx.fillText('일부 적이 방어막을 두르고 등장합니다.', iconCx, p.y + 152);
-			ctx.fillText('받는 데미지가 감소합니다.', iconCx, p.y + 178);
-
-			drawButton(this.confirmBtn, '확인');
-		},
-	},
-
-	tier4Intro: {
-		key: TIER4_INTRO_KEY,
+	tier4Intro: makeIntro({
+		key: TIER4_INTRO_KEY, accent: '#f5d76e', dimAlpha: 0.7,
 		panel: { x: 20, y: 160, w: 320, h: 320 },
 		confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#f5d76e', 0.7);
-
-			// 4티어 아이콘: 두 디스크가 합쳐지는 모양
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 56;
-			ctx.fillStyle = '#1abc9c';
-			ctx.beginPath();
-			ctx.arc(iconCx - 12, iconCy, 12, 0, Math.PI * 2);
-			ctx.fill();
-			ctx.fillStyle = '#f1c40f';
-			ctx.beginPath();
-			ctx.arc(iconCx + 12, iconCy, 12, 0, Math.PI * 2);
-			ctx.fill();
-
-			// 합쳐짐 표시
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 18px sans-serif';
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillText('+', iconCx, iconCy);
-
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#f5d76e';
-			ctx.font = 'bold 20px sans-serif';
-			ctx.fillText('합체 전직 가능!', iconCx, p.y + 100);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '13px sans-serif';
-			ctx.fillText('XP를 모두 채운 3티어 타워 두 개로', iconCx, p.y + 128);
-			ctx.fillText('레시피 조합 4티어 전직이 가능합니다.', iconCx, p.y + 148);
-
+		drawIcon: drawTier4Icon, iconY: 56,
+		title: '합체 전직 가능!', titleColor: '#f5d76e', titleSize: 20, titleY: 100,
+		lines: ['XP를 모두 채운 3티어 타워 두 개로', '레시피 조합 4티어 전직이 가능합니다.'],
+		lineSize: 13, lineStart: 128, lineGap: 20,
+		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#f5d76e';
 			ctx.font = 'bold 13px sans-serif';
-			ctx.fillText('① 한 타워의 "4티어 대상 지정"', iconCx, p.y + 180);
-			ctx.fillText('② 레시피 짝 타워에서 "전직"', iconCx, p.y + 200);
-			ctx.fillText('③ 대상 타워는 소모, 짝 타워가 4티어로 전직', iconCx, p.y + 220);
-
-			drawButton(this.confirmBtn, '확인');
+			ctx.fillText('① 한 타워의 "4티어 대상 지정"', cx, p.y + 180);
+			ctx.fillText('② 레시피 짝 타워에서 "전직"', cx, p.y + 200);
+			ctx.fillText('③ 대상 타워는 소모, 짝 타워가 4티어로 전직', cx, p.y + 220);
 		},
-	},
+	}),
 
-	barrierIntro: {
-		key: BARRIER_INTRO_KEY,
-		panel: STD_PANEL,
-		confirmBtn: STD_BTN,
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#aab7c4');
+	barrierIntro: makeIntro({
+		key: BARRIER_INTRO_KEY, accent: '#aab7c4',
+		drawIcon: (cx, cy) => drawEnemySprite('barrier', cx, cy, 14),
+		title: '장벽 적 등장!',
+		lines: ['장벽 적이 등장합니다.', '처치한 자리에 장벽이 생성되어', '공중 공격을 차단합니다.'],
+	}),
 
-			// 아이콘: 장벽 적 (역삼각형 + 내부 디스크)
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 56;
-			drawEnemySprite('barrier', iconCx, iconCy, 14);
-
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 22px sans-serif';
-			ctx.fillText('장벽 적 등장!', iconCx, p.y + 108);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '14px sans-serif';
-			ctx.fillText('장벽 적이 등장합니다.', iconCx, p.y + 148);
-			ctx.fillText('처치한 자리에 장벽이 생성되어', iconCx, p.y + 174);
-			ctx.fillText('공중 공격을 차단합니다.', iconCx, p.y + 200);
-
-			drawButton(this.confirmBtn, '확인');
-		},
-	},
-
-	regenIntro: {
-		key: REGEN_INTRO_KEY,
-		panel: STD_PANEL,
-		confirmBtn: STD_BTN,
-		draw() {
-			const p = this.panel;
-			drawIntroBackdrop(p, '#2ecc71');
-
-			// 재생 적 아이콘 (사각형 + 초록 글로우)
-			const iconCx = LOGICAL_W / 2;
-			const iconCy = p.y + 56;
-			drawEnemySprite('regen', iconCx, iconCy, 13);
-
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			ctx.fillStyle = '#fff';
-			ctx.font = 'bold 22px sans-serif';
-			ctx.fillText('재생 적 등장!', iconCx, p.y + 108);
-
-			ctx.fillStyle = '#cdd';
-			ctx.font = '14px sans-serif';
-			ctx.fillText('초록색 사각형은 재생 적입니다.', iconCx, p.y + 148);
-			ctx.fillText('이동 속도가 절반이지만', iconCx, p.y + 172);
-			ctx.fillText('피해를 입어도 매초 체력을 회복합니다.', iconCx, p.y + 196);
-
-			drawButton(this.confirmBtn, '확인');
-		},
-	},
+	regenIntro: makeIntro({
+		key: REGEN_INTRO_KEY, accent: '#2ecc71',
+		drawIcon: (cx, cy) => drawEnemySprite('regen', cx, cy, 13),
+		title: '재생 적 등장!',
+		lines: ['초록색 사각형은 재생 적입니다.', '이동 속도가 절반이지만', '피해를 입어도 매초 체력을 회복합니다.'],
+	}),
 };
