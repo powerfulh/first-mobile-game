@@ -1097,16 +1097,19 @@ export function drawTowerSettingsCard(t) {
 		ctx.textAlign = 'left';
 	}
 
-	// 2순위 — 공통 표적 우선순위 (토글 버튼)
-	const b = SETTINGS_PRIORITY_BTN;
-	drawCellButton(b);
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 13px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText(`표적: ${PRIORITY_LABELS[t.targetPriority]}`, b.x + b.w / 2, b.y + b.h / 2);
-	ctx.textBaseline = 'alphabetic';
-	ctx.textAlign = 'left';
+	// 2순위 — 공통 표적 우선순위 (토글 버튼).
+	// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
+	if (!cfg.areaSweep) {
+		const b = SETTINGS_PRIORITY_BTN;
+		drawCellButton(b);
+		ctx.fillStyle = '#fff';
+		ctx.font = 'bold 13px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(`표적: ${PRIORITY_LABELS[t.targetPriority]}`, b.x + b.w / 2, b.y + b.h / 2);
+		ctx.textBaseline = 'alphabetic';
+		ctx.textAlign = 'left';
+	}
 }
 
 // 버튼 배경 (셀 공통) — 눌러서 토글됨이 보이도록.
@@ -1144,7 +1147,7 @@ function drawProhibition(cx, cy, r) {
 export function handleTowerSettingsTap(t, p) {
 	const cfg = TOWER_ROLES[t.role];
 	if (!towerAttacks(cfg)) return false;
-	if (hitButton(SETTINGS_PRIORITY_BTN, p)) {
+	if (!cfg.areaSweep && hitButton(SETTINGS_PRIORITY_BTN, p)) {
 		const i = PRIORITY_CYCLE.indexOf(t.targetPriority);
 		t.targetPriority = PRIORITY_CYCLE[(i + 1) % PRIORITY_CYCLE.length];
 		return true;
