@@ -244,3 +244,4 @@ export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 // 배경음·효과음 마스터를 분리해 각각 저장.
 export const BGM_VOLUME_KEY = 'td_volume';
 export const SFX_VOLUME_KEY = 'td_sfx_volume';
+export const ONE_TOUCH_KEY = 'td_one_touch'; // 원터치 배치 on/off (기본 on)

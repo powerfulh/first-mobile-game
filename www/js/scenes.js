@@ -1,10 +1,10 @@
 import { ctx, hudEl } from './canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
 } from './config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
-	hasSeenIntro, setIntroSeen, resetLocalData,
+	hasSeenIntro, setIntroSeen, resetLocalData, getOneTouchPlace,
 } from './state.js';
 import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
 import {
@@ -12,7 +12,7 @@ import {
 	updateBarrierSpawnFx, drawBarrierSpawnFx,
 } from './enemy.js';
 import {
-	placeTower, canPromote,
+	placeTower, canPlaceTower, canPromote, drawTowerSprite,
 	promoteTower, updateTower, drawTower, drawTowerRange,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	towerInfoPanel, infoSettingsButton, infoPromotionButton,
@@ -29,7 +29,7 @@ import {
 	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	INTRO_MODALS,
 	setToast, updateToast, drawToast,
-	drawSettingsModal, settingsLayout,
+	drawSettingsModal, settingsLayout, settingsCheckboxTap,
 	volumePointerDown, volumePointerMove, volumePointerUp,
 } from './ui.js';
 import { playBgm, syncBattleMusic } from './audio.js';
@@ -169,6 +169,7 @@ scenes.title = {
 	pointerDown(p) {
 		if (this.settingsOpen) {
 			if (volumePointerDown(p)) return;
+			if (settingsCheckboxTap(p)) { playButton(); return; }
 			const { btns } = settingsLayout(titleSettingsButtons.length);
 			for (let i = 0; i < titleSettingsButtons.length; i++) {
 				if (hitButton(btns[i], p)) {
@@ -283,6 +284,56 @@ function selectTowerAt(p) {
 	return false;
 }
 
+// 2단계 배치 확정(✅) 버튼 — 고스트가 위쪽 절반이면 아래, 아래쪽이면 위에 배치.
+function ghostConfirmRect() {
+	const g = game.ghostTower;
+	const bw = 46;
+	const bh = 46;
+	const off = TOWER.radius + 30;
+	const cy = g.y < LOGICAL_H / 2 ? g.y + off : g.y - off;
+	return { x: g.x - bw / 2, y: cy - bh / 2, w: bw, h: bh };
+}
+
+function drawGhostTower() {
+	const g = game.ghostTower;
+	const ok = canPlaceTower(g.x, g.y);
+	// 사거리 미리보기
+	ctx.globalAlpha = 0.12;
+	ctx.fillStyle = '#3498db';
+	ctx.beginPath();
+	ctx.arc(g.x, g.y, TOWER_ROLES.base.range, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+	// 고스트 본체 (반투명) + 유효성 링
+	ctx.globalAlpha = 0.55;
+	drawTowerSprite('base', g.x, g.y, TOWER.radius);
+	ctx.globalAlpha = 1;
+	ctx.strokeStyle = ok ? '#2ecc71' : '#e74c3c';
+	ctx.lineWidth = 2;
+	ctx.setLineDash([4, 3]);
+	ctx.beginPath();
+	ctx.arc(g.x, g.y, TOWER.radius + 5, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.setLineDash([]);
+	// 확정 버튼 (✅)
+	const r = ghostConfirmRect();
+	ctx.fillStyle = ok ? '#27ae60' : '#7f8c8d';
+	roundRect(r.x, r.y, r.w, r.h, 10);
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+	ctx.lineWidth = 4;
+	ctx.lineCap = 'round';
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(r.x + 13, r.y + r.h / 2);
+	ctx.lineTo(r.x + r.w * 0.42, r.y + r.h - 14);
+	ctx.lineTo(r.x + r.w - 11, r.y + 14);
+	ctx.stroke();
+	ctx.lineCap = 'butt';
+}
+
 // ============ Playing scene ============
 scenes.playing = {
 	enter() {
@@ -381,6 +432,7 @@ scenes.playing = {
 			game.selectedTower = null;
 			game.promotionChoiceOpen = false;
 			game.towerSettingsOpen = false;
+			game.ghostTower = null;
 			changeScene('gameOver');
 		}
 	},
@@ -420,6 +472,8 @@ scenes.playing = {
 			ctx.stroke();
 		}
 
+		if (game.ghostTower) drawGhostTower();
+
 		if (game.waveState === 'intermission') {
 			ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 			ctx.fillRect(0, LOGICAL_H / 2 - 28, LOGICAL_W, 56);
@@ -437,6 +491,11 @@ scenes.playing = {
 			} else {
 				drawTowerInfoPanel(game.selectedTower);
 			}
+		} else if (game.ghostTower) {
+			ctx.textAlign = 'center';
+			ctx.font = '12px sans-serif';
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+			ctx.fillText('빈 곳을 탭하여 배치 취소', LOGICAL_W / 2, LOGICAL_H - 20);
 		} else {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
@@ -446,7 +505,7 @@ scenes.playing = {
 			ctx.fillText('타워를 꾹 눌러 삭제', LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
-		if (!game.selectedTower && !game.modal && !game.settingsOpen) drawPauseButton();
+		if (!game.selectedTower && !game.modal && !game.settingsOpen && !game.ghostTower) drawPauseButton();
 		if (game.paused) drawPausedOverlay();
 
 		if (game.modal) {
@@ -461,6 +520,7 @@ scenes.playing = {
 	pointerDown(p) {
 		if (game.settingsOpen) {
 			if (volumePointerDown(p)) return;
+			if (settingsCheckboxTap(p)) { playButton(); return; }
 			const { btns } = settingsLayout(playingSettingsButtons.length);
 			for (let i = 0; i < playingSettingsButtons.length; i++) {
 				if (hitButton(btns[i], p)) {
@@ -483,6 +543,25 @@ scenes.playing = {
 		if (!game.selectedTower && hitButton(pauseButton, p)) {
 			game.paused = !game.paused;
 			playPauseToggle(game.paused);
+			return;
+		}
+		// 2단계 배치: 고스트 활성 중 — 확정 / 재드래그 / 취소
+		if (game.ghostTower) {
+			const g = game.ghostTower;
+			if (hitButton(ghostConfirmRect(), p)) {
+				if (placeTower(g.x, g.y)) {
+					playTowerPlace();
+					game.ghostTower = null;
+				} else {
+					setToast('여기엔 배치할 수 없어요');
+				}
+				return;
+			}
+			if (Math.hypot(p.x - g.x, p.y - g.y) <= TOWER.radius + 8) {
+				g.dragging = true; // 고스트 재드래그
+				return;
+			}
+			game.ghostTower = null; // 다른 영역 → 취소
 			return;
 		}
 		if (game.selectedTower && game.towerSettingsOpen) {
@@ -567,21 +646,36 @@ scenes.playing = {
 			deselectTower();
 			return;
 		}
-		if (placeTower(p.x, p.y)) playTowerPlace();
+		if (getOneTouchPlace()) {
+			if (placeTower(p.x, p.y)) playTowerPlace();
+		} else {
+			game.ghostTower = { x: p.x, y: p.y, dragging: true }; // 2단계 배치 고스트
+		}
 	},
 	pointerMove(p) {
-		if (game.settingsOpen) volumePointerMove(p);
+		if (game.settingsOpen) { volumePointerMove(p); return; }
+		if (game.ghostTower && game.ghostTower.dragging) {
+			game.ghostTower.x = Math.max(TOWER.radius, Math.min(LOGICAL_W - TOWER.radius, p.x));
+			game.ghostTower.y = Math.max(HUD_RESERVED_TOP + TOWER.radius, Math.min(LOGICAL_H - TOWER.radius, p.y));
+		}
 	},
 	pointerUp() {
 		volumePointerUp();
+		if (game.ghostTower) game.ghostTower.dragging = false;
 	},
 	pointerCancel() {
 		volumePointerUp();
+		if (game.ghostTower) game.ghostTower.dragging = false;
 	},
 	backButton() {
 		// 설정 열린 상태 → 닫기
 		if (game.settingsOpen) {
 			game.settingsOpen = false;
+			return;
+		}
+		// 고스트(2단계 배치) 진행 중 → 취소
+		if (game.ghostTower) {
+			game.ghostTower = null;
 			return;
 		}
 		// 설정 카드 열린 상태 → 정보 카드로

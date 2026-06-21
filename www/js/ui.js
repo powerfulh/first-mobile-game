@@ -4,8 +4,8 @@ import {
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './config.js';
-import { game } from './state.js';
-import { roundRect, drawButton, drawPanel } from './helpers.js';
+import { game, getOneTouchPlace, setOneTouchPlace } from './state.js';
+import { roundRect, drawButton, drawPanel, hitButton } from './helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
@@ -142,7 +142,7 @@ export function drawPausedOverlay() {
 // 호출자가 buttons 배열을 넘김 — 각 { label, action }. 버튼 위치/패널 높이는
 // settingsLayout이 버튼 개수에 맞춰 계산 (씬의 hit-test도 동일 함수 사용).
 // 하단 가이드 문구는 모달 소스에 고정.
-const SETTINGS_BTN = { x: 80, w: 200, h: 50, gap: 12, top: 350 };
+const SETTINGS_BTN = { x: 80, w: 200, h: 50, gap: 12, top: 392 }; // 체크박스 자리 확보로 내림
 const SETTINGS_PANEL = { x: 30, y: 210, w: 300 };
 
 export function settingsLayout(count) {
@@ -250,6 +250,48 @@ function drawVolumeSliders() {
 	ctx.textBaseline = 'alphabetic';
 }
 
+// ---- 원터치 배치 체크박스 (볼륨 슬라이더 아래) ----
+const SETTINGS_CHECKBOX = { x: 80, y: 354, w: 200, h: 26 };
+
+function drawSettingsCheckbox() {
+	const c = SETTINGS_CHECKBOX;
+	const on = getOneTouchPlace();
+	const box = 20;
+	const bx = c.x;
+	const by = c.y + (c.h - box) / 2;
+	ctx.fillStyle = on ? '#5dade2' : '#2c3e50';
+	roundRect(bx, by, box, box, 4);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	if (on) {
+		ctx.strokeStyle = '#fff';
+		ctx.lineWidth = 2.5;
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
+		ctx.beginPath();
+		ctx.moveTo(bx + 4, by + box / 2);
+		ctx.lineTo(bx + box * 0.42, by + box - 5);
+		ctx.lineTo(bx + box - 3, by + 4);
+		ctx.stroke();
+		ctx.lineCap = 'butt';
+	}
+	ctx.fillStyle = '#fff';
+	ctx.font = '14px sans-serif';
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('원터치 배치', bx + box + 10, c.y + c.h / 2);
+	ctx.textBaseline = 'alphabetic';
+}
+
+// 체크박스 탭 처리 — 소비 시 true (설정 모달 열린 씬이 위임).
+export function settingsCheckboxTap(p) {
+	if (!hitButton(SETTINGS_CHECKBOX, p)) return false;
+	setOneTouchPlace(!getOneTouchPlace());
+	return true;
+}
+
 export function drawSettingsModal(buttons) {
 	const { panel: p, btns, guideY } = settingsLayout(buttons.length);
 
@@ -265,6 +307,7 @@ export function drawSettingsModal(buttons) {
 	ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
 
 	drawVolumeSliders();
+	drawSettingsCheckbox();
 
 	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], buttons[i].label);
 

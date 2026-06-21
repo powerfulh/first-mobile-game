@@ -2,6 +2,7 @@ import {
 	SAVE_KEY, BEST_WAVE_KEY,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
+	ONE_TOUCH_KEY,
 	TOWER_ROLES,
 } from './config.js';
 import { spawnBoss } from './enemy.js';
@@ -39,6 +40,7 @@ export const game = {
 	toast: null,
 	bestWaveReached: 0,
 	waveSpawnCounts: {}, // 현재 웨이브 적 타입별 출현 누적 (HUD 요약용)
+	ghostTower: null, // 2단계 배치 미리보기 { x, y, dragging }
 };
 
 function loadBestWave() {
@@ -87,6 +89,7 @@ export function resetGame() {
 	game.toast = null;
 	game.bestWaveReached = loadBestWave();
 	game.waveSpawnCounts = {};
+	game.ghostTower = null;
 }
 
 export function saveGame() {
@@ -150,6 +153,7 @@ export function loadGame(data) {
 	game.paused = false;
 	game.holdDelete = null;
 	game.waveSpawnCounts = {};
+	game.ghostTower = null;
 	game.bestWaveReached = Math.max(loadBestWave(), game.wave);
 	game.towers = (data.towers || [])
 		.filter(td => TOWER_ROLES[td.role])
@@ -194,4 +198,12 @@ export function hasSeenIntro(key) {
 }
 export function setIntroSeen(key) {
 	try { localStorage.setItem(key, '1'); } catch (e) {}
+}
+
+// 원터치 배치 설정 (미설정 기본 on). off일 때만 '0' 저장.
+export function getOneTouchPlace() {
+	try { return localStorage.getItem(ONE_TOUCH_KEY) !== '0'; } catch (e) { return true; }
+}
+export function setOneTouchPlace(on) {
+	try { localStorage.setItem(ONE_TOUCH_KEY, on ? '1' : '0'); } catch (e) {}
 }
