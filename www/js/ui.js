@@ -89,6 +89,35 @@ export function drawPauseButton() {
 	}
 }
 
+// ============ Next-wave button ============
+// 현재 웨이브 종료를 기다리지 않고 즉시 다음 웨이브를 호출. 일시정지 버튼 바로 위.
+export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
+
+export function drawNextWaveButton() {
+	ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
+	roundRect(nextWaveButton.x, nextWaveButton.y, nextWaveButton.w, nextWaveButton.h, 8);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+
+	// ⏩ 빨리감기 — 다음 웨이브 즉시 호출
+	ctx.fillStyle = '#fff';
+	const x = nextWaveButton.x, y = nextWaveButton.y;
+	ctx.beginPath();
+	ctx.moveTo(x + 10, y + 13);
+	ctx.lineTo(x + 10, y + 31);
+	ctx.lineTo(x + 21, y + 22);
+	ctx.closePath();
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x + 22, y + 13);
+	ctx.lineTo(x + 22, y + 31);
+	ctx.lineTo(x + 33, y + 22);
+	ctx.closePath();
+	ctx.fill();
+}
+
 // ============ Toast ============
 export function setToast(text, life = 1.5) {
 	game.toast = { text, life, maxLife: life };

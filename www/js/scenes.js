@@ -27,6 +27,7 @@ import {
 import { startNextWave, setupWave } from './wave.js';
 import {
 	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
+	nextWaveButton, drawNextWaveButton,
 	INTRO_MODALS,
 	setToast, updateToast, drawToast,
 	drawSettingsModal, settingsLayout, settingsCheckboxTap,
@@ -507,7 +508,10 @@ scenes.playing = {
 			ctx.fillText('타워를 꾹 눌러 삭제', LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
-		if (!game.selectedTower && !game.modal && !game.settingsOpen && !game.ghostTower) drawPauseButton();
+		if (!game.selectedTower && !game.modal && !game.settingsOpen && !game.ghostTower) {
+			drawNextWaveButton();
+			drawPauseButton();
+		}
 		if (game.paused) drawPausedOverlay();
 
 		if (game.modal) {
@@ -545,6 +549,12 @@ scenes.playing = {
 		if (!game.selectedTower && hitButton(pauseButton, p)) {
 			game.paused = !game.paused;
 			playPauseToggle(game.paused);
+			return;
+		}
+		// 추가 웨이브 — 현재 웨이브 종료를 기다리지 않고 즉시 다음 웨이브 호출
+		if (!game.selectedTower && hitButton(nextWaveButton, p)) {
+			startNextWave();
+			playButton();
 			return;
 		}
 		// 2단계 배치: 고스트 활성 중 — 확정 / 재드래그 / 취소
