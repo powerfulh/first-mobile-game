@@ -67,6 +67,7 @@ export function makeBaseSpawners() {
 // saveGame 호출 안 함 (호출자가 결정).
 export function setupWave(targetWave) {
 	game.wave = targetWave;
+	game.waveFrontier = targetWave;
 	const sp = createSpawner(targetWave);
 	game.waves = [sp];
 	// 저장/HUD용 미러 — 베이스 웨이브 기준
@@ -91,20 +92,21 @@ export function startNextWave() {
 }
 
 // 추가 웨이브 호출 가능 여부 — 버튼 활성/비활성 판정.
-// 보스 웨이브(현재/다음)·인터미션·최대 병렬 수 초과 시 불가.
+// 진행 중 웨이브가 정확히 1개(병렬 여지 있음)이고, 보스(현재/다음)·인터미션이 아닐 때만.
+// 활성 웨이브 수는 완료된 웨이브가 제거되며 줄어들므로, 하나 끝나면 다시 호출 가능해짐.
 export function canCallExtraWave() {
 	if (game.waveState !== 'spawning') return false;
 	if (game.bossActive) return false;
-	if (game.waves.length >= MAX_CONCURRENT_WAVES) return false;
-	const latest = Math.max(...game.waves.map(s => s.wave));
-	if (isBossWave(latest + 1)) return false;
+	if (game.waves.length < 1 || game.waves.length >= MAX_CONCURRENT_WAVES) return false;
+	if (isBossWave(game.waveFrontier + 1)) return false; // 다음 호출 웨이브가 보스
 	return true;
 }
 
-// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 추가.
+// 추가 웨이브 — 진행 중 웨이브를 유지한 채 frontier+1 웨이브를 병렬로 추가.
 export function callExtraWave() {
-	const latest = Math.max(...game.waves.map(s => s.wave));
-	game.waves.push(createSpawner(latest + 1));
+	const next = game.waveFrontier + 1;
+	game.waves.push(createSpawner(next));
+	game.waveFrontier = next;
 	// 새 웨이브 호출 시 타워별 웨이브 누적 데미지 초기화
 	for (const tower of game.towers) tower.waveDamage = 0;
 }

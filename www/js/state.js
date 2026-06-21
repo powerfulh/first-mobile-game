@@ -25,7 +25,9 @@ export const game = {
 	spawnedThisWave: 0,
 	enemiesPerWave: 8,
 	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개). reset/loadGame 에서 재구성.
+	// 각 스포너는 자기 웨이브 적이 소멸하면 개별 제거됨 (완료 추적).
 	waves: [{ wave: 1, spawnInterval: 1.2, spawnTimer: 0, spawnedThisWave: 0, enemiesPerWave: 8, isBoss: false }],
+	waveFrontier: 1, // 이번 배치에서 호출된 최고 웨이브 번호 (다음 추가/진행 기준)
 	waveState: 'spawning',
 	intermissionTimer: 0,
 	bossActive: false,
@@ -76,6 +78,7 @@ export function resetGame() {
 	game.spawnedThisWave = 0;
 	game.enemiesPerWave = 8;
 	game.waves = makeBaseSpawners();
+	game.waveFrontier = game.wave;
 	game.waveState = 'spawning';
 	game.intermissionTimer = 0;
 	game.bossActive = false;
@@ -138,6 +141,7 @@ export function loadGame(data) {
 	game.spawnInterval = data.spawnInterval;
 	game.enemiesPerWave = data.enemiesPerWave;
 	game.waves = makeBaseSpawners();
+	game.waveFrontier = game.wave;
 	game.enemies = [];
 	game.projectiles = [];
 	game.beams = [];

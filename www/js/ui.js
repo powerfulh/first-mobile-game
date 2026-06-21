@@ -18,14 +18,15 @@ import { canCallExtraWave } from './wave.js';
 export function updateHUD() {
 	hpEl.textContent = `HP: ${game.hp}`;
 	goldEl.textContent = `Gold: ${game.gold}${game.bossActive ? ' 🔒' : ''}`;
-	// 병렬 웨이브 진행 중이면 {기존}~{가장 최근 호출} 범위로 표기
+	// 활성 웨이브 범위로 표기 — 먼저 끝난 웨이브는 제거되므로 범위가 좁아짐.
+	// {낮은 활성}~{높은 활성}, 하나면 단일 번호. 활성 없음(배치 전환/인터미션)이면 game.wave.
 	const waves = game.waves || [];
-	if (waves.length > 1) {
+	if (waves.length === 0) {
+		waveEl.textContent = `Wave: ${game.wave}`;
+	} else {
 		let lo = waves[0].wave, hi = waves[0].wave;
 		for (const s of waves) { if (s.wave < lo) lo = s.wave; if (s.wave > hi) hi = s.wave; }
-		waveEl.textContent = `Wave: ${lo}~${hi}`;
-	} else {
-		waveEl.textContent = `Wave: ${game.wave}`;
+		waveEl.textContent = lo === hi ? `Wave: ${lo}` : `Wave: ${lo}~${hi}`;
 	}
 }
 

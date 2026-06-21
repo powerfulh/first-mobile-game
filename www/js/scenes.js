@@ -397,43 +397,45 @@ scenes.playing = {
 		game.zaps = game.zaps.filter(z => !z.dead);
 		game.barrierSpawnFx = game.barrierSpawnFx.filter(fx => !fx.dead);
 
-		let waveEnded = false;
+		let batchEnded = false;
 		if (game.waveState === 'spawning') {
 			if (game.bossActive) {
 				if (!game.enemies.some(e => e.isBoss)) {
 					game.bossActive = false;
 					game.enemies = [];
-					waveEnded = true;
+					game.waves = [];
 				}
 			} else {
-				// 병렬 웨이브 전부 스폰 완료 + 잔여 적/장벽 fx 없음일 때만 종료.
-				// (추가 웨이브가 먼저 끝나도 기존 웨이브가 남아 있으면 대기)
-				const allSpawned = game.waves.every(sp => sp.spawnedThisWave >= sp.enemiesPerWave);
-				const remainingNonBarrier = game.enemies.some(e => !e.isBarrier);
-				const fxPending = game.barrierSpawnFx.length > 0;
-				if (allSpawned && !remainingNonBarrier && !fxPending) {
-					waveEnded = true;
+				// 웨이브 완료 추적 — 스폰 완료 + 그 웨이브의 비-장벽 적 소멸.
+				// 단 n 웨이브는 n 이하 웨이브가 모두 끝나야 종료 → 가장 낮은 활성 웨이브부터
+				// 순서대로만 제거 (높은 번호가 먼저 비어도 아래가 남아 있으면 대기).
+				// game.waves는 항상 오름차순: 초기 1개 + 추가는 더 큰 번호를 뒤에 push, 앞에서만 제거.
+				while (game.waves.length > 0) {
+					const sp = game.waves[0];
+					const done = sp.spawnedThisWave >= sp.enemiesPerWave
+						&& !game.enemies.some(e => !e.isBarrier && e.waveNum === sp.wave);
+					if (!done) break;
+					game.waves.shift();
 				}
 			}
+			// 모든 웨이브 완료 + 장벽 생성 fx 없음 → 배치 종료 (다음 웨이브로 진행)
+			if (game.waves.length === 0 && game.barrierSpawnFx.length === 0) {
+				batchEnded = true;
+			}
 		}
-		if (waveEnded) {
+		if (batchEnded) {
 			for (const t of game.towers) {
 				if (canPromote(t)) {
 					const gain = getXpGainAtWaveEnd(t);
 					t.xp = Math.min(Math.round((t.xp + gain) * 10) / 10, xpMaxFor(t));
 				}
 			}
-			// 잔여 장벽 정리 (웨이브 종료 시 사라짐)
+			// 잔여 장벽 정리 (배치 종료 시 사라짐)
 			game.enemies = game.enemies.filter(e => !e.isBarrier);
-			// 병렬 웨이브 종료 — 진행 기준을 가장 최근 웨이브로 끌어올림 (다음은 +1)
-			let latest = game.waves[0];
-			for (const s of game.waves) if (s.wave > latest.wave) latest = s;
-			game.wave = latest.wave;
+			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)
+			game.wave = game.waveFrontier;
 			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
 			if (getIntermissionEnabled()) {
-				game.spawnInterval = latest.spawnInterval;
-				game.enemiesPerWave = latest.enemiesPerWave;
-				game.waves = [latest];
 				game.waveState = 'intermission';
 				// 이전 판 최고 도달 / 현재 wave 중 큰 값 기준 — 1회 도달 후 다음 판부터 짧은 인터미션
 				const benchmark = Math.max(game.wave, game.bestWaveReached);

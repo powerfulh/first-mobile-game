@@ -134,6 +134,7 @@ export function spawnEnemy(spawner) {
 		shielded,
 		regen,
 		barrierSpawner,
+		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적용
 	});
 	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
 	const cat = barrierSpawner ? 'barrier' : regen ? 'regen' : isAirPlain ? 'air' : 'ground';
