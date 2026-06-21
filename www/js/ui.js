@@ -5,7 +5,7 @@ import {
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './config.js';
 import { game } from './state.js';
-import { roundRect, drawButton } from './helpers.js';
+import { roundRect, drawButton, drawPanel } from './helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
@@ -256,12 +256,7 @@ export function drawSettingsModal(buttons) {
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
 	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 
-	ctx.fillStyle = '#1a2535';
-	roundRect(p.x, p.y, p.w, p.h, 12);
-	ctx.fill();
-	ctx.strokeStyle = '#5dade2';
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(p.x, p.y, p.w, p.h, { radius: 12, stroke: '#5dade2' });
 
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'alphabetic';
@@ -286,12 +281,7 @@ const STD_BTN = { x: 110, y: 406, w: 140, h: 40 };
 function drawIntroBackdrop(panel, accent, dimAlpha = 0.65) {
 	ctx.fillStyle = `rgba(0, 0, 0, ${dimAlpha})`;
 	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-	ctx.fillStyle = '#1a2535';
-	roundRect(panel.x, panel.y, panel.w, panel.h, 12);
-	ctx.fill();
-	ctx.strokeStyle = accent;
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(panel.x, panel.y, panel.w, panel.h, { radius: 12, stroke: accent });
 }
 
 // 각 인트로: { key, panel, confirmBtn, draw }

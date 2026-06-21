@@ -4,7 +4,7 @@ import {
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY,
 } from './config.js';
 import { game, hasSeenIntro } from './state.js';
-import { distanceToPath, roundRect, drawCloseX, hitButton } from './helpers.js';
+import { distanceToPath, roundRect, drawCloseX, hitButton, drawPanel } from './helpers.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
@@ -912,14 +912,7 @@ function drawPromotionButton(t) {
 
 export function drawTowerInfoPanel(t) {
 	const cfg = TOWER_ROLES[t.role];
-	ctx.globalAlpha = 0.9;
-	ctx.fillStyle = '#1a2535';
-	roundRect(towerInfoPanel.x, towerInfoPanel.y, towerInfoPanel.w, towerInfoPanel.h, 10);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = cfg.color;
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(towerInfoPanel.x, towerInfoPanel.y, towerInfoPanel.w, towerInfoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
@@ -1057,14 +1050,7 @@ function towerDualCapable(cfg) {
 export function drawTowerSettingsCard(t) {
 	const cfg = TOWER_ROLES[t.role];
 	const p = towerInfoPanel;
-	ctx.globalAlpha = 0.9;
-	ctx.fillStyle = '#1a2535';
-	roundRect(p.x, p.y, p.w, p.h, 10);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = cfg.color;
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
@@ -1186,14 +1172,11 @@ function drawPromotionCard(slot, role, cost) {
 	const cfg = TOWER_ROLES[role];
 	const canAfford = game.gold >= cost;
 
-	ctx.globalAlpha = 0.95;
-	ctx.fillStyle = canAfford ? '#222d40' : '#1a1f28';
-	roundRect(slot.x, slot.y, slot.w, slot.h, 10);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = canAfford ? cfg.color : '#444';
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(slot.x, slot.y, slot.w, slot.h, {
+		fill: canAfford ? '#222d40' : '#1a1f28',
+		stroke: canAfford ? cfg.color : '#444',
+		alpha: 0.95,
+	});
 
 	drawTowerSprite(role, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
 
@@ -1221,14 +1204,11 @@ function drawTier4ResultCard(slot, role, cost) {
 	const cfg = TOWER_ROLES[role];
 	const canAfford = game.gold >= cost;
 
-	ctx.globalAlpha = 0.95;
-	ctx.fillStyle = canAfford ? '#222d40' : '#1a1f28';
-	roundRect(slot.x, slot.y, slot.w, slot.h, 10);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = canAfford ? cfg.color : '#444';
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(slot.x, slot.y, slot.w, slot.h, {
+		fill: canAfford ? '#222d40' : '#1a1f28',
+		stroke: canAfford ? cfg.color : '#444',
+		alpha: 0.95,
+	});
 
 	// 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
 	drawTowerSprite(role, slot.x + 42, slot.y + 42, { radius: 22 });
@@ -1284,14 +1264,9 @@ export function isTier4ChoiceContext(t) {
 }
 
 export function drawPromotionPanel(t) {
-	ctx.globalAlpha = 0.92;
-	ctx.fillStyle = '#0f1620';
-	roundRect(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, 12);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = '#f1c40f';
-	ctx.lineWidth = 2;
-	ctx.stroke();
+	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
+		radius: 12, fill: '#0f1620', stroke: '#f1c40f', alpha: 0.92,
+	});
 
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'alphabetic';

@@ -33,6 +33,19 @@ export function roundRect(x, y, w, h, r) {
 	ctx.closePath();
 }
 
+// 공용 패널 배경 — 둥근 사각형 채움 + 테두리 (카드·모달 공통).
+export function drawPanel(x, y, w, h, opts = {}) {
+	const { radius = 10, fill = '#1a2535', stroke = '#fff', lineWidth = 2, alpha = 1 } = opts;
+	ctx.globalAlpha = alpha;
+	ctx.fillStyle = fill;
+	roundRect(x, y, w, h, radius);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+	ctx.strokeStyle = stroke;
+	ctx.lineWidth = lineWidth;
+	ctx.stroke();
+}
+
 export function drawButton(btn, label, pressed) {
 	ctx.fillStyle = pressed ? '#922b1f' : '#c0392b';
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
