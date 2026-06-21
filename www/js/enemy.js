@@ -86,7 +86,7 @@ export function computeBaseHpAt(wave) {
 }
 
 export function computeBossHp(wave) {
-	const n = getEnemiesPerWaveAt(wave);
+	const n = Math.min(60, getEnemiesPerWaveAt(wave)); // 보스 HP 계산용 일반 적 수 상한
 	const baseHp = computeBaseHpAt(wave);
 	const airChance = getAirChance(wave);
 	const airHpRatio = getAirHpRatio(wave);
