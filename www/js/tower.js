@@ -1085,9 +1085,12 @@ export function drawTowerSettingsCard(t) {
 	if (towerDualCapable(cfg)) {
 		drawGaCell(SETTINGS_GA.ground, 'ground', t.canGround);
 		drawGaCell(SETTINGS_GA.air, 'air', t.canAir);
-		drawCellButton(SETTINGS_GA.sign);
+		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
 		const s = SETTINGS_GA.sign;
-		const sign = t.gaPriority === 'ground' ? '>' : t.gaPriority === 'air' ? '<' : '=';
+		const sweep = cfg.areaSweep;
+		const sign = sweep ? '=' : (t.gaPriority === 'ground' ? '>' : t.gaPriority === 'air' ? '<' : '=');
+		ctx.globalAlpha = sweep ? 0.45 : 1;
+		drawCellButton(s);
 		ctx.fillStyle = '#f1c40f';
 		ctx.font = 'bold 20px sans-serif';
 		ctx.textAlign = 'center';
@@ -1095,6 +1098,7 @@ export function drawTowerSettingsCard(t) {
 		ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
 		ctx.textBaseline = 'alphabetic';
 		ctx.textAlign = 'left';
+		ctx.globalAlpha = 1;
 	}
 
 	// 2순위 — 공통 표적 우선순위 (토글 버튼).
@@ -1162,7 +1166,7 @@ export function handleTowerSettingsTap(t, p) {
 			if (t.canAir) { if (t.canGround) t.canAir = false; } else t.canAir = true;
 			return true;
 		}
-		if (hitButton(SETTINGS_GA.sign, p)) {
+		if (!cfg.areaSweep && hitButton(SETTINGS_GA.sign, p)) {
 			// 지상 > 공중 > 동등 > 지상
 			t.gaPriority = t.gaPriority === 'ground' ? 'air' : t.gaPriority === 'air' ? 'equal' : 'ground';
 			return true;
