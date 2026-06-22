@@ -9,6 +9,7 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier, drawEnemySprite } from './enemy.js';
+import { t as tr } from './i18n.js'; // 이 파일은 타워 매개변수명이 t라 별칭 사용
 
 // ============ Promotion / XP helpers ============
 export function xpMaxFor(t) {
@@ -857,10 +858,10 @@ export function getPromotionButtonState(t) {
 
 	if (t.tier === 3) {
 		if (!ready) {
-			return { active: false, action: null, label: `전직 (XP ${t.xp} / ${xpMax})` };
+			return { active: false, action: null, label: tr('전직 (XP {xp} / {max})', { xp: t.xp, max: xpMax }) };
 		}
 		if (t === game.promotionTarget) {
-			return { active: true, action: 'cancelTarget', label: '대상 취소' };
+			return { active: true, action: 'cancelTarget', label: tr('대상 취소') };
 		}
 		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, t)) {
 			const afford = game.sandbox || game.gold >= cost;
@@ -868,20 +869,20 @@ export function getPromotionButtonState(t) {
 				active: afford,
 				action: afford ? 'openTier4Choice' : null,
 				label: afford
-					? `전직 (${cost.toLocaleString()}G)`
-					: `전직 (${cost.toLocaleString()}G · 골드 부족)`,
+					? tr('전직 ({cost}G)', { cost: cost.toLocaleString() })
+					: tr('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() }),
 			};
 		}
-		return { active: true, action: 'setTarget', label: '4티어 대상 지정' };
+		return { active: true, action: 'setTarget', label: tr('4티어 대상 지정') };
 	}
 
 	// t.tier < 3 — 기존 로직
 	const afford = canAffordPromotion(t);
 	const active = ready && afford;
 	let label;
-	if (!ready) label = `전직 (XP ${t.xp} / ${xpMax})`;
-	else if (!afford) label = `전직 (${cost.toLocaleString()}G · 골드 부족)`;
-	else label = `전직 (${cost.toLocaleString()}G)`;
+	if (!ready) label = tr('전직 (XP {xp} / {max})', { xp: t.xp, max: xpMax });
+	else if (!afford) label = tr('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
+	else label = tr('전직 ({cost}G)', { cost: cost.toLocaleString() });
 	return { active, action: active ? 'openTier3Choice' : null, label };
 }
 
@@ -938,12 +939,12 @@ export function drawTowerInfoPanel(t) {
 	const sx = towerInfoPanel.x + 14;
 	const sy = towerInfoPanel.y + 50;
 	const total = Math.round((t.totalDamage || 0) * 10) / 10;
-	const atkLabels = { ground: '지상', air: '공중' };
+	const atkLabels = { ground: tr('지상'), air: tr('공중') };
 	const hasAttack = (cfg.attackTypes || []).length > 0;
 	const activeTypes = [];
 	if (t.canGround) activeTypes.push('ground');
 	if (t.canAir) activeTypes.push('air');
-	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : '없음';
+	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : tr('없음');
 
 	if (hasAttack) {
 		const effDmg = getEffectiveDamage(t);
@@ -951,25 +952,25 @@ export function drawTowerInfoPanel(t) {
 		const dpsValue = Math.round(effDmg * t.fireRate * 10) / 10;
 		const dmgValue = Math.round(effDmg * 10) / 10;
 		const dmgStr = dmgBuffPct > 0
-			? `데미지: ${dmgValue} (+${dmgBuffPct}%, ${dpsValue}/초)`
-			: `데미지: ${t.damage} (${dpsValue}/초)`;
+			? tr('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
+			: tr('데미지: {dmg} ({dps}/초)', { dmg: t.damage, dps: dpsValue });
 		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(`발사속도: ${t.fireRate.toFixed(1)}/초`, sx, sy + 18);
+		ctx.fillText(tr('발사속도: {rate}/초', { rate: t.fireRate.toFixed(1) }), sx, sy + 18);
 	} else {
-		ctx.fillText('데미지: —', sx, sy);
-		ctx.fillText('발사속도: —', sx, sy + 18);
+		ctx.fillText(tr('데미지: —'), sx, sy);
+		ctx.fillText(tr('발사속도: —'), sx, sy + 18);
 	}
 
 	const effRange = getEffectiveRange(t);
 	const buffPct = effRange > t.range ? Math.round((effRange / t.range - 1) * 100) : 0;
 	const rangeStr = buffPct > 0
-		? `사거리: ${Math.round(effRange)} (+${buffPct}%)`
-		: `사거리: ${t.range}`;
+		? tr('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
+		: tr('사거리: {range}', { range: t.range });
 	ctx.fillText(rangeStr, sx + 160, sy);
-	ctx.fillText(`공격 대상: ${atkText}`, sx + 160, sy + 18);
+	ctx.fillText(tr('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
 	const wave = Math.round((t.waveDamage || 0) * 10) / 10;
-	ctx.fillText(`웨이브 누적 데미지: ${wave.toLocaleString()}`, sx, sy + 36);
-	ctx.fillText(`누적 데미지: ${total.toLocaleString()}`, sx + 160, sy + 36);
+	ctx.fillText(tr('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
+	ctx.fillText(tr('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 
 	if (canPromote(t)) {
 		const xpMax = xpMaxFor(t);
@@ -1027,7 +1028,7 @@ function drawGearButton(btn) {
 }
 
 // ---- 설정 카드 우선순위 컨트롤 ----
-const PRIORITY_LABELS = { closest: '가장 가까움', farthest: '가장 멈', strongest: '가장 강함', weakest: '가장 약함' };
+const PRIORITY_LABELS = { closest: tr('가장 가까움'), farthest: tr('가장 멈'), strongest: tr('가장 강함'), weakest: tr('가장 약함') };
 const PRIORITY_CYCLE = ['closest', 'farthest', 'strongest', 'weakest'];
 // 그리는 순서 = 타게팅 계산 순서: 지상/공중(1순위) 위, 공통 우선순위(2순위) 아래.
 // 지상/공중 행: [지상 스프라이트] [부등호] [공중 스프라이트] — 각 셀이 버튼.
@@ -1056,12 +1057,12 @@ export function drawTowerSettingsCard(t) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(`${cfg.name} 설정`, p.x + 14, p.y + 22);
+	ctx.fillText(tr('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
 
 	// 우선순위 영역
 	ctx.fillStyle = '#9ab';
 	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText('우선순위', p.x + 14, p.y + 46);
+	ctx.fillText(tr('우선순위'), p.x + 14, p.y + 46);
 
 	const ax = p.x + 14;
 	const ay = p.y + 54;
@@ -1076,7 +1077,7 @@ export function drawTowerSettingsCard(t) {
 		ctx.fillStyle = '#7a8a99';
 		ctx.font = '12px sans-serif';
 		ctx.textAlign = 'center';
-		ctx.fillText('공격하지 않는 타워', p.x + p.w / 2, ay + ah / 2 + 4);
+		ctx.fillText(tr('공격하지 않는 타워'), p.x + p.w / 2, ay + ah / 2 + 4);
 		ctx.textAlign = 'left';
 		return;
 	}
@@ -1110,7 +1111,7 @@ export function drawTowerSettingsCard(t) {
 		ctx.font = 'bold 13px sans-serif';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
-		ctx.fillText(`표적: ${PRIORITY_LABELS[t.targetPriority]}`, b.x + b.w / 2, b.y + b.h / 2);
+		ctx.fillText(tr('표적: {p}', { p: PRIORITY_LABELS[t.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
 		ctx.textBaseline = 'alphabetic';
 		ctx.textAlign = 'left';
 	}
@@ -1195,7 +1196,7 @@ function drawPromotionCard(slot, role, cost) {
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
-	ctx.fillText(`사거리 ${cfg.range}  ·  데미지 ${cfg.damage}  ·  속도 ${cfg.fireRate.toFixed(1)}/s`, slot.x + 68, slot.y + 56);
+	ctx.fillText(tr('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
 
 	ctx.fillStyle = '#8aa';
 	ctx.font = '11px sans-serif';
@@ -1237,7 +1238,7 @@ function drawTier4ResultCard(slot, role, cost) {
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
 	ctx.fillText(
-		`사거리 ${cfg.range}  ·  데미지 ${cfg.damage}  ·  속도 ${cfg.fireRate.toFixed(1)}/s`,
+		tr('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
 		slot.x + 80, slot.y + 54,
 	);
 
@@ -1279,7 +1280,7 @@ export function drawPromotionPanel(t) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#f1c40f';
 	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText('전직 가능!', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
+	ctx.fillText(tr('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
 	const tier4 = isTier4ChoiceContext(t);
 	const cost = promotionCostFor(t);
@@ -1291,13 +1292,13 @@ export function drawPromotionPanel(t) {
 		const fromCfg = TOWER_ROLES[t.role];
 		const toCfg = TOWER_ROLES[recipe.result];
 		ctx.fillText(
-			`${fromCfg.name} 타워가 ${toCfg.name} 타워로 전직됩니다`,
+			tr('{from} 타워가 {to} 타워로 전직됩니다', { from: fromCfg.name, to: toCfg.name }),
 			promotionPanel.x + promotionPanel.w / 2,
 			promotionPanel.y + 48,
 		);
 		drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost);
 	} else {
-		ctx.fillText('역할을 선택하세요', promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+		ctx.fillText(tr('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
 		const promotions = TOWER_ROLES[t.role].promotions;
 		for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
 			drawPromotionCard(promotionCardSlots[i], promotions[i], cost);

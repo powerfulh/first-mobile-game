@@ -13,6 +13,7 @@ import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
 import { canCallExtraWave } from './wave.js';
+import { t } from './i18n.js';
 
 // ============ HUD ============
 export function updateHUD() {
@@ -194,7 +195,7 @@ export function drawPausedOverlay() {
 	ctx.textBaseline = 'middle';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText('⏸  일시정지', LOGICAL_W / 2, 76);
+	ctx.fillText(t('⏸  일시정지'), LOGICAL_W / 2, 76);
 	ctx.textBaseline = 'alphabetic';
 }
 
@@ -301,7 +302,7 @@ function drawVolumeSliders(sliderCy) {
 		ctx.textAlign = 'left';
 		ctx.textBaseline = 'middle';
 		ctx.fillStyle = '#cdd';
-		ctx.fillText(sl.label, 44, cy);
+		ctx.fillText(t(sl.label), 44, cy);
 
 		// 트랙 배경 + 채움
 		ctx.lineCap = 'round';
@@ -373,7 +374,7 @@ function drawSettingsCheckboxes(checkboxY) {
 		ctx.font = '14px sans-serif';
 		ctx.textAlign = 'left';
 		ctx.textBaseline = 'middle';
-		ctx.fillText(c.label, bx + box + 10, rowY + CHECKBOX_H / 2);
+		ctx.fillText(t(c.label), bx + box + 10, rowY + CHECKBOX_H / 2);
 	});
 	ctx.textBaseline = 'alphabetic';
 }
@@ -406,16 +407,16 @@ export function drawSettingsModal(buttons) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 22px sans-serif';
-	ctx.fillText('설정', LOGICAL_W / 2, titleY);
+	ctx.fillText(t('설정'), LOGICAL_W / 2, titleY);
 
 	drawVolumeSliders(sliderCy);
 	drawSettingsCheckboxes(checkboxY);
 
-	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], buttons[i].label);
+	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], t(buttons[i].label));
 
 	ctx.fillStyle = '#9ab';
 	ctx.font = '12px sans-serif';
-	ctx.fillText('이전 버튼을 눌러 닫습니다', LOGICAL_W / 2, guideY);
+	ctx.fillText(t('이전 버튼을 눌러 닫습니다'), LOGICAL_W / 2, guideY);
 }
 
 // ============ Intro modals ============
@@ -523,12 +524,12 @@ function makeIntro(opts) {
 			ctx.textBaseline = 'alphabetic';
 			ctx.fillStyle = titleColor;
 			ctx.font = `bold ${titleSize}px sans-serif`;
-			ctx.fillText(title, cx, panel.y + titleY);
+			ctx.fillText(t(title), cx, panel.y + titleY);
 			ctx.fillStyle = lineColor;
 			ctx.font = `${lineSize}px sans-serif`;
-			lines.forEach((line, i) => ctx.fillText(line, cx, panel.y + lineStart + i * lineGap));
+			lines.forEach((line, i) => ctx.fillText(t(line), cx, panel.y + lineStart + i * lineGap));
 			if (drawExtra) drawExtra(panel, cx);
-			drawButton(confirmBtn, '확인');
+			drawButton(confirmBtn, t('확인'));
 		},
 	};
 }
@@ -579,9 +580,9 @@ export const INTRO_MODALS = {
 		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#f5d76e';
 			ctx.font = 'bold 13px sans-serif';
-			ctx.fillText('① 한 타워의 "4티어 대상 지정"', cx, p.y + 180);
-			ctx.fillText('② 레시피 짝 타워에서 "전직"', cx, p.y + 200);
-			ctx.fillText('③ 대상 타워는 소모, 짝 타워가 4티어로 전직', cx, p.y + 220);
+			ctx.fillText(t('① 한 타워의 "4티어 대상 지정"'), cx, p.y + 180);
+			ctx.fillText(t('② 레시피 짝 타워에서 "전직"'), cx, p.y + 200);
+			ctx.fillText(t('③ 대상 타워는 소모, 짝 타워가 4티어로 전직'), cx, p.y + 220);
 		},
 	}),
 
@@ -610,8 +611,8 @@ export const INTRO_MODALS = {
 		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#f39c12';
 			ctx.font = 'bold 13px sans-serif';
-			ctx.fillText('• 병렬로 부른 웨이브는 저장되지 않습니다.', cx, p.y + 202);
-			ctx.fillText('• 적이 겹쳐 방어 부담이 큽니다. 신중히!', cx, p.y + 226);
+			ctx.fillText(t('• 병렬로 부른 웨이브는 저장되지 않습니다.'), cx, p.y + 202);
+			ctx.fillText(t('• 적이 겹쳐 방어 부담이 큽니다. 신중히!'), cx, p.y + 226);
 		},
 	}),
 };

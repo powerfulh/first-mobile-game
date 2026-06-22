@@ -5,6 +5,7 @@ import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
 import { drawEnemySprite } from './enemy.js';
 import { playButton } from './sfx.js';
+import { t } from './i18n.js';
 
 // ============ 레이아웃 ============
 const HEADER_H = 60;
@@ -87,6 +88,14 @@ const ENEMY_ENTRIES = [
 		],
 	},
 ];
+
+// 위키 표시 텍스트 다국어화 — 정의 직후 1회 변환. (타워명/태그라인/설명은 config.js에서 변환됨)
+for (const g of TOWER_GROUPS) g.label = t(g.label);
+for (const e of ENEMY_ENTRIES) {
+	e.name = t(e.name);
+	if (e.tagline) e.tagline = t(e.tagline);
+	if (e.description) e.description = e.description.map(line => t(line));
+}
 
 // ============ 씬 상태 ============
 export const wiki = {
@@ -213,8 +222,8 @@ function drawHeader() {
 	ctx.fillText('◀', backBtn.x + backBtn.w / 2, backBtn.y + backBtn.h / 2);
 	ctx.textBaseline = 'alphabetic';
 
-	drawTab(tabTower, '타워', wiki.category === 'tower');
-	drawTab(tabEnemy, '적', wiki.category === 'enemy');
+	drawTab(tabTower, t('타워'), wiki.category === 'tower');
+	drawTab(tabEnemy, t('적'), wiki.category === 'enemy');
 }
 
 function drawTab(btn, label, active) {
@@ -270,7 +279,7 @@ function drawTowerCategory(y) {
 }
 
 function drawEnemyCategory(y) {
-	y = drawGroupHeader(y, '적 명단');
+	y = drawGroupHeader(y, t('적 명단'));
 	for (const entry of ENEMY_ENTRIES) {
 		const key = 'enemy:' + entry.key;
 		const expanded = wiki.expandedKey === key;
@@ -421,20 +430,20 @@ function drawTowerDetail(y, role, cfg) {
 	ctx.fillStyle = '#cdd';
 	ctx.font = '12px sans-serif';
 
-	const atkLabels = { ground: '지상', air: '공중' };
+	const atkLabels = { ground: t('지상'), air: t('공중') };
 	const attackTypes = cfg.attackTypes || [];
 	const atkText = attackTypes.length > 0
 		? attackTypes.map(a => atkLabels[a] || a).join('/')
-		: '없음';
+		: t('없음');
 
 	const statLines = [];
-	statLines.push(`사거리 ${cfg.range}${cfg.minRange ? `  (최소 ${cfg.minRange})` : ''}`);
+	statLines.push(t('사거리 {range}', { range: cfg.range }) + (cfg.minRange ? t('  (최소 {min})', { min: cfg.minRange }) : ''));
 	if (attackTypes.length > 0) {
-		statLines.push(`데미지 ${cfg.damage}  ·  공속 ${cfg.fireRate}/s`);
+		statLines.push(t('데미지 {dmg}  ·  공속 {rate}/s', { dmg: cfg.damage, rate: cfg.fireRate }));
 	} else {
-		statLines.push('데미지 — · 공속 —');
+		statLines.push(t('데미지 — · 공속 —'));
 	}
-	statLines.push(`공격 대상: ${atkText}${cfg.splash ? `  (광역 ${cfg.splash})` : ''}`);
+	statLines.push(t('공격 대상: {types}', { types: atkText }) + (cfg.splash ? t('  (광역 {n})', { n: cfg.splash }) : ''));
 
 	for (const line of statLines) {
 		ctx.fillText(line, 18, cy);
@@ -488,23 +497,23 @@ function describeLineage(role) {
 		const parentB = info.partner;
 		const nameA = TOWER_ROLES[parentA]?.name || parentA;
 		const nameB = TOWER_ROLES[parentB]?.name || parentB;
-		return `합체 레시피: ${nameA} + ${nameB}`;
+		return t('합체 레시피: {a} + {b}', { a: nameA, b: nameB });
 	}
 
 	const parts = [];
 	if (parents.length > 0) {
 		const names = parents.map(r => TOWER_ROLES[r]?.name || r).join(', ');
-		parts.push(`전직 전: ${names}`);
+		parts.push(t('전직 전: {names}', { names }));
 	}
 	const promotions = TOWER_ROLES[role]?.promotions || [];
 	if (promotions.length > 0) {
 		const names = promotions.map(r => TOWER_ROLES[r]?.name || r).join(', ');
-		parts.push(`전직 후보: ${names}`);
+		parts.push(t('전직 후보: {names}', { names }));
 	}
 	if (tier4Recipe) {
 		const partnerName = TOWER_ROLES[tier4Recipe.partner]?.name || tier4Recipe.partner;
 		const resultName = TOWER_ROLES[tier4Recipe.result]?.name || tier4Recipe.result;
-		parts.push(`4티어 합체: + ${partnerName} → ${resultName}`);
+		parts.push(t('4티어 합체: + {p} → {r}', { p: partnerName, r: resultName }));
 	}
 	return parts.join('   |   ');
 }

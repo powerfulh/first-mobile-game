@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 export const LOGICAL_W = 360;
 export const LOGICAL_H = 640;
 
@@ -215,6 +217,14 @@ export const TOWER_ROLES = {
 		],
 	},
 };
+
+// 타워 표시 텍스트 다국어화 — 정의 직후 1회 변환 (en이면 영어로, ko면 그대로).
+for (const role in TOWER_ROLES) {
+	const r = TOWER_ROLES[role];
+	r.name = t(r.name);
+	if (r.tagline) r.tagline = t(r.tagline);
+	if (r.description) r.description = r.description.map(line => t(line));
+}
 
 export const TARGET_PRIORITY = ['air', 'ground'];
 
