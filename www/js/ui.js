@@ -203,30 +203,52 @@ export function drawPausedOverlay() {
 // 호출자가 buttons 배열을 넘김 — 각 { label, action }. 버튼 위치/패널 높이는
 // settingsLayout이 버튼 개수에 맞춰 계산 (씬의 hit-test도 동일 함수 사용).
 // 하단 가이드 문구는 모달 소스에 고정.
-const SETTINGS_BTN = { x: 80, w: 200, h: 50, gap: 12, top: 420 }; // 체크박스 2줄 자리 확보로 내림
-const SETTINGS_PANEL = { x: 30, y: 210, w: 300 };
+const SETTINGS_PANEL = { x: 30, w: 300 };
+const SETTINGS_BTN = { x: 80, w: 200, h: 50, gap: 12 };
+// panel.y(상단) 기준 내부 세로 오프셋 — 콘텐츠를 모두 패널 상대 배치해 세로 중앙 정렬 가능.
+const SETTINGS_DY = {
+	title: 48,
+	sliderTop: 90, sliderGap: 30,
+	checkboxTop: 140, checkboxGap: 30,
+	btnTop: 210, bottomPad: 40,
+};
 
+// 마지막으로 그린 레이아웃 — 씬에서 위임하는 hit-test(슬라이더/체크박스)가 공유.
+let settingsHitLayout = null;
+
+// 버튼 개수로 패널 높이를 정하고 화면 세로 중앙에 배치. 콘텐츠 좌표는 panel.y 기준 상대.
 export function settingsLayout(count) {
+	const D = SETTINGS_DY;
+	const lastBtnBottomDY = count
+		? D.btnTop + (count - 1) * (SETTINGS_BTN.h + SETTINGS_BTN.gap) + SETTINGS_BTN.h
+		: D.btnTop;
+	const h = lastBtnBottomDY + D.bottomPad;
+	const y = Math.round((LOGICAL_H - h) / 2);
+	const panel = { x: SETTINGS_PANEL.x, y, w: SETTINGS_PANEL.w, h };
 	const btns = [];
 	for (let i = 0; i < count; i++) {
 		btns.push({
 			x: SETTINGS_BTN.x,
-			y: SETTINGS_BTN.top + i * (SETTINGS_BTN.h + SETTINGS_BTN.gap),
+			y: y + D.btnTop + i * (SETTINGS_BTN.h + SETTINGS_BTN.gap),
 			w: SETTINGS_BTN.w,
 			h: SETTINGS_BTN.h,
 		});
 	}
-	const lastBottom = count ? btns[count - 1].y + SETTINGS_BTN.h : SETTINGS_BTN.top;
-	const panel = { ...SETTINGS_PANEL, h: lastBottom + 40 - SETTINGS_PANEL.y };
-	return { panel, btns, guideY: panel.y + panel.h - 16 };
+	return {
+		panel, btns,
+		titleY: y + D.title,
+		sliderCy: SLIDERS.map((_, i) => y + D.sliderTop + i * D.sliderGap),
+		checkboxY: SETTINGS_CHECKBOXES.map((_, i) => y + D.checkboxTop + i * D.checkboxGap),
+		guideY: y + h - 16,
+	};
 }
 
 // ---- 볼륨 슬라이더 (배경음 / 효과음 마스터 분리) ----
 // 가로 1줄 레이아웃: 라벨(왼쪽) · 트랙 · % (오른쪽). 각 슬라이더는 get/set로 연결.
 const SLIDER_TRACK = { x: 108, w: 150, knobR: 9 };
 const SLIDERS = [
-	{ label: '배경음', cy: 300, get: getBgmVolume, set: setBgmVolume },
-	{ label: '효과음', cy: 330, get: getSfxVolume, set: setSfxVolume },
+	{ label: '배경음', get: getBgmVolume, set: setBgmVolume },
+	{ label: '효과음', get: getSfxVolume, set: setSfxVolume },
 ];
 let activeSlider = -1; // 드래그 중인 슬라이더 인덱스 (-1 = 없음)
 
@@ -237,10 +259,12 @@ function sliderValueFromX(px) {
 
 // 포인터가 어느 슬라이더 트랙 위인지 반환 (없으면 -1)
 function hitSlider(p) {
+	if (!settingsHitLayout) return -1;
 	const s = SLIDER_TRACK;
 	if (p.x < s.x - 22 || p.x > s.x + s.w + 22) return -1;
+	const ys = settingsHitLayout.sliderCy;
 	for (let i = 0; i < SLIDERS.length; i++) {
-		if (Math.abs(p.y - SLIDERS[i].cy) <= 14) return i;
+		if (Math.abs(p.y - ys[i]) <= 14) return i;
 	}
 	return -1;
 }
@@ -265,10 +289,11 @@ export function volumePointerUp() {
 	return was;
 }
 
-function drawVolumeSliders() {
+function drawVolumeSliders(sliderCy) {
 	const tr = SLIDER_TRACK;
-	for (const sl of SLIDERS) {
+	SLIDERS.forEach((sl, i) => {
 		const v = sl.get();
+		const cy = sliderCy[i];
 		const knobX = tr.x + v * tr.w;
 
 		// 라벨 (왼쪽)
@@ -276,27 +301,27 @@ function drawVolumeSliders() {
 		ctx.textAlign = 'left';
 		ctx.textBaseline = 'middle';
 		ctx.fillStyle = '#cdd';
-		ctx.fillText(sl.label, 44, sl.cy);
+		ctx.fillText(sl.label, 44, cy);
 
 		// 트랙 배경 + 채움
 		ctx.lineCap = 'round';
 		ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
 		ctx.lineWidth = 4;
 		ctx.beginPath();
-		ctx.moveTo(tr.x, sl.cy);
-		ctx.lineTo(tr.x + tr.w, sl.cy);
+		ctx.moveTo(tr.x, cy);
+		ctx.lineTo(tr.x + tr.w, cy);
 		ctx.stroke();
 		ctx.strokeStyle = '#5dade2';
 		ctx.beginPath();
-		ctx.moveTo(tr.x, sl.cy);
-		ctx.lineTo(knobX, sl.cy);
+		ctx.moveTo(tr.x, cy);
+		ctx.lineTo(knobX, cy);
 		ctx.stroke();
 		ctx.lineCap = 'butt';
 
 		// 노브
 		ctx.fillStyle = '#fff';
 		ctx.beginPath();
-		ctx.arc(knobX, sl.cy, tr.knobR, 0, Math.PI * 2);
+		ctx.arc(knobX, cy, tr.knobR, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.strokeStyle = '#5dade2';
 		ctx.lineWidth = 2;
@@ -306,8 +331,8 @@ function drawVolumeSliders() {
 		ctx.fillStyle = '#9ab';
 		ctx.font = '11px sans-serif';
 		ctx.textAlign = 'right';
-		ctx.fillText(`${Math.round(v * 100)}%`, tr.x + tr.w + 40, sl.cy);
-	}
+		ctx.fillText(`${Math.round(v * 100)}%`, tr.x + tr.w + 40, cy);
+	});
 	ctx.textBaseline = 'alphabetic';
 }
 
@@ -315,20 +340,17 @@ function drawVolumeSliders() {
 // 공통 x/폭/높이 + 줄마다 y. get/set로 각 선호값 연결 (체크=on).
 const CHECKBOX_X = 80, CHECKBOX_W = 200, CHECKBOX_H = 26, CHECKBOX_BOX = 20;
 const SETTINGS_CHECKBOXES = [
-	{ label: '원터치 배치', y: 350, get: getOneTouchPlace, set: setOneTouchPlace },
-	{ label: '웨이브 간 인터미션', y: 380, get: getIntermissionEnabled, set: setIntermissionEnabled },
+	{ label: '원터치 배치', get: getOneTouchPlace, set: setOneTouchPlace },
+	{ label: '웨이브 간 인터미션', get: getIntermissionEnabled, set: setIntermissionEnabled },
 ];
 
-function checkboxRect(c) {
-	return { x: CHECKBOX_X, y: c.y, w: CHECKBOX_W, h: CHECKBOX_H };
-}
-
-function drawSettingsCheckboxes() {
+function drawSettingsCheckboxes(checkboxY) {
 	const box = CHECKBOX_BOX;
-	for (const c of SETTINGS_CHECKBOXES) {
+	SETTINGS_CHECKBOXES.forEach((c, i) => {
 		const on = c.get();
+		const rowY = checkboxY[i];
 		const bx = CHECKBOX_X;
-		const by = c.y + (CHECKBOX_H - box) / 2;
+		const by = rowY + (CHECKBOX_H - box) / 2;
 		ctx.fillStyle = on ? '#5dade2' : '#2c3e50';
 		roundRect(bx, by, box, box, 4);
 		ctx.fill();
@@ -351,16 +373,19 @@ function drawSettingsCheckboxes() {
 		ctx.font = '14px sans-serif';
 		ctx.textAlign = 'left';
 		ctx.textBaseline = 'middle';
-		ctx.fillText(c.label, bx + box + 10, c.y + CHECKBOX_H / 2);
-	}
+		ctx.fillText(c.label, bx + box + 10, rowY + CHECKBOX_H / 2);
+	});
 	ctx.textBaseline = 'alphabetic';
 }
 
-// 체크박스 탭 처리 — 소비 시 true (설정 모달 열린 씬이 위임).
+// 체크박스 탭 처리 — 소비 시 true (설정 모달 열린 씬이 위임). y는 마지막 그린 레이아웃 기준.
 export function settingsCheckboxTap(p) {
-	for (const c of SETTINGS_CHECKBOXES) {
-		if (hitButton(checkboxRect(c), p)) {
-			c.set(!c.get());
+	if (!settingsHitLayout) return false;
+	const ys = settingsHitLayout.checkboxY;
+	for (let i = 0; i < SETTINGS_CHECKBOXES.length; i++) {
+		const rect = { x: CHECKBOX_X, y: ys[i], w: CHECKBOX_W, h: CHECKBOX_H };
+		if (hitButton(rect, p)) {
+			SETTINGS_CHECKBOXES[i].set(!SETTINGS_CHECKBOXES[i].get());
 			return true;
 		}
 	}
@@ -368,7 +393,9 @@ export function settingsCheckboxTap(p) {
 }
 
 export function drawSettingsModal(buttons) {
-	const { panel: p, btns, guideY } = settingsLayout(buttons.length);
+	const layout = settingsLayout(buttons.length);
+	settingsHitLayout = layout; // 씬 hit-test(슬라이더/체크박스) 공유용
+	const { panel: p, btns, guideY, titleY, sliderCy, checkboxY } = layout;
 
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
 	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
@@ -379,10 +406,10 @@ export function drawSettingsModal(buttons) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 22px sans-serif';
-	ctx.fillText('설정', LOGICAL_W / 2, p.y + 48);
+	ctx.fillText('설정', LOGICAL_W / 2, titleY);
 
-	drawVolumeSliders();
-	drawSettingsCheckboxes();
+	drawVolumeSliders(sliderCy);
+	drawSettingsCheckboxes(checkboxY);
 
 	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], buttons[i].label);
 
