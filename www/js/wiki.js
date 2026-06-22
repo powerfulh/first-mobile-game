@@ -451,12 +451,14 @@ function drawTowerDetail(y, role, cfg) {
 	}
 	cy += 4;
 
-	// 전직 관계
-	const lineage = describeLineage(role);
-	if (lineage) {
+	// 전직 관계 — 각 항목(전직 전/후보 등)을 한 줄씩
+	const lineageLines = describeLineage(role);
+	if (lineageLines.length > 0) {
 		ctx.fillStyle = '#9ab39a';
-		ctx.fillText(lineage, 18, cy);
-		cy += 17;
+		for (const ln of lineageLines) {
+			ctx.fillText(ln, 18, cy);
+			cy += 17;
+		}
 	}
 
 	// 상세 설명 (description)
@@ -497,7 +499,7 @@ function describeLineage(role) {
 		const parentB = info.partner;
 		const nameA = TOWER_ROLES[parentA]?.name || parentA;
 		const nameB = TOWER_ROLES[parentB]?.name || parentB;
-		return t('합체 레시피: {a} + {b}', { a: nameA, b: nameB });
+		return [t('합체 레시피: {a} + {b}', { a: nameA, b: nameB })];
 	}
 
 	const parts = [];
@@ -515,7 +517,7 @@ function describeLineage(role) {
 		const resultName = TOWER_ROLES[tier4Recipe.result]?.name || tier4Recipe.result;
 		parts.push(t('4티어 합체: + {p} → {r}', { p: partnerName, r: resultName }));
 	}
-	return parts.join('   |   ');
+	return parts;
 }
 
 // 단순 단어 wrap (한글에선 글자 단위 분할이 자연스러우니 글자 너비 측정 기반)
@@ -600,7 +602,7 @@ function measureTowerDetailH(role, cfg) {
 	// drawTowerDetail의 cy 계산 흐름과 일치해야 함
 	let cy = DETAIL_TOP_PAD;
 	cy += 17 * 3 + 4; // stat 3줄
-	if (describeLineage(role)) cy += 17;
+	cy += describeLineage(role).length * 17; // 전직 관계 — 항목당 1줄
 	const desc = cfg.description || [];
 	if (desc.length > 0) {
 		cy += 4;
