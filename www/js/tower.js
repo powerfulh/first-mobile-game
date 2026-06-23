@@ -517,6 +517,7 @@ function drawSupportBody(t, cfg, selected) {
 	ctx.globalAlpha = 0.35 + 0.3 * pulse;
 	ctx.strokeStyle = cfg.color;
 	ctx.lineWidth = 2;
+	ctx.lineCap = 'butt'; // 외부(빔/전기 효과)에서 누수된 lineCap이 점선 대시 끝 모양에 영향 주지 않도록 명시
 	ctx.setLineDash([4, 3]);
 	ctx.beginPath();
 	ctx.arc(t.x, t.y, r + 7, 0, Math.PI * 2);
