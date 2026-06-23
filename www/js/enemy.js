@@ -86,7 +86,7 @@ export function computeBaseHpAt(wave) {
 }
 
 export function computeBossHp(wave) {
-	const n = Math.min(60, getEnemiesPerWaveAt(wave)); // 보스 HP 계산용 일반 적 수 상한
+	const n = Math.min(70, getEnemiesPerWaveAt(wave)); // 보스 HP 계산용 일반 적 수 상한 260623 땡트랩으로 200이 뚫리길래 너무 약하다 싶어서 70
 	const baseHp = computeBaseHpAt(wave);
 	const airChance = getAirChance(wave);
 	const airHpRatio = getAirHpRatio(wave);
