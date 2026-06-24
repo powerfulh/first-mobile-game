@@ -1,11 +1,11 @@
-import { ctx } from './canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES } from './config.js';
-import { roundRect, hitButton } from './helpers.js';
+import { ctx } from './core/canvas.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES } from './core/config.js';
+import { roundRect, hitButton } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
 import { drawEnemySprite } from './enemy.js';
 import { playButton } from './sfx.js';
-import { t } from './i18n.js';
+import { t } from './core/i18n.js';
 
 // ============ 레이아웃 ============
 const HEADER_H = 60;

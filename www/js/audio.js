@@ -4,7 +4,7 @@
 //   - 그래도 막히는 환경(데스크탑 브라우저 등)에서는 play() 실패를 잡아
 //     첫 사용자 제스처(pointerdown/keydown)에서 재시도 (폴백)
 // 볼륨은 0~1 (0이면 무음). 설정 모달의 배경음 슬라이더가 setBgmVolume으로 조절.
-import { BGM_VOLUME_KEY } from './config.js';
+import { BGM_VOLUME_KEY } from './core/config.js';
 
 const tracks = {
 	normal: new Audio('assets/audio/bgm.mp3'),

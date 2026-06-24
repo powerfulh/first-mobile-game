@@ -1,10 +1,10 @@
-import { ctx } from './canvas.js';
+import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, path, REGEN_HEAL_RATE, BARRIER_RADIUS,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
-} from './config.js';
+} from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { roundRect, pointToSegmentDist } from './helpers.js';
+import { roundRect, pointToSegmentDist } from './core/helpers.js';
 import { getEnemySpeedFactor } from './tower.js';
 import { getNarrowRange } from './wave.js';
 

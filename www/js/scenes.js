@@ -1,14 +1,14 @@
-import { ctx, hudEl } from './canvas.js';
+import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL,
-} from './config.js';
+} from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
 	hasSeenIntro, setIntroSeen, resetLocalData, getOneTouchPlace,
 	getIntermissionEnabled,
 } from './state.js';
-import { roundRect, drawButton, hitButton, drawPath } from './helpers.js';
+import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
 	updateBarrierSpawnFx, drawBarrierSpawnFx,
@@ -27,7 +27,7 @@ import {
 	drawProjectile, drawBeam, drawSplash, drawZap,
 } from './attack.js';
 import { startNextWave, setupWave, callExtraWave, canCallExtraWave, extraWaveBossBlocked } from './wave.js';
-import { t as tr } from './i18n.js'; // 이 파일은 타워 루프 변수명이 t라 별칭 사용
+import { t as tr } from './core/i18n.js'; // 이 파일은 타워 루프 변수명이 t라 별칭 사용
 import {
 	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,

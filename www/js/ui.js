@@ -1,19 +1,19 @@
-import { ctx, hpEl, goldEl, waveEl } from './canvas.js';
+import { ctx, hpEl, goldEl, waveEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
-} from './config.js';
+} from './core/config.js';
 import {
 	game, getOneTouchPlace, setOneTouchPlace,
 	getIntermissionEnabled, setIntermissionEnabled, hasSeenIntro,
 } from './state.js';
-import { roundRect, drawButton, drawPanel, hitButton } from './helpers.js';
+import { roundRect, drawButton, drawPanel, hitButton } from './core/helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
 import { canCallExtraWave } from './wave.js';
-import { t } from './i18n.js';
+import { t } from './core/i18n.js';
 
 // ============ HUD ============
 export function updateHUD() {
