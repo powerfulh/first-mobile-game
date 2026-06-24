@@ -23,9 +23,10 @@ export const game = {
 	splashes: [],
 	zaps: [],
 	barrierSpawnFx: [],
-	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개). reset/loadGame 에서 재구성.
-	// 각 스포너가 자기 spawnTimer/spawnedThisWave/spawnInterval/enemiesPerWave 보유 — 자기 적 소멸 시 개별 제거(완료 추적).
-	waves: [{ wave: 1, spawnInterval: 1.2, spawnTimer: 0, spawnedThisWave: 0, enemiesPerWave: 8, isBoss: false }],
+	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개).
+	// 초기엔 빈 배열 — 게임 시작 시 resetGame/loadGame/setupWave가 채움 (그 전엔 활성 스포너 없음).
+	// 각 스포너가 자기 wave/spawnTimer/spawnedThisWave/spawnInterval/enemiesPerWave/isBoss 보유 — 자기 적 소멸 시 개별 제거(완료 추적).
+	waves: [],
 	waveFrontier: 1, // 이번 배치에서 호출된 최고 웨이브 번호 (다음 추가/진행 기준)
 	waveState: 'spawning',
 	intermissionTimer: 0,
