@@ -3,6 +3,9 @@ import { t } from './i18n.js';
 export const LOGICAL_W = 360;
 export const LOGICAL_H = 640;
 
+// 새 게임 시작 시 플레이어 초기 자원 — game 객체 초기 정의와 resetGame의 단일 출처.
+export const INITIAL = { hp: 20, gold: 100 };
+
 export const path = [
 	{ x: 60, y: 0 },
 	{ x: 60, y: 150 },

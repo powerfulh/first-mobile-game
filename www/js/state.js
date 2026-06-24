@@ -3,15 +3,14 @@ import {
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
-	TOWER_ROLES,
+	TOWER_ROLES, INITIAL,
 } from './config.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';
 
 export const game = {
-	hp: 20,
-	gold: 100,
+	...INITIAL, // hp, gold
 	wave: 1,
 	// 게임 월드 엔티티 — 타워/적/발사체를 한 객체로 묶음 (beams/splashes/zaps 등 일시적 시각 효과는 별도 평면 속성).
 	entities: {
@@ -63,8 +62,7 @@ function persistBestWave(wave) {
 }
 
 export function resetGame() {
-	game.hp = 20;
-	game.gold = 100;
+	Object.assign(game, INITIAL); // hp, gold
 	game.wave = 1;
 	game.entities.enemies = [];
 	game.entities.towers = [];
