@@ -36,7 +36,7 @@ export const game = {
 	modal: null,
 	paused: false,
 	holdDelete: null,
-	settingsOpen: false,
+	settingsOpen: false, // 가장 권력있는 모달, `modal` 에 인트로 중이여도 이전 버튼으로 여전히 띄울 수 있음
 	sandbox: false,
 	sandboxShieldsEnabled: true,
 	toast: null,
