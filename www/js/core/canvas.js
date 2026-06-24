@@ -1,7 +1,7 @@
 import { LOGICAL_W, LOGICAL_H } from './config.js';
 
-export const canvas = document.getElementById('game');
-export const ctx = canvas.getContext('2d');
+export const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game'));
+export const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 export const hpEl = document.getElementById('hp');
 export const goldEl = document.getElementById('gold');
 export const waveEl = document.getElementById('wave');
