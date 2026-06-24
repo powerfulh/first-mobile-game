@@ -245,8 +245,8 @@ function enterSandbox() {
 
 // 샌드박스 — 임의 웨이브로 점프 (현재 진행 클리어)
 function jumpToWave(targetWave) {
-	game.enemies = [];
-	game.projectiles = [];
+	game.entities.enemies = [];
+	game.entities.projectiles = [];
 	game.beams = [];
 	game.splashes = [];
 	game.zaps = [];
@@ -273,7 +273,7 @@ function deselectTower() {
 
 // 좌표에 타워가 있으면 그 타워로 선택 전환(카드 닫음) 후 true, 없으면 false.
 function selectTowerAt(p) {
-	for (const t of game.towers) {
+	for (const t of game.entities.towers) {
 		if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
 			game.selectedTower = t;
 			game.promotionChoiceOpen = false;
@@ -353,7 +353,7 @@ scenes.playing = {
 			game.holdDelete.accumulated += dt;
 			if (game.holdDelete.accumulated >= HOLD_DELETE_SECONDS) {
 				const dead = game.holdDelete.tower;
-				game.towers = game.towers.filter(x => x !== dead);
+				game.entities.towers = game.entities.towers.filter(x => x !== dead);
 				if (game.selectedTower === dead) {
 					game.selectedTower = null;
 					game.promotionChoiceOpen = false;
@@ -382,16 +382,16 @@ scenes.playing = {
 			}
 		}
 
-		for (const e of game.enemies) updateEnemy(e, dt);
-		for (const t of game.towers) updateTower(t, dt);
-		for (const p of game.projectiles) updateProjectile(p, dt);
+		for (const e of game.entities.enemies) updateEnemy(e, dt);
+		for (const t of game.entities.towers) updateTower(t, dt);
+		for (const p of game.entities.projectiles) updateProjectile(p, dt);
 		for (const b of game.beams) updateBeam(b, dt);
 		for (const s of game.splashes) updateSplash(s, dt);
 		for (const z of game.zaps) updateZap(z, dt);
 		for (const fx of game.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
 
-		game.enemies = game.enemies.filter(e => !e.dead);
-		game.projectiles = game.projectiles.filter(p => !p.dead);
+		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
+		game.entities.projectiles = game.entities.projectiles.filter(p => !p.dead);
 		game.beams = game.beams.filter(b => !b.dead);
 		game.splashes = game.splashes.filter(s => !s.dead);
 		game.zaps = game.zaps.filter(z => !z.dead);
@@ -400,9 +400,9 @@ scenes.playing = {
 		let batchEnded = false;
 		if (game.waveState === 'spawning') {
 			if (game.bossActive) {
-				if (!game.enemies.some(e => e.isBoss)) {
+				if (!game.entities.enemies.some(e => e.isBoss)) {
 					game.bossActive = false;
-					game.enemies = [];
+					game.entities.enemies = [];
 					game.waves = [];
 				}
 			} else {
@@ -413,7 +413,7 @@ scenes.playing = {
 				while (game.waves.length > 0) {
 					const sp = game.waves[0];
 					const done = sp.spawnedThisWave >= sp.enemiesPerWave
-						&& !game.enemies.some(e => !e.isBarrier && e.waveNum === sp.wave);
+						&& !game.entities.enemies.some(e => !e.isBarrier && e.waveNum === sp.wave);
 					if (!done) break;
 					game.waves.shift();
 				}
@@ -424,14 +424,14 @@ scenes.playing = {
 			}
 		}
 		if (batchEnded) {
-			for (const t of game.towers) {
+			for (const t of game.entities.towers) {
 				if (canPromote(t)) {
 					const gain = getXpGainAtWaveEnd(t);
 					t.xp = Math.min(Math.round((t.xp + gain) * 10) / 10, xpMaxFor(t));
 				}
 			}
 			// 잔여 장벽 정리 (배치 종료 시 사라짐)
-			game.enemies = game.enemies.filter(e => !e.isBarrier);
+			game.entities.enemies = game.entities.enemies.filter(e => !e.isBarrier);
 			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)
 			game.wave = game.waveFrontier;
 			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
@@ -465,7 +465,7 @@ scenes.playing = {
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 		drawPath();
 
-		for (const t of game.towers) {
+		for (const t of game.entities.towers) {
 			if (t === game.selectedTower) continue;
 			drawTowerRange(t, 0.05, 0.12);
 		}
@@ -473,9 +473,9 @@ scenes.playing = {
 			drawTowerRange(game.selectedTower, 0.18, 0.5);
 		}
 
-		for (const t of game.towers) drawTower(t);
-		for (const e of game.enemies) drawEnemy(e);
-		for (const pr of game.projectiles) drawProjectile(pr);
+		for (const t of game.entities.towers) drawTower(t);
+		for (const e of game.entities.enemies) drawEnemy(e);
+		for (const pr of game.entities.projectiles) drawProjectile(pr);
 		for (const b of game.beams) drawBeam(b);
 		for (const s of game.splashes) drawSplash(s);
 		for (const z of game.zaps) drawZap(z);
@@ -755,7 +755,7 @@ scenes.playing = {
 			jumpToWave(wave);
 		} else if (e.code === 'Delete') {
 			e.preventDefault();
-			for (const t of game.towers) t.totalDamage = 0;
+			for (const t of game.entities.towers) t.totalDamage = 0;
 		} else if (e.code === 'KeyS') {
 			e.preventDefault();
 			game.sandboxShieldsEnabled = !game.sandboxShieldsEnabled;

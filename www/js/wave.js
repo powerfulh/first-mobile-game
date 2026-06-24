@@ -77,7 +77,7 @@ export function setupWave(targetWave) {
 	if (sp.isBoss) spawnBoss();
 
 	// 웨이브별 누적 카운터 리셋
-	for (const tower of game.towers) tower.waveDamage = 0;
+	for (const tower of game.entities.towers) tower.waveDamage = 0;
 
 	// 최고 도달 웨이브 추적 — 다음 판 인터미션 결정에 사용
 	if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
@@ -118,5 +118,5 @@ export function callExtraWave() {
 	game.waves.push(createSpawner(next));
 	game.waveFrontier = next;
 	// 새 웨이브 호출 시 타워별 웨이브 누적 데미지 초기화
-	for (const tower of game.towers) tower.waveDamage = 0;
+	for (const tower of game.entities.towers) tower.waveDamage = 0;
 }

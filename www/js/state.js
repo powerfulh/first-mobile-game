@@ -13,9 +13,12 @@ export const game = {
 	hp: 20,
 	gold: 100,
 	wave: 1,
-	enemies: [],
-	towers: [],
-	projectiles: [],
+	// 게임 월드 엔티티 — 타워/적/발사체를 한 객체로 묶음 (beams/splashes/zaps 등 일시적 시각 효과는 별도 평면 속성).
+	entities: {
+		towers: [],
+		enemies: [],
+		projectiles: [],
+	},
 	beams: [],
 	splashes: [],
 	zaps: [],
@@ -62,9 +65,9 @@ export function resetGame() {
 	game.hp = 20;
 	game.gold = 100;
 	game.wave = 1;
-	game.enemies = [];
-	game.towers = [];
-	game.projectiles = [];
+	game.entities.enemies = [];
+	game.entities.towers = [];
+	game.entities.projectiles = [];
 	game.beams = [];
 	game.splashes = [];
 	game.zaps = [];
@@ -103,7 +106,7 @@ export function saveGame() {
 		gold: game.gold,
 		spawnInterval: base.spawnInterval,
 		enemiesPerWave: base.enemiesPerWave,
-		towers: game.towers.map(t => ({
+		towers: game.entities.towers.map(t => ({
 			x: t.x, y: t.y, role: t.role, tier: t.tier, xp: t.xp,
 			totalDamage: t.totalDamage || 0,
 			canGround: t.canGround, canAir: t.canAir,
@@ -135,8 +138,8 @@ export function loadGame(data) {
 	game.gold = data.gold;
 	game.waves = [restoreBaseSpawner(data.wave, data.spawnInterval, data.enemiesPerWave)];
 	game.waveFrontier = game.wave;
-	game.enemies = [];
-	game.projectiles = [];
+	game.entities.enemies = [];
+	game.entities.projectiles = [];
 	game.beams = [];
 	game.splashes = [];
 	game.zaps = [];
@@ -154,7 +157,7 @@ export function loadGame(data) {
 	game.waveSpawnCounts = {};
 	game.ghostTower = null;
 	game.bestWaveReached = Math.max(loadBestWave(), game.wave);
-	game.towers = (data.towers || [])
+	game.entities.towers = (data.towers || [])
 		.filter(td => TOWER_ROLES[td.role])
 		.map(td => {
 			const cfg = TOWER_ROLES[td.role];

@@ -121,7 +121,7 @@ export function spawnEnemy(spawner) {
 	else hp = baseHp;
 	const baseSpeed = 50 + (Math.min(100, wave) - 1) * 2;
 	const speed = regen ? baseSpeed * 0.5 : baseSpeed;
-	game.enemies.push({
+	game.entities.enemies.push({
 		x: path[0].x,
 		y: path[0].y,
 		type: isAir ? 'air' : 'ground',
@@ -153,11 +153,11 @@ export function spawnEnemy(spawner) {
 	}
 }
 
-// 장벽 객체 — 일반 적과 game.enemies에 함께 들어감 (e.isBarrier=true).
+// 장벽 객체 — 일반 적과 game.entities.enemies에 함께 들어감 (e.isBarrier=true).
 // 공중 타입이라 공중 공격 가능 타워의 타깃이 됨.
 export function spawnBarrier(x, y) {
 	const hp = computeBaseHpAt(game.wave) * 2;
-	game.enemies.push({
+	game.entities.enemies.push({
 		x, y,
 		type: 'air',
 		speed: 0,
@@ -238,7 +238,7 @@ export function spawnBoss() {
 	const type = getBossType(game.wave);
 	const bossHp = computeBossHp(game.wave);
 	const baseSpeed = 50 + (Math.min(100, game.wave) - 1) * 2;
-	game.enemies.push({
+	game.entities.enemies.push({
 		x: path[0].x,
 		y: path[0].y,
 		type,
@@ -329,7 +329,7 @@ function drawMarkRing(e, cy) {
 export function drawBossHpBar() {
 	if (!game.bossActive) return;
 	let boss = null;
-	for (const e of game.enemies) {
+	for (const e of game.entities.enemies) {
 		if (e.isBoss && !e.dead) { boss = e; break; }
 	}
 	if (!boss) return;
@@ -609,7 +609,7 @@ export function drawEnemy(e) {
 // 타워(또는 빔 출발점)에서 target까지 직선이 장벽을 통과하는지 검사.
 // 시작점이 어떤 장벽 안에 있으면 무조건 차단 (안에서는 공격 불가).
 export function isBlockedByBarrier(fromX, fromY, target) {
-	for (const b of game.enemies) {
+	for (const b of game.entities.enemies) {
 		if (!b.isBarrier || b.dead) continue;
 		if (b === target) continue;
 		// 시작점이 장벽 안 → 무조건 차단
@@ -627,7 +627,7 @@ export function findBarrierBlockDist(fromX, fromY, angle, maxDist, excludeTarget
 	const ux = Math.cos(angle);
 	const uy = Math.sin(angle);
 	let minDist = null;
-	for (const b of game.enemies) {
+	for (const b of game.entities.enemies) {
 		if (!b.isBarrier || b.dead) continue;
 		if (b === excludeTarget) continue;
 		if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) {
@@ -659,7 +659,7 @@ export function projectileHitsBarrier(fromX, fromY, toX, toY) {
 	const ux = dx / length;
 	const uy = dy / length;
 	let nearest = null;
-	for (const b of game.enemies) {
+	for (const b of game.entities.enemies) {
 		if (!b.isBarrier || b.dead) continue;
 		if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) {
 			// 시작점이 안 → 거리 0
