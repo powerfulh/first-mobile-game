@@ -11,7 +11,7 @@ import {
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, drawEnemyInfoPanel,
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
@@ -254,6 +254,7 @@ function jumpToWave(targetWave) {
 	game.bossActive = false;
 	game.intermissionTimer = 0;
 	game.selectedTower = null;
+	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
 	game.promotionTarget = null;
 	game.holdDelete = null;
@@ -263,9 +264,10 @@ function jumpToWave(targetWave) {
 
 scenes.wiki = wiki;
 
-// 모든 타워 카드 닫고 선택 해제 (카드 밖 빈 곳 터치 시 — 기본 상태로).
+// 모든 타워/적 카드 닫고 선택 해제 (카드 밖 빈 곳 터치 시 — 기본 상태로).
 function deselectTower() {
 	game.selectedTower = null;
+	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
 }
 
@@ -274,8 +276,25 @@ function selectTowerAt(p) {
 	for (const tower of game.entities.towers) {
 		if (Math.hypot(p.x - tower.x, p.y - tower.y) <= TOWER.radius + 4) {
 			game.selectedTower = tower;
+			game.selectedEnemy = null;
 			game.towerPanel = TOWER_PANEL.INFO;
 			game.holdDelete = { tower: tower, accumulated: 0 };
+			playTowerSelect();
+			return true;
+		}
+	}
+	return false;
+}
+
+// 좌표에 적이 있으면 그 적을 선택(타워 선택 해제) 후 true. 위에 그려진 적 우선(뒤에서부터).
+function selectEnemyAt(p) {
+	for (let i = game.entities.enemies.length - 1; i >= 0; i--) {
+		const e = game.entities.enemies[i];
+		if (Math.hypot(p.x - e.x, p.y - e.y) <= e.radius + 6) {
+			game.selectedEnemy = e;
+			game.selectedTower = null;
+			game.towerPanel = TOWER_PANEL.INFO;
+			game.holdDelete = null;
 			playTowerSelect();
 			return true;
 		}
@@ -442,6 +461,11 @@ scenes.playing = {
 			}
 		}
 
+		// 선택된 적이 사라졌으면(처치/완주/배치 종료) 선택 해제
+		if (game.selectedEnemy && !game.entities.enemies.includes(game.selectedEnemy)) {
+			game.selectedEnemy = null;
+		}
+
 		if (!game.modal && !hasSeenIntro(TIER4_INTRO_KEY) && hasReadyTier4Candidate()) {
 			game.modal = { type: 'tier4Intro' };
 		}
@@ -449,6 +473,7 @@ scenes.playing = {
 		if (game.hp <= 0) {
 			game.hp = 0;
 			game.selectedTower = null;
+			game.selectedEnemy = null;
 			game.towerPanel = TOWER_PANEL.INFO;
 			game.ghostTower = null;
 			changeScene('gameOver');
@@ -470,6 +495,14 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) drawTower(tower);
 		for (const e of game.entities.enemies) drawEnemy(e);
+		if (game.selectedEnemy) {
+			const se = game.selectedEnemy;
+			ctx.strokeStyle = '#fff';
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(se.x, se.y, se.radius + 4, 0, Math.PI * 2);
+			ctx.stroke();
+		}
 		for (const pr of game.entities.projectiles) drawProjectile(pr);
 		for (const b of game.beams) drawBeam(b);
 		for (const s of game.splashes) drawSplash(s);
@@ -509,6 +542,8 @@ scenes.playing = {
 			} else {
 				drawTowerInfoPanel(game.selectedTower);
 			}
+		} else if (game.selectedEnemy) {
+			drawEnemyInfoPanel(game.selectedEnemy);
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
@@ -523,7 +558,7 @@ scenes.playing = {
 			ctx.fillText(t('타워를 꾹 눌러 삭제'), LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
-		if (!game.selectedTower && !game.modal && !game.settingsOpen && !game.ghostTower) {
+		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
 			drawNextWaveButton();
 			drawPauseButton();
 		}
@@ -673,11 +708,15 @@ scenes.playing = {
 		// 타워 hit는 정보 패널 안 빈 영역보다 먼저 검사
 		if (selectTowerAt(p)) return;
 
-		if (game.selectedTower && hitButton(towerInfoPanel, p)) {
+		// 정보 카드(타워/적 공용 위치) 내부 탭 → 소비 (그 아래 지나가는 적이 선택되지 않도록 적 검사보다 먼저)
+		if ((game.selectedTower || game.selectedEnemy) && hitButton(towerInfoPanel, p)) {
 			return;
 		}
 
-		if (game.selectedTower) {
+		// 적 hit → 적 정보 선택
+		if (selectEnemyAt(p)) return;
+
+		if (game.selectedTower || game.selectedEnemy) {
 			deselectTower();
 			return;
 		}
@@ -727,6 +766,11 @@ scenes.playing = {
 		// 타워 선택 상태 → 선택 해제
 		if (game.selectedTower) {
 			game.selectedTower = null;
+			return;
+		}
+		// 적 선택 상태 → 선택 해제
+		if (game.selectedEnemy) {
+			game.selectedEnemy = null;
 			return;
 		}
 		// 기본 → 설정 열기
