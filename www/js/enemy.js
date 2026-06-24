@@ -469,9 +469,9 @@ export function drawEnemyInfoPanel(e) {
 	ctx.fillText(t('타입: {type}', { type: e.type === 'air' ? t('공중') : t('지상') }), sx, sy);
 
 	sy += 20;
-	const hp = Math.max(0, Math.ceil(e.hp));
-	const hpMax = Math.round(e.hpMax);
-	ctx.fillText(t('체력: {hp} / {max}', { hp: hp.toLocaleString(), max: hpMax.toLocaleString() }), sx, sy);
+	// 소수 첫째 자리까지 표시 (정수면 소수점 생략) + 천 단위 구분
+	const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
+	ctx.fillText(t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) }), sx, sy);
 
 	// HP 바
 	const bx = sx, by = sy + 8, bw = 240, bh = 8;
