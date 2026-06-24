@@ -65,68 +65,68 @@ export function applySplashHit(shooter, impactX, impactY, damage, radius, attack
 	}
 }
 
-export function fireInstantBeam(t, target, damage) {
-	const cfg = TOWER_ROLES[t.role];
-	const dmg = damage !== undefined ? damage : t.damage;
-	const attackTypes = allowedTypesOf(t); // 인스턴스 토글(canGround/canAir) 반영
+export function fireInstantBeam(tower, target, damage) {
+	const cfg = TOWER_ROLES[tower.role];
+	const dmg = damage !== undefined ? damage : tower.damage;
+	const attackTypes = allowedTypesOf(tower); // 인스턴스 토글(canGround/canAir) 반영
 	// 공중 공격일 때만 장벽 차단. 지상 전용 빔은 통과.
 	const canBeBlocked = attackTypes.includes('air');
 	let blocker = null;
 	if (canBeBlocked) {
-		blocker = projectileHitsBarrier(t.x, t.y, target.x, target.y);
+		blocker = projectileHitsBarrier(tower.x, tower.y, target.x, target.y);
 	}
 	if (blocker) {
 		game.beams.push({
-			x1: t.x, y1: t.y,
+			x1: tower.x, y1: tower.y,
 			x2: blocker.x, y2: blocker.y,
 			life: 0.15, maxLife: 0.15,
 			color: cfg.color,
 		});
-		applyTowerHit(t, blocker.barrier, dmg);
+		applyTowerHit(tower, blocker.barrier, dmg);
 	} else {
 		game.beams.push({
-			x1: t.x, y1: t.y,
+			x1: tower.x, y1: tower.y,
 			x2: target.x, y2: target.y,
 			life: 0.15, maxLife: 0.15,
 			color: cfg.color,
 		});
-		applyTowerHit(t, target, dmg);
+		applyTowerHit(tower, target, dmg);
 	}
 }
 
-export function fireLineBeam(t, target, damage) {
-	const cfg = TOWER_ROLES[t.role];
-	const range = getEffectiveRange(t);
-	const angle = Math.atan2(target.y - t.y, target.x - t.x);
+export function fireLineBeam(tower, target, damage) {
+	const cfg = TOWER_ROLES[tower.role];
+	const range = getEffectiveRange(tower);
+	const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
 	// 사거리 외 마킹 적도 타깃이 될 수 있으니 빔은 target 위치까지 확장
-	const targetDist = Math.hypot(target.x - t.x, target.y - t.y);
+	const targetDist = Math.hypot(target.x - tower.x, target.y - tower.y);
 	let beamLen = Math.max(range, targetDist);
 
-	const attackTypes = allowedTypesOf(t); // 인스턴스 토글(canGround/canAir) 반영
+	const attackTypes = allowedTypesOf(tower); // 인스턴스 토글(canGround/canAir) 반영
 	// 공중 공격은 target에 상관없이 장벽에서 빔이 짤림 (지상 전용은 통과)
 	if (attackTypes.includes('air')) {
-		const blockDist = findBarrierBlockDist(t.x, t.y, angle, beamLen, null);
+		const blockDist = findBarrierBlockDist(tower.x, tower.y, angle, beamLen, null);
 		if (blockDist !== null) beamLen = blockDist;
 	}
 
-	const endX = t.x + Math.cos(angle) * beamLen;
-	const endY = t.y + Math.sin(angle) * beamLen;
+	const endX = tower.x + Math.cos(angle) * beamLen;
+	const endY = tower.y + Math.sin(angle) * beamLen;
 
 	game.beams.push({
-		x1: t.x, y1: t.y,
+		x1: tower.x, y1: tower.y,
 		x2: endX, y2: endY,
 		life: 0.2,
 		maxLife: 0.2,
 		color: cfg.color,
 	});
 
-	const dmg = damage !== undefined ? damage : t.damage;
+	const dmg = damage !== undefined ? damage : tower.damage;
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
 		if (!attackTypes.includes(e.type)) continue;
-		const d = pointToSegmentDist(e.x, e.y, t.x, t.y, endX, endY);
+		const d = pointToSegmentDist(e.x, e.y, tower.x, tower.y, endX, endY);
 		if (d <= e.radius) {
-			applyTowerHit(t, e, dmg);
+			applyTowerHit(tower, e, dmg);
 		}
 	}
 }

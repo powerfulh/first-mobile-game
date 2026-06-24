@@ -9,34 +9,34 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier, drawEnemySprite } from './enemy.js';
-import { t as tr } from './core/i18n.js'; // 이 파일은 타워 매개변수명이 t라 별칭 사용
+import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
-export function xpMaxFor(t) {
-	return TOWER.xpThresholds[t.tier] || 0;
+export function xpMaxFor(tower) {
+	return TOWER.xpThresholds[tower.tier] || 0;
 }
 
-export function promotionCostFor(t) {
-	return TOWER.promotionCosts[t.tier] || 0;
+export function promotionCostFor(tower) {
+	return TOWER.promotionCosts[tower.tier] || 0;
 }
 
-export function canPromote(t) {
-	if (t.tier >= TOWER.maxTier) return false;
-	if (t.tier === 3) return !!TIER4_RECIPES[t.role]; // 4티어는 레시피 등록된 3티어만
-	return TOWER_ROLES[t.role].promotions.length > 0;
+export function canPromote(tower) {
+	if (tower.tier >= TOWER.maxTier) return false;
+	if (tower.tier === 3) return !!TIER4_RECIPES[tower.role]; // 4티어는 레시피 등록된 3티어만
+	return TOWER_ROLES[tower.role].promotions.length > 0;
 }
 
-export function isPromotionReady(t) {
-	return canPromote(t) && (game.sandbox || t.xp >= xpMaxFor(t));
+export function isPromotionReady(tower) {
+	return canPromote(tower) && (game.sandbox || tower.xp >= xpMaxFor(tower));
 }
 
-export function canAffordPromotion(t) {
-	return game.sandbox || game.gold >= promotionCostFor(t);
+export function canAffordPromotion(tower) {
+	return game.sandbox || game.gold >= promotionCostFor(tower);
 }
 
 // ============ Tier 4 helpers ============
-export function getTier4Recipe(t) {
-	return TIER4_RECIPES[t.role] || null;
+export function getTier4Recipe(tower) {
+	return TIER4_RECIPES[tower.role] || null;
 }
 
 export function isCompatibleTier4Partner(target, candidate) {
@@ -49,8 +49,8 @@ export function isCompatibleTier4Partner(target, candidate) {
 
 export function hasReadyTier4Candidate() {
 	// 게임 내에 XP 가득 찬 4티어 후보 3티어가 존재하는지
-	for (const t of game.entities.towers) {
-		if (t.tier === 3 && TIER4_RECIPES[t.role] && t.xp >= xpMaxFor(t)) {
+	for (const tower of game.entities.towers) {
+		if (tower.tier === 3 && TIER4_RECIPES[tower.role] && tower.xp >= xpMaxFor(tower)) {
 			return true;
 		}
 	}
@@ -58,58 +58,58 @@ export function hasReadyTier4Candidate() {
 }
 
 // ============ Buff / range helpers ============
-export function getEffectiveRange(t, visited) {
+export function getEffectiveRange(tower, visited) {
 	visited = visited || new Set();
-	if (visited.has(t)) return t.range;
-	visited.add(t);
+	if (visited.has(tower)) return tower.range;
+	visited.add(tower);
 	try {
-		const buffRate = TOWER.buffRates[t.tier];
-		if (buffRate === undefined) return t.range;
+		const buffRate = TOWER.buffRates[tower.tier];
+		if (buffRate === undefined) return tower.range;
 		for (const other of game.entities.towers) {
-			if (other === t) continue;
+			if (other === tower) continue;
 			const otherCfg = TOWER_ROLES[other.role];
 			if (!otherCfg.buffsRange) continue;
-			const d = Math.hypot(t.x - other.x, t.y - other.y);
+			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 			const otherRange = getEffectiveRange(other, visited);
 			if (d <= otherRange) {
-				return t.range * (1 + buffRate);
+				return tower.range * (1 + buffRate);
 			}
 		}
-		return t.range;
+		return tower.range;
 	} finally {
-		visited.delete(t);
+		visited.delete(tower);
 	}
 }
 
-export function getEffectiveDamage(t, visited) {
+export function getEffectiveDamage(tower, visited) {
 	visited = visited || new Set();
-	if (visited.has(t)) return t.damage;
-	visited.add(t);
+	if (visited.has(tower)) return tower.damage;
+	visited.add(tower);
 	try {
-		const buffRate = TOWER.buffRates[t.tier];
-		if (buffRate === undefined) return t.damage;
+		const buffRate = TOWER.buffRates[tower.tier];
+		if (buffRate === undefined) return tower.damage;
 		for (const other of game.entities.towers) {
-			if (other === t) continue;
+			if (other === tower) continue;
 			const otherCfg = TOWER_ROLES[other.role];
 			if (!otherCfg.buffsDamage) continue;
-			const d = Math.hypot(t.x - other.x, t.y - other.y);
+			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 			const otherRange = getEffectiveRange(other);
 			if (d <= otherRange) {
-				return t.damage * (1 + buffRate);
+				return tower.damage * (1 + buffRate);
 			}
 		}
-		return t.damage;
+		return tower.damage;
 	} finally {
-		visited.delete(t);
+		visited.delete(tower);
 	}
 }
 
-export function getXpGainAtWaveEnd(t) {
+export function getXpGainAtWaveEnd(tower) {
 	for (const other of game.entities.towers) {
-		if (other === t) continue;
+		if (other === tower) continue;
 		const otherCfg = TOWER_ROLES[other.role];
 		if (!otherCfg.boostsXp) continue;
-		const d = Math.hypot(t.x - other.x, t.y - other.y);
+		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 		if (d <= getEffectiveRange(other)) {
 			return WAVE_END_XP_MULTIPLIER;
 		}
@@ -119,11 +119,11 @@ export function getXpGainAtWaveEnd(t) {
 
 export function getEnemySpeedFactor(e) {
 	let factor = 1;
-	for (const t of game.entities.towers) {
-		const cfg = TOWER_ROLES[t.role];
+	for (const tower of game.entities.towers) {
+		const cfg = TOWER_ROLES[tower.role];
 		if (!cfg.slowsEnemies) continue;
-		const range = getEffectiveRange(t);
-		const d = Math.hypot(e.x - t.x, e.y - t.y);
+		const range = getEffectiveRange(tower);
+		const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 		if (d <= range) {
 			const slow = cfg.slowFactor !== undefined ? cfg.slowFactor : 0.5;
 			if (slow < factor) factor = slow;
@@ -137,19 +137,19 @@ export function getEnemySpeedFactor(e) {
 //  - canGround/canAir: 공격 가능 타입 (cfg.attackTypes 기반)
 //  - gaPriority: 지상/공중 우선 ('ground'|'air'|'equal'). 둘 다 가능하면 기본 공중 우선.
 //  - targetPriority: 공통 표적 우선순위. cfg.targetMode==='highestHp'면 가장 강함, 아니면 가장 가까움.
-export function applyTowerPriorityDefaults(t) {
-	const cfg = TOWER_ROLES[t.role];
+export function applyTowerPriorityDefaults(tower) {
+	const cfg = TOWER_ROLES[tower.role];
 	const types = cfg.attackTypes || [];
-	t.canGround = types.includes('ground');
-	t.canAir = types.includes('air');
-	t.gaPriority = (t.canGround && t.canAir) ? 'air' : 'equal';
-	t.targetPriority = cfg.targetMode === 'highestHp' ? 'strongest' : 'closest';
+	tower.canGround = types.includes('ground');
+	tower.canAir = types.includes('air');
+	tower.gaPriority = (tower.canGround && tower.canAir) ? 'air' : 'equal';
+	tower.targetPriority = cfg.targetMode === 'highestHp' ? 'strongest' : 'closest';
 }
 
-export function allowedTypesOf(t) {
+export function allowedTypesOf(tower) {
 	const types = [];
-	if (t.canGround) types.push('ground');
-	if (t.canAir) types.push('air');
+	if (tower.canGround) types.push('ground');
+	if (tower.canAir) types.push('air');
 	return types;
 }
 
@@ -160,11 +160,11 @@ function gaCapsOf(cfg) {
 
 // 전직 시: 지상/공중 가능 여부가 그대로이고 새 역할에 지정 기본값(targetMode)이 없으면
 // 기존 우선순위 설정 유지, 아니면 새 역할 기준 기본값으로 리셋.
-function applyTowerPriorityOnPromote(t, oldRole) {
-	const newCfg = TOWER_ROLES[t.role];
+function applyTowerPriorityOnPromote(tower, oldRole) {
+	const newCfg = TOWER_ROLES[tower.role];
 	const sameCaps = gaCapsOf(TOWER_ROLES[oldRole]) === gaCapsOf(newCfg);
 	if (sameCaps && !newCfg.targetMode) return;
-	applyTowerPriorityDefaults(t);
+	applyTowerPriorityDefaults(tower);
 }
 
 // ============ Placement ============
@@ -174,8 +174,8 @@ export function canPlaceTower(x, y) {
 	if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
 	if (y > LOGICAL_H - TOWER.radius) return false;
 	if (distanceToPath(x, y) < PATH_WIDTH / 2 + TOWER.radius + 2) return false;
-	for (const t of game.entities.towers) {
-		if (Math.hypot(x - t.x, y - t.y) < TOWER.radius * 2 + 4) return false;
+	for (const tower of game.entities.towers) {
+		if (Math.hypot(x - tower.x, y - tower.y) < TOWER.radius * 2 + 4) return false;
 	}
 	return true;
 }
@@ -202,23 +202,23 @@ export function placeTower(x, y) {
 	return true;
 }
 
-export function promoteTower(t, role) {
-	if (!isPromotionReady(t)) return false;
-	if (!canAffordPromotion(t)) return false;
-	if (!TOWER_ROLES[t.role].promotions.includes(role)) return false;
+export function promoteTower(tower, role) {
+	if (!isPromotionReady(tower)) return false;
+	if (!canAffordPromotion(tower)) return false;
+	if (!TOWER_ROLES[tower.role].promotions.includes(role)) return false;
 	const cfg = TOWER_ROLES[role];
 	if (!cfg) return false;
 
-	if (!game.sandbox) game.gold -= promotionCostFor(t);
-	const prevRole = t.role;
-	t.role = role;
-	t.tier += 1;
-	t.range = cfg.range;
-	t.fireRate = cfg.fireRate;
-	t.damage = cfg.damage;
-	t.cooldown = 0;
-	t.xp = 0;
-	applyTowerPriorityOnPromote(t, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
+	if (!game.sandbox) game.gold -= promotionCostFor(tower);
+	const prevRole = tower.role;
+	tower.role = role;
+	tower.tier += 1;
+	tower.range = cfg.range;
+	tower.fireRate = cfg.fireRate;
+	tower.damage = cfg.damage;
+	tower.cooldown = 0;
+	tower.xp = 0;
+	applyTowerPriorityOnPromote(tower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
@@ -260,27 +260,27 @@ export function promoteToTier4(secondTower) {
 }
 
 // ============ Update / Fire ============
-export function updateTower(t, dt) {
-	t.cooldown = Math.max(0, t.cooldown - dt);
+export function updateTower(tower, dt) {
+	tower.cooldown = Math.max(0, tower.cooldown - dt);
 
-	const cfg = TOWER_ROLES[t.role];
-	const allowed = allowedTypesOf(t);
-	const range = getEffectiveRange(t);
+	const cfg = TOWER_ROLES[tower.role];
+	const allowed = allowedTypesOf(tower);
+	const range = getEffectiveRange(tower);
 
 	// 영향권 진입 시 XP 부여 (데몬류 비공격 타워의 수급 수단)
 	if (cfg.gainsXpOnEnemyEnter) {
-		if (!t.inRangeEnemies) t.inRangeEnemies = new Set();
+		if (!tower.inRangeEnemies) tower.inRangeEnemies = new Set();
 		const next = new Set();
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
-			const d = Math.hypot(e.x - t.x, e.y - t.y);
+			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d > range) continue;
 			next.add(e);
-			if (!t.inRangeEnemies.has(e) && canPromote(t)) {
-				t.xp = Math.min(xpMaxFor(t), Math.round((t.xp + 1) * 10) / 10);
+			if (!tower.inRangeEnemies.has(e) && canPromote(tower)) {
+				tower.xp = Math.min(xpMaxFor(tower), Math.round((tower.xp + 1) * 10) / 10);
 			}
 		}
-		t.inRangeEnemies = next;
+		tower.inRangeEnemies = next;
 	}
 
 	// areaSweep은 자기 사거리 내만 처리 (마킹 풀 무시). 그 외 모든 단일 타겟 타워는 마킹 적 포함.
@@ -292,21 +292,21 @@ export function updateTower(t, dt) {
 	// 표적 선정: 지상/공중 우선(1순위) → 공통 우선순위(2순위)
 	let target = null;
 	{
-		const useHp = (t.targetPriority === 'strongest' || t.targetPriority === 'weakest');
-		const preferHigher = (t.targetPriority === 'farthest' || t.targetPriority === 'strongest');
+		const useHp = (tower.targetPriority === 'strongest' || tower.targetPriority === 'weakest');
+		const preferHigher = (tower.targetPriority === 'farthest' || tower.targetPriority === 'strongest');
 		let bestTier = Infinity;
 		let bestVal = 0;
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.isBarrier) continue;
-			if (e.type === 'ground' ? !t.canGround : !t.canAir) continue;
-			const d = Math.hypot(e.x - t.x, e.y - t.y);
+			if (e.type === 'ground' ? !tower.canGround : !tower.canAir) continue;
+			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d < minRange) continue;
 			if (d > range && !(includeMarked && e.marked)) continue;
 			// 지상/공중 티어 (낮을수록 우선). 동등이면 모두 0.
 			let tier = 0;
-			if (t.gaPriority === 'air') tier = (e.type === 'air') ? 0 : 1;
-			else if (t.gaPriority === 'ground') tier = (e.type === 'ground') ? 0 : 1;
+			if (tower.gaPriority === 'air') tier = (e.type === 'air') ? 0 : 1;
+			else if (tower.gaPriority === 'ground') tier = (e.type === 'ground') ? 0 : 1;
 			const val = useHp ? e.hp : d;
 			if (target === null || tier < bestTier
 				|| (tier === bestTier && (preferHigher ? val > bestVal : val < bestVal))) {
@@ -318,9 +318,9 @@ export function updateTower(t, dt) {
 	}
 
 	if (target) {
-		t.angle = Math.atan2(target.y - t.y, target.x - t.x);
-		if (t.cooldown <= 0) {
-			const damage = getEffectiveDamage(t);
+		tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
+		if (tower.cooldown <= 0) {
+			const damage = getEffectiveDamage(tower);
 			if (cfg.areaSweep) {
 				// 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer)
 				// areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
@@ -329,17 +329,17 @@ export function updateTower(t, dt) {
 				for (const e of game.entities.enemies) {
 					if (e.dead) continue;
 					if (!allowed.includes(e.type)) continue;
-					const d = Math.hypot(e.x - t.x, e.y - t.y);
+					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 					if (d > hitRange) continue;
-					if (!e.isBarrier && sweepBlocked && isBlockedByBarrier(t.x, t.y, e)) continue;
-					applyTowerHit(t, e, damage);
+					if (!e.isBarrier && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
+					applyTowerHit(tower, e, damage);
 				}
-				spawnZap(t.x, t.y, range, cfg.color);
+				spawnZap(tower.x, tower.y, range, cfg.color);
 			} else if (cfg.instantHit) {
 				if (cfg.pierces) {
-					fireLineBeam(t, target, damage);
+					fireLineBeam(tower, target, damage);
 				} else {
-					fireInstantBeam(t, target, damage);
+					fireInstantBeam(tower, target, damage);
 				}
 			} else if (cfg.fanShot) {
 				const count = cfg.projectileCount || 5;
@@ -347,14 +347,14 @@ export function updateTower(t, dt) {
 				const half = spreadRad / 2;
 				const step = count > 1 ? spreadRad / (count - 1) : 0;
 				for (let i = 0; i < count; i++) {
-					const angle = t.angle - half + step * i;
+					const angle = tower.angle - half + step * i;
 					game.entities.projectiles.push({
-						x: t.x,
-						y: t.y,
+						x: tower.x,
+						y: tower.y,
 						vx: Math.cos(angle) * TOWER.projectileSpeed,
 						vy: Math.sin(angle) * TOWER.projectileSpeed,
 						damage,
-						shooter: t,
+						shooter: tower,
 						splash: cfg.splash || 0,
 						splashColor: cfg.color,
 						attackTypes: allowed,
@@ -362,18 +362,18 @@ export function updateTower(t, dt) {
 					});
 				}
 			} else if (cfg.scatterDeg) {
-				// 매 발사마다 projectileCount발, 각 발은 t.angle에 ±scatterDeg/2 난수
+				// 매 발사마다 projectileCount발, 각 발은 tower.angle에 ±scatterDeg/2 난수
 				const count = cfg.projectileCount || 1;
 				const scatterRad = cfg.scatterDeg * Math.PI / 180;
 				for (let i = 0; i < count; i++) {
-					const angle = t.angle + (Math.random() - 0.5) * scatterRad;
+					const angle = tower.angle + (Math.random() - 0.5) * scatterRad;
 					game.entities.projectiles.push({
-						x: t.x,
-						y: t.y,
+						x: tower.x,
+						y: tower.y,
 						vx: Math.cos(angle) * TOWER.projectileSpeed,
 						vy: Math.sin(angle) * TOWER.projectileSpeed,
 						damage,
-						shooter: t,
+						shooter: tower,
 						splash: cfg.splash || 0,
 						splashColor: cfg.color,
 						attackTypes: allowed,
@@ -384,18 +384,18 @@ export function updateTower(t, dt) {
 				// 발사 시점의 좌표를 고정 착탄점으로 잡고 직선 발사. 적이 회피해도 그 자리 폭격.
 				const tx = target.x;
 				const ty = target.y;
-				const dx = tx - t.x;
-				const dy = ty - t.y;
+				const dx = tx - tower.x;
+				const dy = ty - tower.y;
 				const dist = Math.hypot(dx, dy) || 1;
 				const speed = cfg.projectileSpeed || TOWER.projectileSpeed;
 				game.entities.projectiles.push({
-					x: t.x,
-					y: t.y,
+					x: tower.x,
+					y: tower.y,
 					vx: (dx / dist) * speed,
 					vy: (dy / dist) * speed,
 					tx, ty,
 					damage,
-					shooter: t,
+					shooter: tower,
 					splash: cfg.splash || 0,
 					splashColor: cfg.color,
 					attackTypes: allowed,
@@ -403,48 +403,48 @@ export function updateTower(t, dt) {
 				});
 			} else {
 				game.entities.projectiles.push({
-					x: t.x,
-					y: t.y,
+					x: tower.x,
+					y: tower.y,
 					target: target,
 					damage,
 					speed: TOWER.projectileSpeed,
-					shooter: t,
+					shooter: tower,
 					splash: cfg.splash || 0,
 					splashColor: cfg.color,
 					attackTypes: allowed,
 				});
 			}
-			t.cooldown = 1 / t.fireRate;
+			tower.cooldown = 1 / tower.fireRate;
 		}
 	}
 }
 
 // ============ Draw — 본체 ============
-function drawCannonBody(t, cfg, selected) {
+function drawCannonBody(tower, cfg, selected) {
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, TOWER.radius, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, TOWER.radius, 0, Math.PI * 2);
 	ctx.fill();
 	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
 	ctx.lineWidth = selected ? 3 : 2;
 	ctx.stroke();
 
 	ctx.save();
-	ctx.translate(t.x, t.y);
-	ctx.rotate(t.angle);
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
 	ctx.fillStyle = cfg.color2;
 	ctx.fillRect(0, -3, TOWER.radius + 4, 6);
 	ctx.restore();
 }
 
-function drawBeamEmitterBody(t, cfg, selected) {
+function drawBeamEmitterBody(tower, cfg, selected) {
 	const r = TOWER.radius;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
 	for (let i = 0; i < 6; i++) {
 		const a = i * Math.PI / 3 - Math.PI / 2;
-		const px = t.x + r * Math.cos(a);
-		const py = t.y + r * Math.sin(a);
+		const px = tower.x + r * Math.cos(a);
+		const py = tower.y + r * Math.sin(a);
 		if (i === 0) ctx.moveTo(px, py);
 		else ctx.lineTo(px, py);
 	}
@@ -458,19 +458,19 @@ function drawBeamEmitterBody(t, cfg, selected) {
 	ctx.fillStyle = '#fff';
 	ctx.globalAlpha = 0.4 + 0.25 * pulse;
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, r * 0.42, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, r * 0.42, 0, Math.PI * 2);
 	ctx.fill();
 	ctx.globalAlpha = 1;
 }
 
-function drawAreaSweepBody(t, cfg, selected) {
+function drawAreaSweepBody(tower, cfg, selected) {
 	const r = TOWER.radius;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
-	ctx.moveTo(t.x, t.y - r);
-	ctx.lineTo(t.x + r, t.y);
-	ctx.lineTo(t.x, t.y + r);
-	ctx.lineTo(t.x - r, t.y);
+	ctx.moveTo(tower.x, tower.y - r);
+	ctx.lineTo(tower.x + r, tower.y);
+	ctx.lineTo(tower.x, tower.y + r);
+	ctx.lineTo(tower.x - r, tower.y);
 	ctx.closePath();
 	ctx.fill();
 	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
@@ -480,19 +480,19 @@ function drawAreaSweepBody(t, cfg, selected) {
 	ctx.fillStyle = '#fff';
 	ctx.globalAlpha = 0.55;
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, 3, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, 3, 0, Math.PI * 2);
 	ctx.fill();
 	ctx.globalAlpha = 1;
 }
 
-function drawSupportBody(t, cfg, selected) {
+function drawSupportBody(tower, cfg, selected) {
 	const r = TOWER.radius;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
 	for (let i = 0; i < 8; i++) {
 		const a = i * Math.PI / 4 + Math.PI / 8;
-		const px = t.x + r * Math.cos(a);
-		const py = t.y + r * Math.sin(a);
+		const px = tower.x + r * Math.cos(a);
+		const py = tower.y + r * Math.sin(a);
 		if (i === 0) ctx.moveTo(px, py);
 		else ctx.lineTo(px, py);
 	}
@@ -505,8 +505,8 @@ function drawSupportBody(t, cfg, selected) {
 	// 배럴 (공격 가능 시)
 	if ((cfg.attackTypes || []).length > 0) {
 		ctx.save();
-		ctx.translate(t.x, t.y);
-		ctx.rotate(t.angle);
+		ctx.translate(tower.x, tower.y);
+		ctx.rotate(tower.angle);
 		ctx.fillStyle = cfg.color2;
 		ctx.fillRect(0, -3, r + 4, 6);
 		ctx.restore();
@@ -520,7 +520,7 @@ function drawSupportBody(t, cfg, selected) {
 	ctx.lineCap = 'butt'; // 외부(빔/전기 효과)에서 누수된 lineCap이 점선 대시 끝 모양에 영향 주지 않도록 명시
 	ctx.setLineDash([4, 3]);
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, r + 7, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, r + 7, 0, Math.PI * 2);
 	ctx.stroke();
 
 	// 두 번째 링 — 비콘 전용
@@ -528,7 +528,7 @@ function drawSupportBody(t, cfg, selected) {
 		const pulse2 = 0.5 + 0.5 * Math.sin(performance.now() / 700 + Math.PI);
 		ctx.globalAlpha = 0.35 + 0.3 * pulse2;
 		ctx.beginPath();
-		ctx.arc(t.x, t.y, r + 12, 0, Math.PI * 2);
+		ctx.arc(tower.x, tower.y, r + 12, 0, Math.PI * 2);
 		ctx.stroke();
 	}
 
@@ -536,26 +536,26 @@ function drawSupportBody(t, cfg, selected) {
 	ctx.globalAlpha = 1;
 }
 
-function drawGatlingBody(t, cfg, selected) {
+function drawGatlingBody(tower, cfg, selected) {
 	const r = TOWER.radius;
 
 	// 본체 원
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2);
 	ctx.fill();
 	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
 	ctx.lineWidth = selected ? 3 : 2;
 	ctx.stroke();
 
-	// 다발 배럴 (3개 평행, t.angle 방향)
+	// 다발 배럴 (3개 평행, tower.angle 방향)
 	ctx.save();
-	ctx.translate(t.x, t.y);
-	ctx.rotate(t.angle);
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
 
 	// 발사 직후 짧은 반동 (cooldown 마지막 30%)
-	const interval = 1 / t.fireRate;
-	const recoiling = t.cooldown > interval * 0.7;
+	const interval = 1 / tower.fireRate;
+	const recoiling = tower.cooldown > interval * 0.7;
 	const recoilOffset = recoiling ? -1.5 : 0;
 
 	ctx.fillStyle = cfg.color2;
@@ -576,18 +576,18 @@ function drawGatlingBody(t, cfg, selected) {
 	// 중심 캡(회전축 표시)
 	ctx.fillStyle = '#bdc3c7';
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, 2, 0, Math.PI * 2);
 	ctx.fill();
 }
 
-function drawAssassinBody(t, cfg, selected) {
+function drawAssassinBody(tower, cfg, selected) {
 	const r = TOWER.radius;
 	const time = performance.now();
 
 	// 본체 — 칼날 다이아몬드 (다른 타워와 비슷한 크기)
 	ctx.save();
-	ctx.translate(t.x, t.y);
-	ctx.rotate(t.angle);
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
 
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
@@ -617,10 +617,10 @@ function drawAssassinBody(t, cfg, selected) {
 	ctx.restore();
 }
 
-function drawSiloBody(t, cfg, selected) {
+function drawSiloBody(tower, cfg, selected) {
 	const r = TOWER.radius;
-	const x = t.x - r;
-	const y = t.y - r;
+	const x = tower.x - r;
+	const y = tower.y - r;
 	const w = r * 2;
 
 	// 본체 - 사각형 격납고
@@ -634,10 +634,10 @@ function drawSiloBody(t, cfg, selected) {
 	ctx.strokeStyle = cfg.color2;
 	ctx.lineWidth = 1;
 	ctx.beginPath();
-	ctx.moveTo(x, t.y);
-	ctx.lineTo(x + w, t.y);
-	ctx.moveTo(t.x, y);
-	ctx.lineTo(t.x, y + w);
+	ctx.moveTo(x, tower.y);
+	ctx.lineTo(x + w, tower.y);
+	ctx.moveTo(tower.x, y);
+	ctx.lineTo(tower.x, y + w);
 	ctx.stroke();
 
 	// 모서리 리벳
@@ -652,11 +652,11 @@ function drawSiloBody(t, cfg, selected) {
 	ctx.fill();
 
 	// 미사일 (angle 방향, 발사 직후 잠시 숨김)
-	const ready = t.cooldown < (1 / t.fireRate) * 0.7;
+	const ready = tower.cooldown < (1 / tower.fireRate) * 0.7;
 	if (ready) {
 		ctx.save();
-		ctx.translate(t.x, t.y);
-		ctx.rotate(t.angle);
+		ctx.translate(tower.x, tower.y);
+		ctx.rotate(tower.angle);
 
 		ctx.fillStyle = '#bdc3c7';
 		ctx.beginPath();
@@ -703,11 +703,11 @@ function drawTier4Halo(cx, cy, haloR) {
 	}
 }
 
-function drawRadarAntenna(t) {
+function drawRadarAntenna(tower) {
 	// 회전 안테나(디시) — 본체 위에 별도 디시 + sweeping 빔
 	const sweep = (performance.now() / 600) % (Math.PI * 2);
 	ctx.save();
-	ctx.translate(t.x, t.y);
+	ctx.translate(tower.x, tower.y);
 	ctx.rotate(sweep);
 
 	// 디시 윤곽
@@ -733,26 +733,26 @@ function drawRadarAntenna(t) {
 
 // 타워 외형(4티어 후광 + 본체 + 레이더 안테나)만 그림.
 // 게임 전용 요소(전직 펄스·XP 바)는 제외 → drawTower와 위키가 공유하는 단일 소스.
-function drawTowerBody(t, cfg, selected) {
-	if (t.tier === 4) drawTier4Halo(t.x, t.y, TOWER.radius + 8);
+function drawTowerBody(tower, cfg, selected) {
+	if (tower.tier === 4) drawTier4Halo(tower.x, tower.y, TOWER.radius + 8);
 
 	if (cfg.disablesModifiers) {
-		drawAssassinBody(t, cfg, selected);
+		drawAssassinBody(tower, cfg, selected);
 	} else if (cfg.scatterDeg) {
-		drawGatlingBody(t, cfg, selected);
+		drawGatlingBody(tower, cfg, selected);
 	} else if (cfg.instantHit) {
-		drawBeamEmitterBody(t, cfg, selected);
+		drawBeamEmitterBody(tower, cfg, selected);
 	} else if (cfg.buffsRange) {
-		drawSupportBody(t, cfg, selected);
+		drawSupportBody(tower, cfg, selected);
 	} else if (cfg.areaSweep) {
-		drawAreaSweepBody(t, cfg, selected);
+		drawAreaSweepBody(tower, cfg, selected);
 	} else if (cfg.ballistic) {
-		drawSiloBody(t, cfg, selected);
+		drawSiloBody(tower, cfg, selected);
 	} else {
-		drawCannonBody(t, cfg, selected);
+		drawCannonBody(tower, cfg, selected);
 	}
 
-	if (cfg.marksEnemies) drawRadarAntenna(t);
+	if (cfg.marksEnemies) drawRadarAntenna(tower);
 }
 
 // 게임 밖(위키 등)에서 타워 외형을 그릴 때 사용. (cx, cy) 중심·게임과 동일 크기.
@@ -761,7 +761,7 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
 	const cfg = TOWER_ROLES[role];
 	if (!cfg) return;
 	const isTier4 = Object.values(TIER4_RECIPES).some(r => r.result === role);
-	const t = {
+	const tower = {
 		x: 0, y: 0, role, // 원점에 그린 뒤 translate/scale로 배치
 		tier: isTier4 ? 4 : 1,
 		angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
@@ -773,34 +773,34 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
 	ctx.save();
 	ctx.translate(cx, cy);
 	if (scale !== 1) ctx.scale(scale, scale);
-	drawTowerBody(t, cfg, false);
+	drawTowerBody(tower, cfg, false);
 	ctx.restore();
 }
 
-export function drawTower(t) {
-	const cfg = TOWER_ROLES[t.role];
-	const selected = (t === game.selectedTower);
-	const isTarget = (t === game.promotionTarget);
+export function drawTower(tower) {
+	const cfg = TOWER_ROLES[tower.role];
+	const selected = (tower === game.selectedTower);
+	const isTarget = (tower === game.promotionTarget);
 
-	if (isPromotionReady(t)) {
+	if (isPromotionReady(tower)) {
 		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
 		ctx.globalAlpha = 0.35 + 0.45 * pulse;
 		ctx.strokeStyle = isTarget ? '#1abc9c' : '#f1c40f';
 		ctx.lineWidth = 3;
 		ctx.beginPath();
-		ctx.arc(t.x, t.y, TOWER.radius + 5, 0, Math.PI * 2);
+		ctx.arc(tower.x, tower.y, TOWER.radius + 5, 0, Math.PI * 2);
 		ctx.stroke();
 		ctx.globalAlpha = 1;
 	}
 
-	drawTowerBody(t, cfg, selected);
+	drawTowerBody(tower, cfg, selected);
 
-	if (canPromote(t)) {
-		const xpMax = xpMaxFor(t);
-		const ratio = xpMax > 0 ? t.xp / xpMax : 0;
+	if (canPromote(tower)) {
+		const xpMax = xpMaxFor(tower);
+		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		const bw = 24, bh = 3;
-		const bx = t.x - bw / 2;
-		const by = t.y + TOWER.radius + 5;
+		const bx = tower.x - bw / 2;
+		const by = tower.y + TOWER.radius + 5;
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
 		ctx.fillRect(bx, by, bw, bh);
 		ctx.fillStyle = ratio >= 1 ? '#f1c40f' : '#5dade2';
@@ -808,18 +808,18 @@ export function drawTower(t) {
 	}
 }
 
-export function drawTowerRange(t, fillAlpha, strokeAlpha) {
-	const cfg = TOWER_ROLES[t.role];
-	const range = getEffectiveRange(t);
+export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
+	const cfg = TOWER_ROLES[tower.role];
+	const range = getEffectiveRange(tower);
 	const minRange = cfg.minRange || 0;
 
 	ctx.globalAlpha = fillAlpha;
 	ctx.fillStyle = '#3498db';
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
 	if (minRange > 0) {
 		// 도넛 — 내경을 반대 방향으로 추가 후 evenodd로 가운데 비움
-		ctx.arc(t.x, t.y, minRange, 0, Math.PI * 2, true);
+		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2, true);
 	}
 	ctx.fill('evenodd');
 
@@ -827,11 +827,11 @@ export function drawTowerRange(t, fillAlpha, strokeAlpha) {
 	ctx.strokeStyle = '#5dade2';
 	ctx.lineWidth = 1;
 	ctx.beginPath();
-	ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
+	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
 	ctx.stroke();
 	if (minRange > 0) {
 		ctx.beginPath();
-		ctx.arc(t.x, t.y, minRange, 0, Math.PI * 2);
+		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2);
 		ctx.stroke();
 	}
 	ctx.globalAlpha = 1;
@@ -852,43 +852,43 @@ export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
 // 정보 카드 전직 버튼의 현재 상태 (라벨 + 활성/액션 종류)
 // action: 'cancelTarget' | 'fuseTier4' | 'setTarget' | 'openTier3Choice' | null
-export function getPromotionButtonState(t) {
-	const ready = isPromotionReady(t);
-	const cost = promotionCostFor(t);
-	const xpMax = xpMaxFor(t);
+export function getPromotionButtonState(tower) {
+	const ready = isPromotionReady(tower);
+	const cost = promotionCostFor(tower);
+	const xpMax = xpMaxFor(tower);
 
-	if (t.tier === 3) {
+	if (tower.tier === 3) {
 		if (!ready) {
-			return { active: false, action: null, label: tr('전직 (XP {xp} / {max})', { xp: t.xp, max: xpMax }) };
+			return { active: false, action: null, label: t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax }) };
 		}
-		if (t === game.promotionTarget) {
-			return { active: true, action: 'cancelTarget', label: tr('대상 취소') };
+		if (tower === game.promotionTarget) {
+			return { active: true, action: 'cancelTarget', label: t('대상 취소') };
 		}
-		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, t)) {
+		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
 			const afford = game.sandbox || game.gold >= cost;
 			return {
 				active: afford,
 				action: afford ? 'openTier4Choice' : null,
 				label: afford
-					? tr('전직 ({cost}G)', { cost: cost.toLocaleString() })
-					: tr('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() }),
+					? t('전직 ({cost}G)', { cost: cost.toLocaleString() })
+					: t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() }),
 			};
 		}
-		return { active: true, action: 'setTarget', label: tr('4티어 대상 지정') };
+		return { active: true, action: 'setTarget', label: t('4티어 대상 지정') };
 	}
 
-	// t.tier < 3 — 기존 로직
-	const afford = canAffordPromotion(t);
+	// tower.tier < 3 — 기존 로직
+	const afford = canAffordPromotion(tower);
 	const active = ready && afford;
 	let label;
-	if (!ready) label = tr('전직 (XP {xp} / {max})', { xp: t.xp, max: xpMax });
-	else if (!afford) label = tr('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
-	else label = tr('전직 ({cost}G)', { cost: cost.toLocaleString() });
+	if (!ready) label = t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax });
+	else if (!afford) label = t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
+	else label = t('전직 ({cost}G)', { cost: cost.toLocaleString() });
 	return { active, action: active ? 'openTier3Choice' : null, label };
 }
 
-function drawPromotionButton(t) {
-	const { active, label } = getPromotionButtonState(t);
+function drawPromotionButton(tower) {
+	const { active, label } = getPromotionButtonState(tower);
 
 	ctx.globalAlpha = active ? 1 : 0.55;
 	if (active) {
@@ -912,8 +912,8 @@ function drawPromotionButton(t) {
 	ctx.textBaseline = 'alphabetic';
 }
 
-export function drawTowerInfoPanel(t) {
-	const cfg = TOWER_ROLES[t.role];
+export function drawTowerInfoPanel(tower) {
+	const cfg = TOWER_ROLES[tower.role];
 	drawPanel(towerInfoPanel.x, towerInfoPanel.y, towerInfoPanel.w, towerInfoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
@@ -926,7 +926,7 @@ export function drawTowerInfoPanel(t) {
 	ctx.font = 'bold 11px sans-serif';
 	const tierX = towerInfoPanel.x + 14 + nameWidth + 8;
 	const tierY = towerInfoPanel.y + 22;
-	const tierStr = `Tier ${t.tier}`;
+	const tierStr = `Tier ${tower.tier}`;
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
 	ctx.lineWidth = 2.5;
 	ctx.lineJoin = 'round';
@@ -939,59 +939,59 @@ export function drawTowerInfoPanel(t) {
 	ctx.fillStyle = '#cdd';
 	const sx = towerInfoPanel.x + 14;
 	const sy = towerInfoPanel.y + 50;
-	const total = Math.round((t.totalDamage || 0) * 10) / 10;
-	const atkLabels = { ground: tr('지상'), air: tr('공중') };
+	const total = Math.round((tower.totalDamage || 0) * 10) / 10;
+	const atkLabels = { ground: t('지상'), air: t('공중') };
 	const hasAttack = (cfg.attackTypes || []).length > 0;
 	const activeTypes = [];
-	if (t.canGround) activeTypes.push('ground');
-	if (t.canAir) activeTypes.push('air');
-	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : tr('없음');
+	if (tower.canGround) activeTypes.push('ground');
+	if (tower.canAir) activeTypes.push('air');
+	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('없음');
 
 	if (hasAttack) {
-		const effDmg = getEffectiveDamage(t);
-		const dmgBuffPct = effDmg > t.damage ? Math.round((effDmg / t.damage - 1) * 100) : 0;
-		const dpsValue = Math.round(effDmg * t.fireRate * 10) / 10;
+		const effDmg = getEffectiveDamage(tower);
+		const dmgBuffPct = effDmg > tower.damage ? Math.round((effDmg / tower.damage - 1) * 100) : 0;
+		const dpsValue = Math.round(effDmg * tower.fireRate * 10) / 10;
 		const dmgValue = Math.round(effDmg * 10) / 10;
 		const dmgStr = dmgBuffPct > 0
-			? tr('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
-			: tr('데미지: {dmg} ({dps}/초)', { dmg: t.damage, dps: dpsValue });
+			? t('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
+			: t('데미지: {dmg} ({dps}/초)', { dmg: tower.damage, dps: dpsValue });
 		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(tr('발사속도: {rate}/초', { rate: t.fireRate.toFixed(1) }), sx, sy + 18);
+		ctx.fillText(t('발사속도: {rate}/초', { rate: tower.fireRate.toFixed(1) }), sx, sy + 18);
 	} else {
-		ctx.fillText(tr('데미지: —'), sx, sy);
-		ctx.fillText(tr('발사속도: —'), sx, sy + 18);
+		ctx.fillText(t('데미지: —'), sx, sy);
+		ctx.fillText(t('발사속도: —'), sx, sy + 18);
 	}
 
-	const effRange = getEffectiveRange(t);
-	const buffPct = effRange > t.range ? Math.round((effRange / t.range - 1) * 100) : 0;
+	const effRange = getEffectiveRange(tower);
+	const buffPct = effRange > tower.range ? Math.round((effRange / tower.range - 1) * 100) : 0;
 	const rangeStr = buffPct > 0
-		? tr('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
-		: tr('사거리: {range}', { range: t.range });
+		? t('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
+		: t('사거리: {range}', { range: tower.range });
 	ctx.fillText(rangeStr, sx + 160, sy);
-	ctx.fillText(tr('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
-	const wave = Math.round((t.waveDamage || 0) * 10) / 10;
-	ctx.fillText(tr('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
-	ctx.fillText(tr('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
+	ctx.fillText(t('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
+	const wave = Math.round((tower.waveDamage || 0) * 10) / 10;
+	ctx.fillText(t('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
+	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 
-	if (canPromote(t)) {
-		const xpMax = xpMaxFor(t);
+	if (canPromote(tower)) {
+		const xpMax = xpMaxFor(tower);
 		const bx = sx;
 		const by = sy + 44;
 		const bw = 240;
 		const bh = 8;
-		const ratio = xpMax > 0 ? t.xp / xpMax : 0;
+		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 		ctx.fillRect(bx, by, bw, bh);
-		ctx.fillStyle = t.xp >= xpMax ? '#f1c40f' : '#5dade2';
+		ctx.fillStyle = tower.xp >= xpMax ? '#f1c40f' : '#5dade2';
 		ctx.fillRect(bx, by, bw * ratio, bh);
 		ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
 		ctx.lineWidth = 1;
 		ctx.strokeRect(bx, by, bw, bh);
 		ctx.fillStyle = '#fff';
 		ctx.font = '10px sans-serif';
-		ctx.fillText(`XP ${t.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
+		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
 
-		drawPromotionButton(t);
+		drawPromotionButton(tower);
 	}
 
 	drawGearButton(infoSettingsButton);
@@ -1030,7 +1030,7 @@ function drawGearButton(btn) {
 }
 
 // ---- 설정 카드 우선순위 컨트롤 ----
-const PRIORITY_LABELS = { closest: tr('가장 가까움'), farthest: tr('가장 멈'), strongest: tr('가장 강함'), weakest: tr('가장 약함') };
+const PRIORITY_LABELS = { closest: t('가장 가까움'), farthest: t('가장 멈'), strongest: t('가장 강함'), weakest: t('가장 약함') };
 const PRIORITY_CYCLE = ['closest', 'farthest', 'strongest', 'weakest'];
 // 그리는 순서 = 타게팅 계산 순서: 지상/공중(1순위) 위, 공통 우선순위(2순위) 아래.
 // 지상/공중 행: [지상 스프라이트] [부등호] [공중 스프라이트] — 각 셀이 버튼.
@@ -1050,8 +1050,8 @@ function towerDualCapable(cfg) {
 }
 
 // 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 공격 우선순위 설정.
-export function drawTowerSettingsCard(t) {
-	const cfg = TOWER_ROLES[t.role];
+export function drawTowerSettingsCard(tower) {
+	const cfg = TOWER_ROLES[tower.role];
 	const p = towerInfoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
@@ -1059,12 +1059,12 @@ export function drawTowerSettingsCard(t) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(tr('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
+	ctx.fillText(t('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
 
 	// 우선순위 영역
 	ctx.fillStyle = '#9ab';
 	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText(tr('우선순위'), p.x + 14, p.y + 46);
+	ctx.fillText(t('우선순위'), p.x + 14, p.y + 46);
 
 	const ax = p.x + 14;
 	const ay = p.y + 54;
@@ -1079,19 +1079,19 @@ export function drawTowerSettingsCard(t) {
 		ctx.fillStyle = '#7a8a99';
 		ctx.font = '12px sans-serif';
 		ctx.textAlign = 'center';
-		ctx.fillText(tr('공격하지 않는 타워'), p.x + p.w / 2, ay + ah / 2 + 4);
+		ctx.fillText(t('공격하지 않는 타워'), p.x + p.w / 2, ay + ah / 2 + 4);
 		ctx.textAlign = 'left';
 		return;
 	}
 
 	// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
 	if (towerDualCapable(cfg)) {
-		drawGaCell(SETTINGS_GA.ground, 'ground', t.canGround);
-		drawGaCell(SETTINGS_GA.air, 'air', t.canAir);
+		drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
+		drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
 		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
 		const s = SETTINGS_GA.sign;
 		const sweep = cfg.areaSweep;
-		const sign = sweep ? '=' : (t.gaPriority === 'ground' ? '>' : t.gaPriority === 'air' ? '<' : '=');
+		const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
 		ctx.globalAlpha = sweep ? 0.45 : 1;
 		drawCellButton(s);
 		ctx.fillStyle = '#f1c40f';
@@ -1113,7 +1113,7 @@ export function drawTowerSettingsCard(t) {
 		ctx.font = 'bold 13px sans-serif';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
-		ctx.fillText(tr('표적: {p}', { p: PRIORITY_LABELS[t.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
+		ctx.fillText(t('표적: {p}', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
 		ctx.textBaseline = 'alphabetic';
 		ctx.textAlign = 'left';
 	}
@@ -1151,27 +1151,27 @@ function drawProhibition(cx, cy, r) {
 }
 
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
-export function handleTowerSettingsTap(t, p) {
-	const cfg = TOWER_ROLES[t.role];
+export function handleTowerSettingsTap(tower, p) {
+	const cfg = TOWER_ROLES[tower.role];
 	if (!towerAttacks(cfg)) return false;
 	if (!cfg.areaSweep && hitButton(SETTINGS_PRIORITY_BTN, p)) {
-		const i = PRIORITY_CYCLE.indexOf(t.targetPriority);
-		t.targetPriority = PRIORITY_CYCLE[(i + 1) % PRIORITY_CYCLE.length];
+		const i = PRIORITY_CYCLE.indexOf(tower.targetPriority);
+		tower.targetPriority = PRIORITY_CYCLE[(i + 1) % PRIORITY_CYCLE.length];
 		return true;
 	}
 	if (towerDualCapable(cfg)) {
 		if (hitButton(SETTINGS_GA.ground, p)) {
 			// 최소 한 타입은 유지 (마지막 하나는 끌 수 없음)
-			if (t.canGround) { if (t.canAir) t.canGround = false; } else t.canGround = true;
+			if (tower.canGround) { if (tower.canAir) tower.canGround = false; } else tower.canGround = true;
 			return true;
 		}
 		if (hitButton(SETTINGS_GA.air, p)) {
-			if (t.canAir) { if (t.canGround) t.canAir = false; } else t.canAir = true;
+			if (tower.canAir) { if (tower.canGround) tower.canAir = false; } else tower.canAir = true;
 			return true;
 		}
 		if (!cfg.areaSweep && hitButton(SETTINGS_GA.sign, p)) {
 			// 지상 > 공중 > 동등 > 지상
-			t.gaPriority = t.gaPriority === 'ground' ? 'air' : t.gaPriority === 'air' ? 'equal' : 'ground';
+			tower.gaPriority = tower.gaPriority === 'ground' ? 'air' : tower.gaPriority === 'air' ? 'equal' : 'ground';
 			return true;
 		}
 	}
@@ -1198,7 +1198,7 @@ function drawPromotionCard(slot, role, cost) {
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
-	ctx.fillText(tr('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
+	ctx.fillText(t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
 
 	ctx.fillStyle = '#8aa';
 	ctx.font = '11px sans-serif';
@@ -1240,7 +1240,7 @@ function drawTier4ResultCard(slot, role, cost) {
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
 	ctx.fillText(
-		tr('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
+		t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
 		slot.x + 80, slot.y + 54,
 	);
 
@@ -1268,12 +1268,12 @@ function drawTier4ResultCard(slot, role, cost) {
 }
 
 // 현재 선택 타워가 4티어 합체 전직 분기인지
-export function isTier4ChoiceContext(t) {
-	return t && t.tier === 3 && game.promotionTarget
-    && isCompatibleTier4Partner(game.promotionTarget, t);
+export function isTier4ChoiceContext(tower) {
+	return tower && tower.tier === 3 && game.promotionTarget
+    && isCompatibleTier4Partner(game.promotionTarget, tower);
 }
 
-export function drawPromotionPanel(t) {
+export function drawPromotionPanel(tower) {
 	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
 		radius: 12, fill: '#0f1620', stroke: '#f1c40f', alpha: 0.92,
 	});
@@ -1282,26 +1282,26 @@ export function drawPromotionPanel(t) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#f1c40f';
 	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(tr('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
+	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
-	const tier4 = isTier4ChoiceContext(t);
-	const cost = promotionCostFor(t);
+	const tier4 = isTier4ChoiceContext(tower);
+	const cost = promotionCostFor(tower);
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
 	if (tier4) {
-		const recipe = getTier4Recipe(t);
-		const fromCfg = TOWER_ROLES[t.role];
+		const recipe = getTier4Recipe(tower);
+		const fromCfg = TOWER_ROLES[tower.role];
 		const toCfg = TOWER_ROLES[recipe.result];
 		ctx.fillText(
-			tr('{from} 타워가 {to} 타워로 전직됩니다', { from: fromCfg.name, to: toCfg.name }),
+			t('{from} 타워가 {to} 타워로 전직됩니다', { from: fromCfg.name, to: toCfg.name }),
 			promotionPanel.x + promotionPanel.w / 2,
 			promotionPanel.y + 48,
 		);
 		drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost);
 	} else {
-		ctx.fillText(tr('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
-		const promotions = TOWER_ROLES[t.role].promotions;
+		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+		const promotions = TOWER_ROLES[tower.role].promotions;
 		for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
 			drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
 		}
