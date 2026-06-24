@@ -295,7 +295,7 @@ function selectEnemyAt(p) {
 			game.selectedTower = null;
 			game.towerPanel = TOWER_PANEL.INFO;
 			game.holdDelete = null;
-			playTowerSelect();
+			playButton(); // 적 선택은 타워 선택음이 아니라 범용 효과음
 			return true;
 		}
 	}

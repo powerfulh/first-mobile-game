@@ -495,6 +495,17 @@ export function drawEnemyInfoPanel(e) {
 			: t('이동 속도: {spd}', { spd: eff }),
 		sx, sy,
 	);
+
+	// 재생 적 — 초당 회복률 (max HP 대비 %), updateEnemy와 동일 기준(game.wave)
+	if (e.regen) {
+		sy += 20;
+		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(getRegenHealRate(game.wave) * 100) }), sx, sy);
+	}
+	// 장벽 적(스포너) — 처치 시 생성될 장벽 체력 (spawnBarrier와 동일 기준)
+	if (e.barrierSpawner) {
+		sy += 20;
+		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(game.wave) * 2) }), sx, sy);
+	}
 }
 
 export function drawEnemySprite(type, cx, cy, r, opts = {}) {
