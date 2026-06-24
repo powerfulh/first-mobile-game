@@ -231,6 +231,9 @@ for (const role in TOWER_ROLES) {
 
 export const TARGET_PRIORITY = ['air', 'ground'];
 
+// 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.
+export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'promotion' };
+
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
 export const HUD_RESERVED_TOP = 36;
