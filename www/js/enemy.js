@@ -472,19 +472,24 @@ export function drawEnemyInfoPanel(e) {
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
 	const sx = p.x + 14;
-	let sy = p.y + 56;
-	ctx.fillText(t('타입: {type}', { type: e.type === 'air' ? t('공중') : t('지상') }), sx, sy);
-
-	sy += 20;
-	// 소수 첫째 자리까지 표시 (정수면 소수점 생략) + 천 단위 구분
 	const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
-	const hpLabel = t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) });
-	ctx.fillText(hpLabel, sx, sy);
 
-	// HP 바 — 체력 텍스트 오른쪽 같은 줄
+	// 항목을 균일한 행 간격으로 순서대로 배치 — rowY()는 현재 행 y를 반환하고 다음 행으로 진행.
+	// 조건부 항목(방어력/회복/장벽)이 있어도 항상 같은 간격으로 규칙적으로 쌓임.
+	const ROW = 20;
+	let row = 0;
+	const rowY = () => p.y + 52 + (row++) * ROW;
+
+	// 타입
+	ctx.fillText(t('타입: {type}', { type: e.type === 'air' ? t('공중') : t('지상') }), sx, rowY());
+
+	// 체력 — 텍스트 + 오른쪽 같은 줄 HP 바
+	const yHp = rowY();
+	const hpLabel = t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) });
+	ctx.fillText(hpLabel, sx, yHp);
 	const bh = 8;
 	const bx = sx + ctx.measureText(hpLabel).width + 10;
-	const by = sy - bh;
+	const by = yHp - bh;
 	const bw = Math.max(0, (p.x + p.w - 14) - bx);
 	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -494,9 +499,9 @@ export function drawEnemyInfoPanel(e) {
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
 	ctx.lineWidth = 1;
 	ctx.strokeRect(bx, by, bw, bh);
-
 	ctx.fillStyle = '#cdd';
-	sy += 22;
+
+	// 이동 속도 (둔화 시 표기)
 	const factor = getEnemySpeedFactor(e);
 	const eff = Math.round(e.speed * factor);
 	const slowPct = factor < 1 ? Math.round((1 - factor) * 100) : 0;
@@ -504,23 +509,18 @@ export function drawEnemyInfoPanel(e) {
 		slowPct > 0
 			? t('이동 속도: {spd} (둔화 {pct}%)', { spd: eff, pct: slowPct })
 			: t('이동 속도: {spd}', { spd: eff }),
-		sx, sy,
+		sx, rowY(),
 	);
 
-	// 방어막 — 피격당 데미지 감소량 (applyTowerHit와 동일 기준)
+	// 종류별 추가 항목 — 방어막(데미지 감소량) / 재생(초당 회복률) / 장벽(생성 장벽 체력)
 	if (e.shielded) {
-		sy += 20;
-		ctx.fillText(t('방어력: {n}', { n: getShieldReduction(game.wave).toFixed(1) }), sx, sy);
+		ctx.fillText(t('방어력: {n}', { n: getShieldReduction(game.wave).toFixed(1) }), sx, rowY());
 	}
-	// 재생 적 — 초당 회복률 (max HP 대비 %), updateEnemy와 동일 기준(game.wave)
 	if (e.regen) {
-		sy += 20;
-		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(getRegenHealRate(game.wave) * 100) }), sx, sy);
+		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(getRegenHealRate(game.wave) * 100) }), sx, rowY());
 	}
-	// 장벽 적(스포너) — 처치 시 생성될 장벽 체력 (spawnBarrier와 동일 기준)
 	if (e.barrierSpawner) {
-		sy += 20;
-		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(game.wave) * 2) }), sx, sy);
+		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(game.wave) * 2) }), sx, rowY());
 	}
 }
 
