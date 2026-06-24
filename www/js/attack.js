@@ -55,7 +55,7 @@ export function applyTowerHit(shooter, target, damage) {
 }
 
 export function applySplashHit(shooter, impactX, impactY, damage, radius, attackTypes) {
-	for (const e of game.enemies) {
+	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
 		if (attackTypes && !attackTypes.includes(e.type)) continue;
 		const d = Math.hypot(e.x - impactX, e.y - impactY);
@@ -121,7 +121,7 @@ export function fireLineBeam(t, target, damage) {
 	});
 
 	const dmg = damage !== undefined ? damage : t.damage;
-	for (const e of game.enemies) {
+	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
 		if (!attackTypes.includes(e.type)) continue;
 		const d = pointToSegmentDist(e.x, e.y, t.x, t.y, endX, endY);
@@ -187,7 +187,7 @@ export function updateProjectile(p, dt) {
 			return;
 		}
 		if (handleBarrierBlock(p, oldX, oldY, p.x, p.y)) return;
-		for (const e of game.enemies) {
+		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.isBarrier) continue; // 장벽은 handleBarrierBlock에서 처리됨
 			if (p.attackTypes && !p.attackTypes.includes(e.type)) continue;

@@ -49,7 +49,7 @@ export function isCompatibleTier4Partner(target, candidate) {
 
 export function hasReadyTier4Candidate() {
 	// 게임 내에 XP 가득 찬 4티어 후보 3티어가 존재하는지
-	for (const t of game.towers) {
+	for (const t of game.entities.towers) {
 		if (t.tier === 3 && TIER4_RECIPES[t.role] && t.xp >= xpMaxFor(t)) {
 			return true;
 		}
@@ -65,7 +65,7 @@ export function getEffectiveRange(t, visited) {
 	try {
 		const buffRate = TOWER.buffRates[t.tier];
 		if (buffRate === undefined) return t.range;
-		for (const other of game.towers) {
+		for (const other of game.entities.towers) {
 			if (other === t) continue;
 			const otherCfg = TOWER_ROLES[other.role];
 			if (!otherCfg.buffsRange) continue;
@@ -88,7 +88,7 @@ export function getEffectiveDamage(t, visited) {
 	try {
 		const buffRate = TOWER.buffRates[t.tier];
 		if (buffRate === undefined) return t.damage;
-		for (const other of game.towers) {
+		for (const other of game.entities.towers) {
 			if (other === t) continue;
 			const otherCfg = TOWER_ROLES[other.role];
 			if (!otherCfg.buffsDamage) continue;
@@ -105,7 +105,7 @@ export function getEffectiveDamage(t, visited) {
 }
 
 export function getXpGainAtWaveEnd(t) {
-	for (const other of game.towers) {
+	for (const other of game.entities.towers) {
 		if (other === t) continue;
 		const otherCfg = TOWER_ROLES[other.role];
 		if (!otherCfg.boostsXp) continue;
@@ -119,7 +119,7 @@ export function getXpGainAtWaveEnd(t) {
 
 export function getEnemySpeedFactor(e) {
 	let factor = 1;
-	for (const t of game.towers) {
+	for (const t of game.entities.towers) {
 		const cfg = TOWER_ROLES[t.role];
 		if (!cfg.slowsEnemies) continue;
 		const range = getEffectiveRange(t);
@@ -174,7 +174,7 @@ export function canPlaceTower(x, y) {
 	if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
 	if (y > LOGICAL_H - TOWER.radius) return false;
 	if (distanceToPath(x, y) < PATH_WIDTH / 2 + TOWER.radius + 2) return false;
-	for (const t of game.towers) {
+	for (const t of game.entities.towers) {
 		if (Math.hypot(x - t.x, y - t.y) < TOWER.radius * 2 + 4) return false;
 	}
 	return true;
@@ -197,7 +197,7 @@ export function placeTower(x, y) {
 		waveDamage: 0,
 	};
 	applyTowerPriorityDefaults(tw);
-	game.towers.push(tw);
+	game.entities.towers.push(tw);
 	if (!game.sandbox) game.gold -= TOWER.cost;
 	return true;
 }
@@ -243,7 +243,7 @@ export function promoteToTier4(secondTower) {
 	if (!game.sandbox) game.gold -= cost;
 
 	// 대상 타워 제거
-	game.towers = game.towers.filter(x => x !== target);
+	game.entities.towers = game.entities.towers.filter(x => x !== target);
 	game.promotionTarget = null;
 
 	// 두 번째 타워 자리에 4티어로 변환
@@ -271,7 +271,7 @@ export function updateTower(t, dt) {
 	if (cfg.gainsXpOnEnemyEnter) {
 		if (!t.inRangeEnemies) t.inRangeEnemies = new Set();
 		const next = new Set();
-		for (const e of game.enemies) {
+		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			const d = Math.hypot(e.x - t.x, e.y - t.y);
 			if (d > range) continue;
@@ -296,7 +296,7 @@ export function updateTower(t, dt) {
 		const preferHigher = (t.targetPriority === 'farthest' || t.targetPriority === 'strongest');
 		let bestTier = Infinity;
 		let bestVal = 0;
-		for (const e of game.enemies) {
+		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.isBarrier) continue;
 			if (e.type === 'ground' ? !t.canGround : !t.canAir) continue;
@@ -326,7 +326,7 @@ export function updateTower(t, dt) {
 				// areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
 				const hitRange = range + 10;
 				const sweepBlocked = allowed.includes('air');
-				for (const e of game.enemies) {
+				for (const e of game.entities.enemies) {
 					if (e.dead) continue;
 					if (!allowed.includes(e.type)) continue;
 					const d = Math.hypot(e.x - t.x, e.y - t.y);
@@ -348,7 +348,7 @@ export function updateTower(t, dt) {
 				const step = count > 1 ? spreadRad / (count - 1) : 0;
 				for (let i = 0; i < count; i++) {
 					const angle = t.angle - half + step * i;
-					game.projectiles.push({
+					game.entities.projectiles.push({
 						x: t.x,
 						y: t.y,
 						vx: Math.cos(angle) * TOWER.projectileSpeed,
@@ -367,7 +367,7 @@ export function updateTower(t, dt) {
 				const scatterRad = cfg.scatterDeg * Math.PI / 180;
 				for (let i = 0; i < count; i++) {
 					const angle = t.angle + (Math.random() - 0.5) * scatterRad;
-					game.projectiles.push({
+					game.entities.projectiles.push({
 						x: t.x,
 						y: t.y,
 						vx: Math.cos(angle) * TOWER.projectileSpeed,
@@ -388,7 +388,7 @@ export function updateTower(t, dt) {
 				const dy = ty - t.y;
 				const dist = Math.hypot(dx, dy) || 1;
 				const speed = cfg.projectileSpeed || TOWER.projectileSpeed;
-				game.projectiles.push({
+				game.entities.projectiles.push({
 					x: t.x,
 					y: t.y,
 					vx: (dx / dist) * speed,
@@ -402,7 +402,7 @@ export function updateTower(t, dt) {
 					ballisticMode: true,
 				});
 			} else {
-				game.projectiles.push({
+				game.entities.projectiles.push({
 					x: t.x,
 					y: t.y,
 					target: target,
