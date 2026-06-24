@@ -63,6 +63,13 @@ export function getShieldChance(wave, spawnInterval) {
 	return 0.01 + ratio * (0.19 + bonus + extraBonus + lateBonus);
 }
 
+// 방어막 적이 피격당 받는 피해 감소량 (flat). applyTowerHit·적 정보 패널 공용.
+// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 131~150: 추가 +0.1/wave (+2.0).
+export function getShieldReduction(wave) {
+	return Math.min(3, 1 + Math.max(0, wave - 50) * 0.1)
+		+ Math.min(2, Math.max(0, wave - 130) * 0.1);
+}
+
 // ============ Boss wave helpers ============
 // 보스 웨이브 판정(isBossWave)은 웨이브 스케줄 로직이라 wave.js로 이동
 export function getBossType(wave) {
@@ -471,10 +478,14 @@ export function drawEnemyInfoPanel(e) {
 	sy += 20;
 	// 소수 첫째 자리까지 표시 (정수면 소수점 생략) + 천 단위 구분
 	const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
-	ctx.fillText(t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) }), sx, sy);
+	const hpLabel = t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) });
+	ctx.fillText(hpLabel, sx, sy);
 
-	// HP 바
-	const bx = sx, by = sy + 8, bw = 240, bh = 8;
+	// HP 바 — 체력 텍스트 오른쪽 같은 줄
+	const bh = 8;
+	const bx = sx + ctx.measureText(hpLabel).width + 10;
+	const by = sy - bh;
+	const bw = Math.max(0, (p.x + p.w - 14) - bx);
 	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 	ctx.fillRect(bx, by, bw, bh);
@@ -484,11 +495,11 @@ export function drawEnemyInfoPanel(e) {
 	ctx.lineWidth = 1;
 	ctx.strokeRect(bx, by, bw, bh);
 
-	sy += 38;
+	ctx.fillStyle = '#cdd';
+	sy += 22;
 	const factor = getEnemySpeedFactor(e);
 	const eff = Math.round(e.speed * factor);
 	const slowPct = factor < 1 ? Math.round((1 - factor) * 100) : 0;
-	ctx.fillStyle = '#cdd';
 	ctx.fillText(
 		slowPct > 0
 			? t('이동 속도: {spd} (둔화 {pct}%)', { spd: eff, pct: slowPct })
@@ -496,6 +507,11 @@ export function drawEnemyInfoPanel(e) {
 		sx, sy,
 	);
 
+	// 방어막 — 피격당 데미지 감소량 (applyTowerHit와 동일 기준)
+	if (e.shielded) {
+		sy += 20;
+		ctx.fillText(t('방어력: {n}', { n: getShieldReduction(game.wave).toFixed(1) }), sx, sy);
+	}
 	// 재생 적 — 초당 회복률 (max HP 대비 %), updateEnemy와 동일 기준(game.wave)
 	if (e.regen) {
 		sy += 20;

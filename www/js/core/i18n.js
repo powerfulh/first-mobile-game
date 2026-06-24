@@ -68,6 +68,7 @@ const EN = {
 	'이동 속도: {spd} (둔화 {pct}%)': 'Speed: {spd} (slowed {pct}%)',
 	'초당 회복: {pct}%': 'Heal: {pct}%/s',
 	'장벽 체력: {hp}': 'Barrier HP: {hp}',
+	'방어력: {n}': 'Armor: {n}',
 	'데미지: {dmg} (+{pct}%, {dps}/초)': 'DMG: {dmg} (+{pct}%, {dps}/s)',
 	'데미지: {dmg} ({dps}/초)': 'DMG: {dmg} ({dps}/s)',
 	'데미지: —': 'DMG: —',

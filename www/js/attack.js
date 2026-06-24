@@ -7,15 +7,12 @@ import {
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
-	findBarrierBlockDist, projectileHitsBarrier,
+	findBarrierBlockDist, projectileHitsBarrier, getShieldReduction,
 } from './enemy.js';
 
 export function applyTowerHit(shooter, target, damage) {
 	if (!target || target.dead) return;
-	// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (등장 초반 약하게, Wave 70에 3.0 도달 후 고정)
-	// Wave 131~150: 추가로 매 웨이브 +0.1 (누적 +2.0, Wave 150에서 -5.0 상한)
-	const shieldReduction = Math.min(3, 1 + Math.max(0, game.wave - 50) * 0.1)
-    + Math.min(2, Math.max(0, game.wave - 130) * 0.1);
+	const shieldReduction = getShieldReduction(game.wave);
 	const effective = target.shielded ? Math.max(0, damage - shieldReduction) : damage;
 	const hpBefore = target.hp;
 	const dealt = Math.min(effective, hpBefore);

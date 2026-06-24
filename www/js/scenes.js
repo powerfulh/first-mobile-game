@@ -290,6 +290,7 @@ function selectTowerAt(p) {
 function selectEnemyAt(p) {
 	for (let i = game.entities.enemies.length - 1; i >= 0; i--) {
 		const e = game.entities.enemies[i];
+		if (e.isBarrier) continue; // 장벽은 선택 대상에서 제외
 		if (Math.hypot(p.x - e.x, p.y - e.y) <= e.radius + 6) {
 			game.selectedEnemy = e;
 			game.selectedTower = null;
