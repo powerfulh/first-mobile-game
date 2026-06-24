@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
-	PARALLEL_INTRO_KEY,
+	PARALLEL_INTRO_KEY, TOWER_PANEL,
 } from './config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -254,8 +254,7 @@ function jumpToWave(targetWave) {
 	game.bossActive = false;
 	game.intermissionTimer = 0;
 	game.selectedTower = null;
-	game.promotionChoiceOpen = false;
-	game.towerSettingsOpen = false;
+	game.towerPanel = TOWER_PANEL.INFO;
 	game.promotionTarget = null;
 	game.holdDelete = null;
 	game.modal = null;
@@ -267,8 +266,7 @@ scenes.wiki = wiki;
 // 모든 타워 카드 닫고 선택 해제 (카드 밖 빈 곳 터치 시 — 기본 상태로).
 function deselectTower() {
 	game.selectedTower = null;
-	game.promotionChoiceOpen = false;
-	game.towerSettingsOpen = false;
+	game.towerPanel = TOWER_PANEL.INFO;
 }
 
 // 좌표에 타워가 있으면 그 타워로 선택 전환(카드 닫음) 후 true, 없으면 false.
@@ -276,8 +274,7 @@ function selectTowerAt(p) {
 	for (const t of game.entities.towers) {
 		if (Math.hypot(p.x - t.x, p.y - t.y) <= TOWER.radius + 4) {
 			game.selectedTower = t;
-			game.promotionChoiceOpen = false;
-			game.towerSettingsOpen = false;
+			game.towerPanel = TOWER_PANEL.INFO;
 			game.holdDelete = { tower: t, accumulated: 0 };
 			playTowerSelect();
 			return true;
@@ -356,8 +353,7 @@ scenes.playing = {
 				game.entities.towers = game.entities.towers.filter(x => x !== dead);
 				if (game.selectedTower === dead) {
 					game.selectedTower = null;
-					game.promotionChoiceOpen = false;
-					game.towerSettingsOpen = false;
+					game.towerPanel = TOWER_PANEL.INFO;
 				}
 				if (game.promotionTarget === dead) {
 					game.promotionTarget = null;
@@ -453,8 +449,7 @@ scenes.playing = {
 		if (game.hp <= 0) {
 			game.hp = 0;
 			game.selectedTower = null;
-			game.promotionChoiceOpen = false;
-			game.towerSettingsOpen = false;
+			game.towerPanel = TOWER_PANEL.INFO;
 			game.ghostTower = null;
 			changeScene('gameOver');
 		}
@@ -507,9 +502,9 @@ scenes.playing = {
 		}
 
 		if (game.selectedTower) {
-			if (game.promotionChoiceOpen) {
+			if (game.towerPanel === TOWER_PANEL.PROMOTION) {
 				drawPromotionPanel(game.selectedTower);
-			} else if (game.towerSettingsOpen) {
+			} else if (game.towerPanel === TOWER_PANEL.SETTINGS) {
 				drawTowerSettingsCard(game.selectedTower);
 			} else {
 				drawTowerInfoPanel(game.selectedTower);
@@ -604,7 +599,7 @@ scenes.playing = {
 			game.ghostTower = null; // 다른 영역 → 취소
 			return;
 		}
-		if (game.selectedTower && game.towerSettingsOpen) {
+		if (game.selectedTower && game.towerPanel === TOWER_PANEL.SETTINGS) {
 			if (handleTowerSettingsTap(game.selectedTower, p)) {
 				playButton();
 				return;
@@ -613,9 +608,9 @@ scenes.playing = {
 			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 전체 닫기
 			return;
 		}
-		if (game.selectedTower && game.promotionChoiceOpen) {
+		if (game.selectedTower && game.towerPanel === TOWER_PANEL.PROMOTION) {
 			if (hitButton(promotionCloseButton, p)) {
-				game.promotionChoiceOpen = false;
+				game.towerPanel = TOWER_PANEL.INFO;
 				return;
 			}
 
@@ -624,7 +619,7 @@ scenes.playing = {
 					const second = game.selectedTower;
 					if (promoteToTier4(second)) {
 						playPromote();
-						game.promotionChoiceOpen = false;
+						game.towerPanel = TOWER_PANEL.INFO;
 						game.selectedTower = second; // 변환된 4티어 그대로 선택 유지
 					}
 					return;
@@ -639,7 +634,7 @@ scenes.playing = {
 				if (hitButton(promotionCardSlots[i], p)) {
 					if (promoteTower(game.selectedTower, promotions[i])) {
 						playPromote();
-						game.promotionChoiceOpen = false;
+						game.towerPanel = TOWER_PANEL.INFO;
 					}
 					return;
 				}
@@ -654,7 +649,7 @@ scenes.playing = {
 		if (game.selectedTower) {
 			if (hitButton(infoSettingsButton, p)) {
 				playButton();
-				game.towerSettingsOpen = true;
+				game.towerPanel = TOWER_PANEL.SETTINGS;
 				return;
 			}
 			if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
@@ -662,14 +657,14 @@ scenes.playing = {
 				if (!state.active || !state.action) return;
 				playButton();
 				if (state.action === 'openTier3Choice') {
-					game.promotionChoiceOpen = true;
+					game.towerPanel = TOWER_PANEL.PROMOTION;
 				} else if (state.action === 'setTarget') {
 					game.promotionTarget = game.selectedTower;
 					game.selectedTower = null;
 				} else if (state.action === 'cancelTarget') {
 					game.promotionTarget = null;
 				} else if (state.action === 'openTier4Choice') {
-					game.promotionChoiceOpen = true;
+					game.towerPanel = TOWER_PANEL.PROMOTION;
 				}
 				return;
 			}
@@ -720,13 +715,13 @@ scenes.playing = {
 			return;
 		}
 		// 설정 카드 열린 상태 → 정보 카드로
-		if (game.selectedTower && game.towerSettingsOpen) {
-			game.towerSettingsOpen = false;
+		if (game.selectedTower && game.towerPanel === TOWER_PANEL.SETTINGS) {
+			game.towerPanel = TOWER_PANEL.INFO;
 			return;
 		}
 		// 전직 카드 열린 상태 → 타워 선택 화면으로
-		if (game.selectedTower && game.promotionChoiceOpen) {
-			game.promotionChoiceOpen = false;
+		if (game.selectedTower && game.towerPanel === TOWER_PANEL.PROMOTION) {
+			game.towerPanel = TOWER_PANEL.INFO;
 			return;
 		}
 		// 타워 선택 상태 → 선택 해제

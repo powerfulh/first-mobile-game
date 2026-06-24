@@ -3,7 +3,7 @@ import {
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
-	TOWER_ROLES, INITIAL,
+	TOWER_ROLES, INITIAL, TOWER_PANEL,
 } from './config.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
@@ -31,8 +31,7 @@ export const game = {
 	intermissionTimer: 0,
 	bossActive: false,
 	selectedTower: null,
-	promotionChoiceOpen: false,
-	towerSettingsOpen: false,
+	towerPanel: TOWER_PANEL.INFO,
 	promotionTarget: null,
 	modal: null,
 	paused: false,
@@ -77,8 +76,7 @@ export function resetGame() {
 	game.intermissionTimer = 0;
 	game.bossActive = false;
 	game.selectedTower = null;
-	game.promotionChoiceOpen = false;
-	game.towerSettingsOpen = false;
+	game.towerPanel = TOWER_PANEL.INFO;
 	game.promotionTarget = null;
 	game.modal = null;
 	game.paused = false;
@@ -147,8 +145,7 @@ export function loadGame(data) {
 	game.intermissionTimer = 0;
 	game.bossActive = false;
 	game.selectedTower = null;
-	game.promotionChoiceOpen = false;
-	game.towerSettingsOpen = false;
+	game.towerPanel = TOWER_PANEL.INFO;
 	game.promotionTarget = null;
 	game.modal = null;
 	game.paused = false;
