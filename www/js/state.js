@@ -31,6 +31,7 @@ export const game = {
 	intermissionTimer: 0,
 	bossActive: false,
 	selectedTower: null,
+	selectedEnemy: null,
 	towerPanel: TOWER_PANEL.INFO,
 	promotionTarget: null,
 	modal: null,
@@ -76,6 +77,7 @@ export function resetGame() {
 	game.intermissionTimer = 0;
 	game.bossActive = false;
 	game.selectedTower = null;
+	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
 	game.promotionTarget = null;
 	game.modal = null;
@@ -145,6 +147,7 @@ export function loadGame(data) {
 	game.intermissionTimer = 0;
 	game.bossActive = false;
 	game.selectedTower = null;
+	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
 	game.promotionTarget = null;
 	game.modal = null;

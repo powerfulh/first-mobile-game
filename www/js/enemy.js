@@ -4,9 +4,10 @@ import {
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { roundRect, pointToSegmentDist } from './core/helpers.js';
-import { getEnemySpeedFactor } from './tower.js';
+import { roundRect, pointToSegmentDist, drawPanel } from './core/helpers.js';
+import { getEnemySpeedFactor, towerInfoPanel } from './tower.js';
 import { getNarrowRange } from './wave.js';
+import { t } from './core/i18n.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
 export function getAirChance(wave) {
@@ -436,6 +437,66 @@ function drawRegenAura(cx, cy, baseR) {
 
 // 적 외형(본체 모양)만 그림 — HP바·마크링·재생 오라 등 게임 오버레이는 제외.
 // drawEnemy(게임)와 위키·인트로가 공유하는 단일 소스. (cx,cy) 중심·r 반지름.
+// 적 종류 이름 (플래그 우선순위로 유도 — 스폰 분류 순서와 동일).
+function getEnemyName(e) {
+	if (e.isBoss) return t('보스');
+	if (e.isBarrier) return t('장벽');
+	if (e.barrierSpawner) return t('장벽 적');
+	if (e.regen) return t('재생 적');
+	if (e.type === 'air') return t('공중 적');
+	return t('일반 적');
+}
+
+// 적 정보 카드 — 타워 정보 패널과 동일 위치/스타일. 선택된 적의 실시간 스탯 표시.
+export function drawEnemyInfoPanel(e) {
+	const p = towerInfoPanel;
+	drawPanel(p.x, p.y, p.w, p.h, { stroke: '#e74c3c', alpha: 0.9 });
+
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+
+	// 이름 + 스프라이트 아이콘
+	const spriteType = (e.isBarrier || e.barrierSpawner) ? 'barrier' : e.regen ? 'regen' : e.type;
+	drawEnemySprite(spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.fillText(getEnemyName(e), p.x + 42, p.y + 27);
+
+	ctx.font = '12px sans-serif';
+	ctx.fillStyle = '#cdd';
+	const sx = p.x + 14;
+	let sy = p.y + 56;
+	ctx.fillText(t('타입: {type}', { type: e.type === 'air' ? t('공중') : t('지상') }), sx, sy);
+
+	sy += 20;
+	// 소수 첫째 자리까지 표시 (정수면 소수점 생략) + 천 단위 구분
+	const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
+	ctx.fillText(t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) }), sx, sy);
+
+	// HP 바
+	const bx = sx, by = sy + 8, bw = 240, bh = 8;
+	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
+	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+	ctx.fillRect(bx, by, bw, bh);
+	ctx.fillStyle = e.shielded ? '#5dade2' : '#2ecc71';
+	ctx.fillRect(bx, by, bw * ratio, bh);
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+	ctx.lineWidth = 1;
+	ctx.strokeRect(bx, by, bw, bh);
+
+	sy += 38;
+	const factor = getEnemySpeedFactor(e);
+	const eff = Math.round(e.speed * factor);
+	const slowPct = factor < 1 ? Math.round((1 - factor) * 100) : 0;
+	ctx.fillStyle = '#cdd';
+	ctx.fillText(
+		slowPct > 0
+			? t('이동 속도: {spd} (둔화 {pct}%)', { spd: eff, pct: slowPct })
+			: t('이동 속도: {spd}', { spd: eff }),
+		sx, sy,
+	);
+}
+
 export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 	const stroke = opts.shielded ? '#5dade2' : '#000';
 	const strokeW = opts.shielded ? 2 : 1;

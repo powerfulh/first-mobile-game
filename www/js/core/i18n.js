@@ -61,6 +61,11 @@ const EN = {
 
 	// ---- 타워 정보/설정 패널 (tower.js) ----
 	'지상': 'Ground', '공중': 'Air', '없음': 'None',
+	'보스': 'Boss', '장벽': 'Barrier',
+	'타입: {type}': 'Type: {type}',
+	'체력: {hp} / {max}': 'HP: {hp} / {max}',
+	'이동 속도: {spd}': 'Speed: {spd}',
+	'이동 속도: {spd} (둔화 {pct}%)': 'Speed: {spd} (slowed {pct}%)',
 	'데미지: {dmg} (+{pct}%, {dps}/초)': 'DMG: {dmg} (+{pct}%, {dps}/s)',
 	'데미지: {dmg} ({dps}/초)': 'DMG: {dmg} ({dps}/s)',
 	'데미지: —': 'DMG: —',
