@@ -1,7 +1,7 @@
 // 효과음 시스템 — Web Audio API로 합성 (오디오 파일 없음).
 // BGM(audio.js)과 별개이며, 효과음 볼륨도 배경음과 독립된 자체 마스터(SFX_VOLUME_KEY).
 // 새 효과음은 export function 하나씩 추가 (getCtx로 AudioContext 확보 후 합성).
-import { SFX_VOLUME_KEY } from './config.js';
+import { SFX_VOLUME_KEY } from './core/config.js';
 
 let ctx = null;
 let sfxVolume = loadSfxVolume();

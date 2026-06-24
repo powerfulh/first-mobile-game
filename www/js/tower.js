@@ -1,15 +1,15 @@
-import { ctx } from './canvas.js';
+import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY,
-} from './config.js';
+} from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { distanceToPath, roundRect, drawCloseX, hitButton, drawPanel } from './helpers.js';
+import { distanceToPath, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier, drawEnemySprite } from './enemy.js';
-import { t as tr } from './i18n.js'; // 이 파일은 타워 매개변수명이 t라 별칭 사용
+import { t as tr } from './core/i18n.js'; // 이 파일은 타워 매개변수명이 t라 별칭 사용
 
 // ============ Promotion / XP helpers ============
 export function xpMaxFor(t) {

@@ -1,5 +1,5 @@
-import { canvas, getLogicalPoint } from './canvas.js';
-import { TOWER, TOWER_ROLES, TIER4_RECIPES } from './config.js';
+import { canvas, getLogicalPoint } from './core/canvas.js';
+import { TOWER, TOWER_ROLES, TIER4_RECIPES } from './core/config.js';
 import { game } from './state.js';
 import { changeScene, getCurrentScene } from './scenes.js';
 

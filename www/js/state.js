@@ -4,7 +4,7 @@ import {
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, TOWER_PANEL,
-} from './config.js';
+} from './core/config.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';

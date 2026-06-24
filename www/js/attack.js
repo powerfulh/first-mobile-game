@@ -1,7 +1,7 @@
-import { ctx } from './canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD } from './config.js';
+import { ctx } from './core/canvas.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD } from './core/config.js';
 import { game } from './state.js';
-import { pointToSegmentDist } from './helpers.js';
+import { pointToSegmentDist } from './core/helpers.js';
 import {
 	canPromote, xpMaxFor, getEffectiveRange, allowedTypesOf,
 } from './tower.js';
