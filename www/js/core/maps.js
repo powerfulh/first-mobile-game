@@ -56,7 +56,7 @@ export const MAPS = {
 		traits: ['airShortcut'],
 		// 맵1 기본값에서 아래만 오버라이드 (나머지 미지정은 맵1과 동일).
 		waveComposition: {
-			airStartWave: 4, airStartChance: 0.04, // 공중 적: wave 4부터, 시작 4% (+2%/wave, 상한 50% → wave 27)
+			airStartWave: 4, airStartChance: 0.04, airChanceStep: 0.016, // 공중 적: wave 4부터, 시작 4% (+1.6%/wave, 상한 50% → wave 33)
 			airHpBase: 0.4,    // 공중 HP 비율 시작 0.4 (wave 31부터 +0.02/wave → wave 60에 1.0)
 			countRampWave: 31, // 적 수 증가량 +2→+1 전환을 wave 31로 (상한 wave는 맵1과 동일 79 → 115마리)
 		},
