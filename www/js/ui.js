@@ -1,6 +1,6 @@
 import { ctx, hpEl, goldEl, waveEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H,
+	LOGICAL_W, LOGICAL_H, AIR_COLOR,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY,
@@ -559,7 +559,7 @@ function makeIntro(opts) {
 // 새 인트로 추가 시 이 dict에 항목 하나만 추가하면 됨.
 export const INTRO_MODALS = {
 	airIntro: makeIntro({
-		key: AIR_INTRO_KEY, accent: '#a569bd',
+		key: AIR_INTRO_KEY, accent: AIR_COLOR,
 		drawIcon: (cx, cy) => drawEnemySprite('air', cx, cy, 14),
 		title: '공중 적 등장!',
 		lines: ['보라색 삼각형은 공중 적입니다.', '지상 전담 타워는 공격할 수 없으니', '스카웃을 활용해 대비하세요.'],

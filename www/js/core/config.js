@@ -223,6 +223,9 @@ export const TARGET_PRIORITY = ['air', 'ground'];
 // 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.
 export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'promotion' };
 
+// 공중 테마색 — 공중 적/보스, 공중 인트로 액센트, 공중 지름길 공용.
+export const AIR_COLOR = '#a569bd';
+
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
 export const ENEMY_SPEED_CAP_WAVE = 100; // 이 웨이브 이후 적 기본 이동 속도 고정

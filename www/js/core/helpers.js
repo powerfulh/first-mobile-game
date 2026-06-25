@@ -1,5 +1,5 @@
 import { ctx } from './canvas.js';
-import { PATH_WIDTH } from './config.js';
+import { PATH_WIDTH, AIR_COLOR } from './config.js';
 import { getActiveMap } from './maps.js';
 
 // ============ Geometry helpers ============
@@ -83,7 +83,7 @@ export function drawPath(alpha = 1) {
 	// 공중 지름길 — 정규 경로와 구분되게 공중색 점선
 	const cut = map.airShortcutCut;
 	if (cut) {
-		ctx.strokeStyle = '#a569bd';
+		ctx.strokeStyle = AIR_COLOR;
 		ctx.lineWidth = PATH_WIDTH * 0.55;
 		ctx.setLineDash([12, 9]);
 		ctx.beginPath();
