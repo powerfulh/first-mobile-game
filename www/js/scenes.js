@@ -313,7 +313,7 @@ scenes.mapSelect = {
 };
 
 function enterSandbox() {
-	resetGame();
+	resetGame('map2'); // 샌드박스는 2번 맵 고정
 	game.sandbox = true;
 	game.gold = 999999;
 	game.hp = 999999;
