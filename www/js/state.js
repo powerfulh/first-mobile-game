@@ -3,15 +3,18 @@ import {
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
-	TOWER_ROLES, INITIAL, TOWER_PANEL,
+	TOWER_ROLES, INITIAL, TOWER_PANEL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
+import { getActiveMap, setActiveMap } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';
 
 export const game = {
-	...INITIAL, // hp, gold
+	...INITIAL, // hp (전역)
+	gold: 0, // 시작 돈은 맵별 — resetGame/loadGame이 채움 (그 전엔 placeholder)
 	wave: 1,
+	mapId: 'map1', // 활성 맵 id (core/maps.js MAPS 키)
 	// 게임 월드 엔티티 — 타워/적/발사체를 한 객체로 묶음 (beams/splashes/zaps 등 일시적 시각 효과는 별도 평면 속성).
 	entities: {
 		towers: [],
@@ -61,8 +64,11 @@ function persistBestWave(wave) {
 	} catch (e) {}
 }
 
-export function resetGame() {
-	Object.assign(game, INITIAL); // hp, gold
+export function resetGame(mapId = 'map1') {
+	setActiveMap(mapId);
+	game.mapId = mapId;
+	Object.assign(game, INITIAL); // hp (전역)
+	game.gold = getActiveMap().startGold; // 시작 돈은 맵별
 	game.wave = 1;
 	game.entities.enemies = [];
 	game.entities.towers = [];
@@ -100,6 +106,7 @@ export function saveGame() {
 	const base = game.waves[0] || createSpawner(game.wave);
 	const data = {
 		version: 1,
+		mapId: game.mapId,
 		wave: game.wave,
 		hp: game.hp,
 		gold: game.gold,
@@ -132,6 +139,9 @@ export function loadSaveData() {
 }
 
 export function loadGame(data) {
+	const mapId = data.mapId || 'map1'; // 구 세이브 하위호환
+	setActiveMap(mapId);
+	game.mapId = mapId;
 	game.wave = data.wave;
 	game.hp = data.hp;
 	game.gold = data.gold;
@@ -185,7 +195,7 @@ export function loadGame(data) {
 // 로컬 저장 정보 전체 초기화 (타이틀 설정에서 호출)
 export function resetLocalData() {
 	const keys = [
-		SAVE_KEY, BEST_WAVE_KEY,
+		SAVE_KEY, BEST_WAVE_KEY, UNLOCKED_MAPS_KEY,
 		AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 		TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	];
@@ -216,4 +226,20 @@ export function getIntermissionEnabled() {
 }
 export function setIntermissionEnabled(on) {
 	try { localStorage.setItem(INTERMISSION_KEY, on ? '1' : '0'); } catch (e) {}
+}
+
+// ============ 맵 해금 ============
+// 해금된 맵 id 목록 — map1은 항상 포함. 추가 해금분만 배열로 localStorage에 저장.
+export function getUnlockedMaps() {
+	let extra = [];
+	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
+	return ['map1', ...extra.filter(id => id !== 'map1')];
+}
+export function unlockMap(id) {
+	if (id === 'map1') return;
+	const cur = getUnlockedMaps();
+	if (cur.includes(id)) return;
+	try {
+		localStorage.setItem(UNLOCKED_MAPS_KEY, JSON.stringify([...cur.filter(m => m !== 'map1'), id]));
+	} catch (e) {}
 }

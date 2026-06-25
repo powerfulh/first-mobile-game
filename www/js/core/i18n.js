@@ -142,6 +142,7 @@ const EN = {
 	'메인으로 나가기': 'Exit to menu',
 	'이어서 하기': 'Continue',
 	'게임 시작': 'Start',
+	'맵 선택': 'Select Map',
 	'다음 웨이브까지 {n}초': 'Next wave in {n}s',
 	'빈 곳을 탭하여 배치 취소': 'Tap empty space to cancel',
 	'빈 곳을 탭하여 타워 배치 ({cost}G)': 'Tap empty space to place tower ({cost}G)',

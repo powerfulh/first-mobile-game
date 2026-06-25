@@ -65,9 +65,10 @@ export function playBgm(track) {
 	applyCurrent();
 }
 
-// 보스 활성 여부로 전투 음악 동기화 (playing 씬 update에서 매 프레임 호출)
-export function syncBattleMusic(bossActive) {
-	playBgm(bossActive ? 'boss' : 'normal');
+// 보스 활성 여부로 전투 음악 동기화 (playing 씬 update에서 매 프레임 호출).
+// 비-보스 트랙은 현재 맵의 BGM (mapBgm). playBgm이 같은 트랙이면 끊김 없이 유지.
+export function syncBattleMusic(bossActive, mapBgm = 'normal') {
+	playBgm(bossActive ? 'boss' : mapBgm);
 }
 
 export function getBgmVolume() { return volume; }

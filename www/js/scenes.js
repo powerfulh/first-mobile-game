@@ -6,8 +6,9 @@ import {
 import {
 	game, resetGame, loadGame, loadSaveData,
 	hasSeenIntro, setIntroSeen, resetLocalData, getOneTouchPlace,
-	getIntermissionEnabled,
+	getIntermissionEnabled, getUnlockedMaps,
 } from './state.js';
+import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
@@ -190,8 +191,13 @@ scenes.title = {
 		}
 		const buttons = titleSave ? titleButtonsWithSave : titleButtonsNoSave;
 		if (hitButton(buttons.start, p)) {
-			resetGame();
-			changeScene('playing');
+			// 해금 맵이 2개 이상이면 맵 선택 단계, 1개면 기존처럼 바로 진입
+			if (getUnlockedMaps().length >= 2) {
+				changeScene('mapSelect');
+			} else {
+				resetGame('map1');
+				changeScene('playing');
+			}
 			return;
 		}
 		if (hitButton(buttons.wiki, p)) {
@@ -231,6 +237,48 @@ scenes.title = {
 		if (e.code === 'Space') {
 			e.preventDefault();
 			enterSandbox();
+		}
+	},
+};
+
+// ============ Map select scene ============
+// 해금 맵이 2개 이상일 때만 '게임 시작'에서 진입(1개면 바로 playing). 맵 탭 → resetGame(맵) → playing.
+function mapSelectButtons() {
+	return getUnlockedMaps().map((id, i) => ({ id, x: 80, y: 300 + i * 76, w: 200, h: 64 }));
+}
+scenes.mapSelect = {
+	enter() {},
+	update() {},
+	draw() {
+		ctx.fillStyle = '#1a2e1a';
+		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+		ctx.textAlign = 'center';
+		ctx.fillStyle = '#fff';
+		ctx.font = 'bold 28px sans-serif';
+		ctx.fillText(t('맵 선택'), LOGICAL_W / 2, 220);
+		for (const b of mapSelectButtons()) {
+			drawButton(b, MAPS[b.id].name);
+		}
+	},
+	pointerDown(p) {
+		for (const b of mapSelectButtons()) {
+			if (hitButton(b, p)) {
+				resetGame(b.id);
+				changeScene('playing');
+				return;
+			}
+		}
+	},
+	pointerMove() {},
+	pointerUp() {},
+	pointerCancel() {},
+	backButton() {
+		changeScene('title');
+	},
+	keyDown(e) {
+		if (e.code === 'Backspace') {
+			e.preventDefault();
+			this.backButton();
 		}
 	},
 };
@@ -362,7 +410,7 @@ scenes.playing = {
 	},
 	update(dt) {
 		updateToast(dt);
-		syncBattleMusic(game.bossActive); // 보스 웨이브 ↔ 일반 BGM 전환
+		syncBattleMusic(game.bossActive, getActiveMap().bgm); // 보스 ↔ 맵 BGM 전환
 		if (game.modal) return;
 		if (game.settingsOpen) return;
 		if (game.paused) return;
@@ -835,7 +883,7 @@ scenes.gameOver = {
 	},
 	pointerDown(p) {
 		if (hitButton(gameOverButtons.restart, p)) {
-			resetGame();
+			resetGame(game.mapId); // 죽은 맵 그대로 재시작
 			changeScene('playing');
 		} else if (hitButton(gameOverButtons.toTitle, p)) {
 			changeScene('title');

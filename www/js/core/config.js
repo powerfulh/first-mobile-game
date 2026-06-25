@@ -3,19 +3,8 @@ import { t } from './i18n.js';
 export const LOGICAL_W = 360;
 export const LOGICAL_H = 640;
 
-// 새 게임 시작 시 플레이어 초기 자원 — game 객체 초기 정의와 resetGame의 단일 출처.
-export const INITIAL = { hp: 20, gold: 100 };
-
-export const path = [
-	{ x: 60, y: 0 },
-	{ x: 60, y: 150 },
-	{ x: 280, y: 150 },
-	{ x: 280, y: 350 },
-	{ x: 80, y: 350 },
-	{ x: 80, y: 540 },
-	{ x: 300, y: 540 },
-	{ x: 300, y: 640 },
-];
+// 새 게임 시작 시 플레이어 초기 HP (전역). 시작 돈은 맵별 — core/maps.js의 startGold.
+export const INITIAL = { hp: 20 };
 
 export const TOWER = {
 	cost: 50,
@@ -249,6 +238,7 @@ export const BARRIER_RADIUS = 60;
 
 export const SAVE_KEY = 'td_save_v1';
 export const BEST_WAVE_KEY = 'td_best_wave';
+export const UNLOCKED_MAPS_KEY = 'td_unlocked_maps';
 export const AIR_INTRO_KEY = 'td_seen_air_intro';
 export const BUFF_INTRO_KEY = 'td_seen_buff_intro';
 export const BOSS_INTRO_KEY = 'td_seen_boss_intro';

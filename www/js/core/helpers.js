@@ -1,5 +1,6 @@
 import { ctx } from './canvas.js';
-import { path, PATH_WIDTH } from './config.js';
+import { PATH_WIDTH } from './config.js';
+import { getActiveMap } from './maps.js';
 
 // ============ Geometry helpers ============
 export function pointToSegmentDist(px, py, ax, ay, bx, by) {
@@ -14,6 +15,7 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 }
 
 export function distanceToPath(x, y) {
+	const path = getActiveMap().path;
 	let min = Infinity;
 	for (let i = 0; i < path.length - 1; i++) {
 		const d = pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
@@ -66,6 +68,7 @@ export function hitButton(btn, p) {
 }
 
 export function drawPath(alpha = 1) {
+	const path = getActiveMap().path;
 	ctx.globalAlpha = alpha;
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = PATH_WIDTH;
