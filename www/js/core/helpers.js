@@ -15,12 +15,16 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 }
 
 export function distanceToPath(x, y) {
-	const path = getActiveMap().path;
+	const map = getActiveMap();
 	let min = Infinity;
-	for (let i = 0; i < path.length - 1; i++) {
-		const d = pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
-		if (d < min) min = d;
-	}
+	const checkSegs = (pts) => {
+		for (let i = 0; i < pts.length - 1; i++) {
+			const d = pointToSegmentDist(x, y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
+			if (d < min) min = d;
+		}
+	};
+	checkSegs(map.path);
+	if (map.airShortcutCut) checkSegs(map.airShortcutCut); // 지름길도 정규길처럼 배치 불가
 	return min;
 }
 
@@ -91,6 +95,13 @@ export function drawPath(alpha = 1) {
 		for (let i = 1; i < cut.length; i++) ctx.lineTo(cut[i].x, cut[i].y);
 		ctx.stroke();
 		ctx.setLineDash([]);
+		// 양 끝 접합부를 점선 위상과 무관하게 동일하게 — 정규 경로와 맞닿는 지점에 둥근 조인트
+		ctx.fillStyle = AIR_COLOR;
+		for (const pt of cut) {
+			ctx.beginPath();
+			ctx.arc(pt.x, pt.y, PATH_WIDTH * 0.55 / 2, 0, Math.PI * 2);
+			ctx.fill();
+		}
 	}
 	ctx.globalAlpha = 1;
 }

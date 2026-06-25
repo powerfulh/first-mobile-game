@@ -41,14 +41,14 @@ export const MAPS = {
 		// 공중 적만 정규↔지름길 교대로 이용(보스 제외). airShortcutCut은 그리기용(정규와 다른 구간).
 		airShortcutPath: [
 			{ x: 300, y: 0 },
-			{ x: 300, y: 320 },
-			{ x: 175, y: 320 },
+			{ x: 300, y: 360 },
+			{ x: 175, y: 360 },
 			{ x: 175, y: 65 },
 			{ x: 55, y: 65 },
 			{ x: 55, y: 385 },
 			{ x: 0, y: 385 },
 		],
-		airShortcutCut: [{ x: 300, y: 320 }, { x: 175, y: 320 }],
+		airShortcutCut: [{ x: 300, y: 360 }, { x: 175, y: 360 }],
 		startGold: 150,
 		bgm: 'bgm2',
 		traits: ['airShortcut'],
