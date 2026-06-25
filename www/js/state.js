@@ -47,6 +47,7 @@ export const game = {
 	toast: null,
 	bestWaveReached: 0,
 	waveSpawnCounts: {}, // 현재 웨이브 적 타입별 출현 누적 (HUD 요약용)
+	airShortcutNext: false, // 다음 공중 적이 지름길 차례인지 (정규↔지름길 교대; airShortcut 맵 전용)
 	ghostTower: null, // 2단계 배치 미리보기 { x, y, dragging }
 };
 
@@ -96,6 +97,7 @@ export function resetGame(mapId = 'map1') {
 	game.toast = null;
 	game.bestWaveReached = loadBestWave();
 	game.waveSpawnCounts = {};
+	game.airShortcutNext = false;
 	game.ghostTower = null;
 }
 
@@ -165,6 +167,7 @@ export function loadGame(data) {
 	game.paused = false;
 	game.holdDelete = null;
 	game.waveSpawnCounts = {};
+	game.airShortcutNext = false;
 	game.ghostTower = null;
 	game.bestWaveReached = Math.max(loadBestWave(), game.wave);
 	game.entities.towers = (data.towers || [])

@@ -68,7 +68,8 @@ export function hitButton(btn, p) {
 }
 
 export function drawPath(alpha = 1) {
-	const path = getActiveMap().path;
+	const map = getActiveMap();
+	const path = map.path;
 	ctx.globalAlpha = alpha;
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = PATH_WIDTH;
@@ -78,6 +79,19 @@ export function drawPath(alpha = 1) {
 	ctx.moveTo(path[0].x, path[0].y);
 	for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
 	ctx.stroke();
+
+	// 공중 지름길 — 정규 경로와 구분되게 공중색 점선
+	const cut = map.airShortcutCut;
+	if (cut) {
+		ctx.strokeStyle = '#a569bd';
+		ctx.lineWidth = PATH_WIDTH * 0.55;
+		ctx.setLineDash([12, 9]);
+		ctx.beginPath();
+		ctx.moveTo(cut[0].x, cut[0].y);
+		for (let i = 1; i < cut.length; i++) ctx.lineTo(cut[i].x, cut[i].y);
+		ctx.stroke();
+		ctx.setLineDash([]);
+	}
 	ctx.globalAlpha = 1;
 }
 

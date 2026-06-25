@@ -120,7 +120,7 @@ function getEnemyBaseSpeed(wave) {
 export function spawnEnemy(spawner) {
 	// 스폰 스탯은 그 스포너의 웨이브 기준 (병렬 웨이브는 각자 다른 웨이브일 수 있음).
 	const wave = spawner.wave;
-	const path = getActiveMap().path;
+	const map = getActiveMap();
 	// 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
 	const barrierSpawner = Math.random() < getBarrierSpawnerChance(wave);
 	const regen = barrierSpawner ? false : Math.random() < getRegenChance(wave);
@@ -136,10 +136,17 @@ export function spawnEnemy(spawner) {
 	else hp = baseHp;
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = regen ? baseSpeed * 0.5 : baseSpeed;
+	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
+	let enemyPath = map.path;
+	if (isAir && map.airShortcutPath) {
+		if (game.airShortcutNext) enemyPath = map.airShortcutPath;
+		game.airShortcutNext = !game.airShortcutNext;
+	}
 	game.entities.enemies.push({
-		x: path[0].x,
-		y: path[0].y,
+		x: enemyPath[0].x,
+		y: enemyPath[0].y,
 		type: isAir ? 'air' : 'ground',
+		path: enemyPath,
 		speed,
 		segment: 0,
 		radius: 10,
@@ -258,6 +265,7 @@ export function spawnBoss() {
 		x: path[0].x,
 		y: path[0].y,
 		type,
+		path, // 공중 보스도 무조건 정규 경로
 		speed: baseSpeed * 0.1,
 		segment: 0,
 		radius: 18,
@@ -281,7 +289,7 @@ export function updateEnemy(e, dt) {
 	if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
 		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * getRegenHealRate(game.wave) * dt);
 	}
-	const path = getActiveMap().path;
+	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
 		if (!game.sandbox) game.hp -= 1;
 		e.dead = true;
