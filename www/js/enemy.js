@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, path, REGEN_HEAL_RATE, BARRIER_RADIUS,
+	LOGICAL_W, path, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
@@ -90,7 +90,7 @@ export function computeBaseHpAt(wave) {
 	for (let i = 1; i <= 4; i++) {
 		hpExtra += Math.max(0, wave - i * 50) * 0.1;
 	}
-	return 2 + Math.floor((wave - 1) * 0.6 + hpExtra);
+	return Math.round((2 + (wave - 1) * 0.6 + hpExtra) * 10) / 10;
 }
 
 export function computeBossHp(wave) {
@@ -110,6 +110,11 @@ export function getBaseSpawnInterval(wave) {
 	return Math.max(0.5, 1.2 - (wave - 1) * 0.08);
 }
 
+// 적 기본 이동 속도 — Wave에 비례 증가, ENEMY_SPEED_CAP_WAVE에서 상한 고정. spawnEnemy/spawnBoss 공용.
+function getEnemyBaseSpeed(wave) {
+	return 50 + (Math.min(ENEMY_SPEED_CAP_WAVE, wave) - 1) * 2;
+}
+
 // ============ Spawn ============
 export function spawnEnemy(spawner) {
 	// 스폰 스탯은 그 스포너의 웨이브 기준 (병렬 웨이브는 각자 다른 웨이브일 수 있음).
@@ -127,7 +132,7 @@ export function spawnEnemy(spawner) {
 	if (barrierSpawner) hp = baseHp;
 	else if (isAir) hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
 	else hp = baseHp;
-	const baseSpeed = 50 + (Math.min(100, wave) - 1) * 2;
+	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = regen ? baseSpeed * 0.5 : baseSpeed;
 	game.entities.enemies.push({
 		x: path[0].x,
@@ -245,7 +250,7 @@ export function drawBarrierSpawnFx(fx) {
 export function spawnBoss() {
 	const type = getBossType(game.wave);
 	const bossHp = computeBossHp(game.wave);
-	const baseSpeed = 50 + (Math.min(100, game.wave) - 1) * 2;
+	const baseSpeed = getEnemyBaseSpeed(game.wave);
 	game.entities.enemies.push({
 		x: path[0].x,
 		y: path[0].y,

@@ -169,8 +169,8 @@ const EN = {
 	// 적 명단 — 이름 / 태그라인 / 설명
 	'일반 적': 'Normal', '공중 적': 'Air', '재생 적': 'Regen', '장벽 적': 'Barrier',
 	'Wave 1부터 등장하는 기본 지상 유닛': 'Basic ground unit from Wave 1',
-	'HP는 기본 곡선 (Wave 50: 31 / Wave 100: 66 / Wave 200: 151)': 'HP base curve (Wave 50: 31 / 100: 66 / 200: 151)',
-	'이동 속도: 50 + (wave-1) × 2, Wave 100+ 고정 248': 'Speed: 50 + (wave-1) × 2, fixed 248 at Wave 100+',
+	'HP는 웨이브가 오를수록 증가': 'HP grows with the wave',
+	'이동 속도는 웨이브가 오를수록 빨라지며 후반 고정': 'Speed grows with the wave, capped late',
 	'지상 공격이 가능한 모든 타워의 표적': 'Targetable by any ground-capable tower',
 	'Wave 6+ · 공중 공격 가능 타워만 처리': 'Wave 6+ · only air-capable towers can hit',
 	'출현 확률: (wave - 5) × 2%, Wave 30에 상한 50% 도달': 'Spawn rate: (wave-5) × 2%, caps at 50% by Wave 30',
