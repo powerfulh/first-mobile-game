@@ -236,6 +236,7 @@ export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'pro
 
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
+export const ENEMY_SPEED_CAP_WAVE = 100; // 이 웨이브 이후 적 기본 이동 속도 고정
 export const HUD_RESERVED_TOP = 36;
 export const HOLD_DELETE_SECONDS = 1.0;
 export const WAVE_END_XP_MULTIPLIER = 5;
