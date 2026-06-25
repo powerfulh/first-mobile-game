@@ -5,7 +5,7 @@ import {
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, TOWER_PANEL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
-import { getActiveMap, setActiveMap } from './core/maps.js';
+import { getActiveMap, setActiveMap, MAPS } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';
@@ -229,17 +229,17 @@ export function setIntermissionEnabled(on) {
 }
 
 // ============ 맵 해금 ============
-// 해금된 맵 id 목록 — map1은 항상 포함. 추가 해금분만 배열로 localStorage에 저장.
+// unlock.type === 'default' 인 맵은 항상 해금. 그 외(조건부)는 unlockMap으로 해금분만 저장.
+// (정의 순서대로 반환 → 맵 선택 순서 안정)
 export function getUnlockedMaps() {
 	let extra = [];
 	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
-	return ['map1', ...extra.filter(id => id !== 'map1')];
+	return Object.keys(MAPS).filter(id => MAPS[id].unlock?.type === 'default' || extra.includes(id));
 }
 export function unlockMap(id) {
-	if (id === 'map1') return;
-	const cur = getUnlockedMaps();
-	if (cur.includes(id)) return;
-	try {
-		localStorage.setItem(UNLOCKED_MAPS_KEY, JSON.stringify([...cur.filter(m => m !== 'map1'), id]));
-	} catch (e) {}
+	if (!MAPS[id] || MAPS[id].unlock?.type === 'default') return; // 없는 맵·기본 해금은 저장 불필요
+	let extra = [];
+	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
+	if (extra.includes(id)) return;
+	try { localStorage.setItem(UNLOCKED_MAPS_KEY, JSON.stringify([...extra, id])); } catch (e) {}
 }

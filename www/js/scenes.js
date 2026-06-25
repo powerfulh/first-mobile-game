@@ -243,8 +243,43 @@ scenes.title = {
 
 // ============ Map select scene ============
 // 해금 맵이 2개 이상일 때만 '게임 시작'에서 진입(1개면 바로 playing). 맵 탭 → resetGame(맵) → playing.
+// 버튼은 단순 라벨 대신 맵 경로를 축소 렌더한 썸네일 카드. 가로 한 줄 중앙 정렬(맵 늘면 줄바꿈은 추후).
 function mapSelectButtons() {
-	return getUnlockedMaps().map((id, i) => ({ id, x: 80, y: 300 + i * 76, w: 200, h: 64 }));
+	const ids = getUnlockedMaps();
+	const TW = 150, TH = 250, GAP = 24;
+	const startX = (LOGICAL_W - (ids.length * TW + (ids.length - 1) * GAP)) / 2;
+	const y = (LOGICAL_H - TH) / 2;
+	return ids.map((id, i) => ({ id, x: startX + i * (TW + GAP), y, w: TW, h: TH }));
+}
+function drawMapThumb(map, b) {
+	ctx.fillStyle = '#2d4a2b'; // 플레이 배경과 같은 느낌
+	roundRect(b.x, b.y, b.w, b.h, 10);
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+
+	// 경로 미니 렌더 — 카드 안(이름 영역 제외)에 종횡비 유지하며 맞춤.
+	const pad = 10, nameH = 26;
+	const aw = b.w - pad * 2, ah = b.h - pad * 2 - nameH;
+	const s = Math.min(aw / LOGICAL_W, ah / LOGICAL_H);
+	const ox = b.x + pad + (aw - LOGICAL_W * s) / 2;
+	const oy = b.y + pad + (ah - LOGICAL_H * s) / 2;
+	ctx.strokeStyle = '#8a7a5a';
+	ctx.lineWidth = 4;
+	ctx.lineCap = 'round';
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(ox + map.path[0].x * s, oy + map.path[0].y * s);
+	for (let i = 1; i < map.path.length; i++) ctx.lineTo(ox + map.path[i].x * s, oy + map.path[i].y * s);
+	ctx.stroke();
+
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText(map.name, b.x + b.w / 2, b.y + b.h - nameH / 2);
+	ctx.textBaseline = 'alphabetic';
 }
 scenes.mapSelect = {
 	enter() {},
@@ -252,13 +287,7 @@ scenes.mapSelect = {
 	draw() {
 		ctx.fillStyle = '#1a2e1a';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-		ctx.textAlign = 'center';
-		ctx.fillStyle = '#fff';
-		ctx.font = 'bold 28px sans-serif';
-		ctx.fillText(t('맵 선택'), LOGICAL_W / 2, 220);
-		for (const b of mapSelectButtons()) {
-			drawButton(b, MAPS[b.id].name);
-		}
+		for (const b of mapSelectButtons()) drawMapThumb(MAPS[b.id], b);
 	},
 	pointerDown(p) {
 		for (const b of mapSelectButtons()) {

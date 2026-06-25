@@ -24,6 +24,26 @@ export const MAPS = {
 		waveComposition: 'default', // 웨이브 적 구성 전략 id (맵1 = 현재 enemy.js 기본 로직)
 		unlock: { type: 'default' },// 해금 조건 (맵1은 기본 제공)
 	},
+	// 맵2 (작업 중) — 현재는 맵1 복제 + 경로 좌우 반전. 경로/시작 돈/해금 조건 등 세부는 추후 조정.
+	map2: {
+		id: 'map2',
+		name: '맵 2',
+		path: [
+			{ x: 300, y: 0 },
+			{ x: 300, y: 150 },
+			{ x: 80, y: 150 },
+			{ x: 80, y: 350 },
+			{ x: 280, y: 350 },
+			{ x: 280, y: 540 },
+			{ x: 60, y: 540 },
+			{ x: 60, y: 640 },
+		],
+		startGold: 100,
+		bgm: 'bgm2',
+		traits: [],
+		waveComposition: 'default',
+		unlock: { type: 'default' },
+	},
 };
 
 let activeMapId = 'map1';
