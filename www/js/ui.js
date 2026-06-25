@@ -670,7 +670,7 @@ export const INTRO_MODALS = {
 		key: SHORTCUT_INTRO_KEY, accent: AIR_COLOR,
 		drawIcon: drawShortcutIcon,
 		title: '공중 지름길',
-		lines: ['공중 적은 갈림길에서 지름길로 빠질 수 있습니다.', '정규 경로와 번갈아 이용합니다.', '지상 적과 공중 보스는 정규 경로만 이용합니다.'],
-		lineSize: 12, lineStart: 148, lineGap: 24,
+		lines: ['이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다', '정규 경로와 번갈아 이용합니다'],
+		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };

@@ -139,9 +139,8 @@ const EN = {
 	'새로운 맵이 해금되었습니다.': 'A new map is now available.',
 	'게임 시작에서 선택하세요.': 'Choose it from Start.',
 	'공중 지름길': 'Air Shortcut',
-	'공중 적은 갈림길에서 지름길로 빠질 수 있습니다.': 'Air enemies may take a shortcut at the fork.',
-	'정규 경로와 번갈아 이용합니다.': 'They alternate with the regular route.',
-	'지상 적과 공중 보스는 정규 경로만 이용합니다.': 'Ground enemies and air bosses use only the regular route.',
+	'이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다': 'This map has an air-only shortcut.',
+	'정규 경로와 번갈아 이용합니다': 'Used alternately with the regular route.',
 
 	// ---- 씬: 타이틀 / 설정 버튼 / 게임오버 / 힌트 (scenes.js) ----
 	'저장 정보 초기화': 'Reset save data',
