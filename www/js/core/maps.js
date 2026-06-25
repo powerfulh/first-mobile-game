@@ -38,11 +38,11 @@ export const MAPS = {
 			{ x: 60, y: 540 },
 			{ x: 60, y: 640 },
 		],
-		startGold: 100,
+		startGold: 150,
 		bgm: 'bgm2',
 		traits: [],
 		waveComposition: 'default',
-		unlock: { type: 'default' },
+		unlock: { type: 'clearWave', map: 'map1', wave: 200 }, // 1번 맵 200웨이브 돌파 시 해금
 	},
 };
 

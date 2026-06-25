@@ -189,6 +189,7 @@ export function loadGame(data) {
 		game.bossActive = true;
 		spawnBoss();
 	}
+	checkMapUnlocks(); // 불러온 진행이 이미 해금 조건을 충족하면 반영
 }
 
 // ============ Intro 플래그 ============
@@ -242,4 +243,15 @@ export function unlockMap(id) {
 	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
 	if (extra.includes(id)) return;
 	try { localStorage.setItem(UNLOCKED_MAPS_KEY, JSON.stringify([...extra, id])); } catch (e) {}
+}
+
+// 해금 조건 평가 — 웨이브 진입/세이브 로드 시 호출. 'clearWave': 특정 맵 N웨이브 돌파 시 해금. (샌드박스 제외)
+export function checkMapUnlocks() {
+	if (game.sandbox) return;
+	for (const id in MAPS) {
+		const u = MAPS[id].unlock;
+		if (u && u.type === 'clearWave' && game.mapId === u.map && game.wave >= u.wave) {
+			unlockMap(id);
+		}
+	}
 }

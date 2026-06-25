@@ -1,4 +1,4 @@
-import { game, saveGame } from './state.js';
+import { game, saveGame, checkMapUnlocks } from './state.js';
 import {
 	getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt,
 } from './enemy.js';
@@ -81,6 +81,8 @@ export function setupWave(targetWave) {
 
 	// 최고 도달 웨이브 추적 — 다음 판 인터미션 결정에 사용
 	if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
+
+	checkMapUnlocks(); // 이 웨이브 진입이 다른 맵 해금 조건을 충족하면 해금
 }
 
 export function startNextWave() {
