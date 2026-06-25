@@ -9,7 +9,7 @@ import { BGM_VOLUME_KEY } from './core/config.js';
 const tracks = {
 	normal: new Audio('assets/audio/bgm.mp3'),
 	boss: new Audio('assets/audio/boss.mp3'),
-	bgm2: new Audio('assets/audio/bgm2.mp3'), // 맵2 BGM
+	bgm2: new Audio('assets/audio/m2-rock-organ.mp3'), // 맵2 BGM
 };
 for (const a of Object.values(tracks)) {
 	a.loop = true;
