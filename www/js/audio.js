@@ -18,6 +18,8 @@ for (const a of Object.values(tracks)) {
 let current = null; // 'normal' | 'boss' | 'bgm2' | null
 let volume = loadVolume();
 let gestureArmed = false;
+let pendingTimer = null;       // 비-보스 곡 전환 시 0.4초 무음 후 재생 예약 타이머
+const TRACK_SWAP_GAP_MS = 400; // 곡 변경 시 무음 간격
 
 function loadVolume() {
 	try {
@@ -60,10 +62,25 @@ function applyCurrent() {
 	}
 }
 
-// 'normal' | 'boss' 전환. 같은 트랙이면 볼륨/재생 상태만 보정.
+// 곡 전환. 같은 트랙이면 볼륨/재생 상태만 보정.
+// 보스로/에서 전환(또는 최초 재생)은 즉시. 그 외 곡 변경은 기존 곡 정지 → 0.4초 무음 → 새 곡 재생.
 export function playBgm(track) {
-	if (current !== track) current = track;
-	applyCurrent();
+	if (current === track) {
+		if (!pendingTimer) applyCurrent(); // 지연 대기 중이 아니면 재생/볼륨 보정 (매 프레임 호출 대비)
+		return;
+	}
+	const prev = current;
+	if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+	if (prev == null || prev === 'boss' || track === 'boss') {
+		current = track; // 최초 재생·보스 전환은 즉시
+		applyCurrent();
+		return;
+	}
+	// 비-보스 곡 변경: 기존 곡 즉시 정지 → 0.4초 무음 → 새 곡 재생
+	const prevA = tracks[prev];
+	if (prevA && !prevA.paused) { prevA.pause(); prevA.currentTime = 0; }
+	current = track;
+	pendingTimer = setTimeout(() => { pendingTimer = null; applyCurrent(); }, TRACK_SWAP_GAP_MS);
 }
 
 // 보스 활성 여부로 전투 음악 동기화 (playing 씬 update에서 매 프레임 호출).
@@ -78,5 +95,5 @@ export function setBgmVolume(v) {
 	volume = Math.min(1, Math.max(0, v));
 	try { localStorage.setItem(BGM_VOLUME_KEY, String(volume)); } catch (e) {}
 	for (const a of Object.values(tracks)) a.volume = volume;
-	applyCurrent(); // 정지 상태였으면 재생 보장
+	if (!pendingTimer) applyCurrent(); // 정지 상태였으면 재생 보장 (곡 전환 무음 대기 중엔 보류)
 }
