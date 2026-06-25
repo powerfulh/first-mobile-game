@@ -3,6 +3,7 @@ import {
 	LOGICAL_W, LOGICAL_H,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY,
 } from './core/config.js';
 import {
 	game, getOneTouchPlace, setOneTouchPlace,
@@ -504,6 +505,27 @@ function drawParallelIcon(cx, cy) {
 	}
 }
 
+function drawMapUnlockIcon(cx, cy) {
+	// 미니 맵 카드 + 경로 squiggle
+	const w = 34, h = 26;
+	ctx.fillStyle = '#2d4a2b';
+	roundRect(cx - w / 2, cy - h / 2, w, h, 4);
+	ctx.fill();
+	ctx.strokeStyle = '#f1c40f';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+	ctx.strokeStyle = '#8a7a5a';
+	ctx.lineWidth = 3;
+	ctx.lineCap = 'round';
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(cx - 10, cy - 8);
+	ctx.lineTo(cx - 10, cy);
+	ctx.lineTo(cx + 6, cy);
+	ctx.lineTo(cx + 6, cy + 8);
+	ctx.stroke();
+}
+
 // 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
 function makeIntro(opts) {
 	const {
@@ -614,5 +636,12 @@ export const INTRO_MODALS = {
 			ctx.fillText(t('• 병렬로 부른 웨이브는 저장되지 않습니다.'), cx, p.y + 202);
 			ctx.fillText(t('• 적이 겹쳐 방어 부담이 큽니다. 신중히!'), cx, p.y + 226);
 		},
+	}),
+
+	mapUnlock: makeIntro({
+		key: MAP_UNLOCK_INTRO_KEY, accent: '#f1c40f',
+		drawIcon: drawMapUnlockIcon,
+		title: '새로운 맵 해금!',
+		lines: ['1번 맵을 깊이 진행했습니다!', '새로운 맵이 해금되었습니다.', '게임 시작에서 선택하세요.'],
 	}),
 };

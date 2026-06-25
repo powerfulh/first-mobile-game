@@ -2,6 +2,7 @@ import {
 	SAVE_KEY, BEST_WAVE_KEY,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, TOWER_PANEL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
@@ -199,6 +200,7 @@ export function resetLocalData() {
 		SAVE_KEY, BEST_WAVE_KEY, UNLOCKED_MAPS_KEY,
 		AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 		TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+		MAP_UNLOCK_INTRO_KEY,
 	];
 	for (const key of keys) {
 		try { localStorage.removeItem(key); } catch (e) {}
@@ -238,11 +240,12 @@ export function getUnlockedMaps() {
 	return Object.keys(MAPS).filter(id => MAPS[id].unlock?.type === 'default' || extra.includes(id));
 }
 export function unlockMap(id) {
-	if (!MAPS[id] || MAPS[id].unlock?.type === 'default') return; // 없는 맵·기본 해금은 저장 불필요
+	if (!MAPS[id] || MAPS[id].unlock?.type === 'default') return false; // 없는 맵·기본 해금은 저장 불필요
 	let extra = [];
 	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
-	if (extra.includes(id)) return;
+	if (extra.includes(id)) return false;
 	try { localStorage.setItem(UNLOCKED_MAPS_KEY, JSON.stringify([...extra, id])); } catch (e) {}
+	return true; // 신규 해금
 }
 
 // 해금 조건 평가 — 웨이브 진입/세이브 로드 시 호출. 'clearWave': 특정 맵 N웨이브 돌파 시 해금. (샌드박스 제외)
@@ -251,7 +254,10 @@ export function checkMapUnlocks() {
 	for (const id in MAPS) {
 		const u = MAPS[id].unlock;
 		if (u && u.type === 'clearWave' && game.mapId === u.map && game.wave >= u.wave) {
-			unlockMap(id);
+			// 최초 해금 시 안내 모달 (한 번만)
+			if (unlockMap(id) && !game.modal && !hasSeenIntro(MAP_UNLOCK_INTRO_KEY)) {
+				game.modal = { type: 'mapUnlock' };
+			}
 		}
 	}
 }
