@@ -90,7 +90,7 @@ export function computeBaseHpAt(wave) {
 	for (let i = 1; i <= 4; i++) {
 		hpExtra += Math.max(0, wave - i * 50) * 0.1;
 	}
-	return 2 + Math.floor((wave - 1) * 0.6 + hpExtra);
+	return Math.round((2 + (wave - 1) * 0.6 + hpExtra) * 10) / 10;
 }
 
 export function computeBossHp(wave) {
