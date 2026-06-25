@@ -11,14 +11,27 @@ import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
+// 맵별 웨이브 구성 파라미터 (기본 = 맵1). 맵의 waveComposition이 객체면 그 위에 덮어씀.
+const DEFAULT_WAVE = {
+	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
+	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
+	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
+};
+function wparams() {
+	const wc = getActiveMap().waveComposition;
+	return (wc && typeof wc === 'object') ? { ...DEFAULT_WAVE, ...wc } : DEFAULT_WAVE;
+}
+
 export function getAirChance(wave) {
-	if (wave < 6) return 0;
-	return Math.min(0.5, (wave - 5) * 0.02);
+	const p = wparams();
+	if (wave < p.airStartWave) return 0;
+	return Math.min(p.airChanceCap, p.airStartChance + (wave - p.airStartWave) * p.airChanceStep);
 }
 
 export function getAirHpRatio(wave) {
-	if (wave < 31) return 0.6;
-	return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
+	const p = wparams();
+	if (wave < p.airHpRampWave) return p.airHpBase;
+	return Math.min(p.airHpCap, p.airHpBase + (wave - (p.airHpRampWave - 1)) * p.airHpStep);
 }
 
 export function getRegenChance(wave) {
@@ -81,9 +94,12 @@ export function getBossType(wave) {
 
 export function getEnemiesPerWaveAt(wave) {
 	if (wave <= 1) return 8;
-	if (wave <= 39) return 8 + 2 * (wave - 1);
-	if (wave <= 79) return wave + 45;
-	return 124;
+	const p = wparams();
+	const ramp = p.countRampWave;    // 이 웨이브부터 증가량 +1
+	const cap = p.countCapWave;       // 이 웨이브 값에서 고정 (이후 불변)
+	if (wave <= ramp - 1) return 8 + 2 * (wave - 1); // 그 전까지 +2/wave
+	const base = 8 + 2 * (ramp - 2);  // (ramp-1)까지 +2 누적값
+	return base + (Math.min(wave, cap) - (ramp - 1));
 }
 
 export function computeBaseHpAt(wave) {
