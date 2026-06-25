@@ -16,8 +16,9 @@ const DEFAULT_WAVE = {
 	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
+	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 };
-function wparams() {
+export function wparams() {
 	const wc = getActiveMap().waveComposition;
 	return (wc && typeof wc === 'object') ? { ...DEFAULT_WAVE, ...wc } : DEFAULT_WAVE;
 }
