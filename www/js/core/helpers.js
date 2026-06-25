@@ -15,16 +15,24 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 }
 
 export function distanceToPath(x, y) {
-	const map = getActiveMap();
+	const path = getActiveMap().path;
 	let min = Infinity;
-	const checkSegs = (pts) => {
-		for (let i = 0; i < pts.length - 1; i++) {
-			const d = pointToSegmentDist(x, y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
-			if (d < min) min = d;
-		}
-	};
-	checkSegs(map.path);
-	if (map.airShortcutCut) checkSegs(map.airShortcutCut); // 지름길도 정규길처럼 배치 불가
+	for (let i = 0; i < path.length - 1; i++) {
+		const d = pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
+		if (d < min) min = d;
+	}
+	return min;
+}
+
+// 지름길(airShortcutCut)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화(tower.js).
+export function distanceToShortcut(x, y) {
+	const cut = getActiveMap().airShortcutCut;
+	if (!cut) return Infinity;
+	let min = Infinity;
+	for (let i = 0; i < cut.length - 1; i++) {
+		const d = pointToSegmentDist(x, y, cut[i].x, cut[i].y, cut[i + 1].x, cut[i + 1].y);
+		if (d < min) min = d;
+	}
 	return min;
 }
 

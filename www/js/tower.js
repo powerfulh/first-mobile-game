@@ -4,7 +4,7 @@ import {
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { distanceToPath, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
+import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
@@ -174,6 +174,8 @@ export function canPlaceTower(x, y) {
 	if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
 	if (y > LOGICAL_H - TOWER.radius) return false;
 	if (distanceToPath(x, y) < PATH_WIDTH / 2 + TOWER.radius + 2) return false;
+	// 지름길은 얇고 공중 전용이라 완화 — 살짝 겹침까지 허용 (정규 경로보다 느슨)
+	if (distanceToShortcut(x, y) < TOWER.radius + 3) return false;
 	for (const tower of game.entities.towers) {
 		if (Math.hypot(x - tower.x, y - tower.y) < TOWER.radius * 2 + 4) return false;
 	}
