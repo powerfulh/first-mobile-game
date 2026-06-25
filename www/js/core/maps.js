@@ -42,7 +42,7 @@ export const MAPS = {
 		bgm: 'bgm2',
 		traits: [],
 		waveComposition: 'default',
-		unlock: { type: 'clearWave', map: 'map1', wave: 200 }, // 1번 맵 200웨이브 돌파 시 해금
+		unlock: { type: 'clearWave', map: 'map1', wave: 201 }, // 1번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
 
