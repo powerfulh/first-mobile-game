@@ -1,6 +1,6 @@
-import { game, saveGame } from './state.js';
+import { game, saveGame, checkMapUnlocks } from './state.js';
 import {
-	getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt,
+	getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt, wparams,
 } from './enemy.js';
 
 // 보스 웨이브 판정 (20웨이브마다). 순수 웨이브 번호 로직 — wave.js에 거주.
@@ -13,7 +13,7 @@ export function isBossWave(wave) {
 export function getNarrowRange(wave) {
 	if (wave < 11) return { min: 1, max: 1 };
 	const ramp = Math.min(1, (wave - 10) / 20);
-	const extraReduction = Math.min(0.10, Math.max(0, wave - 100) * 0.01);
+	const extraReduction = Math.min(0.10, Math.max(0, wave - wparams().densityFloorWave) * 0.01);
 	const lateMinReduction = Math.min(0.10, Math.max(0, wave - 170) * 0.01);
 	const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction - lateMinReduction);
 	const maxReduction = Math.min(0.10, Math.max(0, wave - 120) * 0.01);
@@ -81,6 +81,8 @@ export function setupWave(targetWave) {
 
 	// 최고 도달 웨이브 추적 — 다음 판 인터미션 결정에 사용
 	if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
+
+	checkMapUnlocks(); // 이 웨이브 진입이 다른 맵 해금 조건을 충족하면 해금
 }
 
 export function startNextWave() {

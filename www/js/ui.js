@@ -1,8 +1,9 @@
 import { ctx, hpEl, goldEl, waveEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H,
+	LOGICAL_W, LOGICAL_H, AIR_COLOR,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from './core/config.js';
 import {
 	game, getOneTouchPlace, setOneTouchPlace,
@@ -504,6 +505,48 @@ function drawParallelIcon(cx, cy) {
 	}
 }
 
+function drawShortcutIcon(cx, cy) {
+	// 두 세로 길(회색) + 공중색 점선 가로지름
+	ctx.strokeStyle = '#8a7a5a';
+	ctx.lineWidth = 7;
+	ctx.lineCap = 'round';
+	for (const dx of [-16, 16]) {
+		ctx.beginPath();
+		ctx.moveTo(cx + dx, cy - 14);
+		ctx.lineTo(cx + dx, cy + 14);
+		ctx.stroke();
+	}
+	ctx.strokeStyle = AIR_COLOR;
+	ctx.lineWidth = 5;
+	ctx.setLineDash([5, 4]);
+	ctx.beginPath();
+	ctx.moveTo(cx - 16, cy);
+	ctx.lineTo(cx + 16, cy);
+	ctx.stroke();
+	ctx.setLineDash([]);
+}
+
+function drawMapUnlockIcon(cx, cy) {
+	// 미니 맵 카드 + 경로 squiggle
+	const w = 34, h = 26;
+	ctx.fillStyle = '#2d4a2b';
+	roundRect(cx - w / 2, cy - h / 2, w, h, 4);
+	ctx.fill();
+	ctx.strokeStyle = '#f1c40f';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+	ctx.strokeStyle = '#8a7a5a';
+	ctx.lineWidth = 3;
+	ctx.lineCap = 'round';
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(cx - 10, cy - 8);
+	ctx.lineTo(cx - 10, cy);
+	ctx.lineTo(cx + 6, cy);
+	ctx.lineTo(cx + 6, cy + 8);
+	ctx.stroke();
+}
+
 // 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
 function makeIntro(opts) {
 	const {
@@ -537,7 +580,7 @@ function makeIntro(opts) {
 // 새 인트로 추가 시 이 dict에 항목 하나만 추가하면 됨.
 export const INTRO_MODALS = {
 	airIntro: makeIntro({
-		key: AIR_INTRO_KEY, accent: '#a569bd',
+		key: AIR_INTRO_KEY, accent: AIR_COLOR,
 		drawIcon: (cx, cy) => drawEnemySprite('air', cx, cy, 14),
 		title: '공중 적 등장!',
 		lines: ['보라색 삼각형은 공중 적입니다.', '지상 전담 타워는 공격할 수 없으니', '스카웃을 활용해 대비하세요.'],
@@ -614,5 +657,20 @@ export const INTRO_MODALS = {
 			ctx.fillText(t('• 병렬로 부른 웨이브는 저장되지 않습니다.'), cx, p.y + 202);
 			ctx.fillText(t('• 적이 겹쳐 방어 부담이 큽니다. 신중히!'), cx, p.y + 226);
 		},
+	}),
+
+	mapUnlock: makeIntro({
+		key: MAP_UNLOCK_INTRO_KEY, accent: '#f1c40f',
+		drawIcon: drawMapUnlockIcon,
+		title: '새로운 맵 해금!',
+		lines: ['1번 맵을 깊이 진행했습니다!', '새로운 맵이 해금되었습니다.', '게임 시작에서 선택하세요.'],
+	}),
+
+	shortcutIntro: makeIntro({
+		key: SHORTCUT_INTRO_KEY, accent: AIR_COLOR,
+		drawIcon: drawShortcutIcon,
+		title: '공중 지름길',
+		lines: ['이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다', '정규 경로와 번갈아 이용합니다'],
+		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };

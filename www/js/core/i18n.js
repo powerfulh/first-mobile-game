@@ -134,6 +134,13 @@ const EN = {
 	'다음 웨이브를 즉시 병렬로 진행합니다.': 'run the next wave in parallel at once.',
 	'• 병렬로 부른 웨이브는 저장되지 않습니다.': '• Parallel-called waves are not saved.',
 	'• 적이 겹쳐 방어 부담이 큽니다. 신중히!': '• Enemies stack up — defend carefully!',
+	'새로운 맵 해금!': 'New Map Unlocked!',
+	'1번 맵을 깊이 진행했습니다!': 'You pushed deep into Map 1!',
+	'새로운 맵이 해금되었습니다.': 'A new map is now available.',
+	'게임 시작에서 선택하세요.': 'Choose it from Start.',
+	'공중 지름길': 'Air Shortcut',
+	'이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다': 'This map has an air-only shortcut.',
+	'정규 경로와 번갈아 이용합니다': 'Used alternately with the regular route.',
 
 	// ---- 씬: 타이틀 / 설정 버튼 / 게임오버 / 힌트 (scenes.js) ----
 	'저장 정보 초기화': 'Reset save data',

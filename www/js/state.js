@@ -2,16 +2,20 @@ import {
 	SAVE_KEY, BEST_WAVE_KEY,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
-	TOWER_ROLES, INITIAL, TOWER_PANEL,
+	TOWER_ROLES, INITIAL, TOWER_PANEL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
+import { getActiveMap, setActiveMap, MAPS } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
 import { applyTowerPriorityDefaults } from './tower.js';
 
 export const game = {
-	...INITIAL, // hp, gold
+	...INITIAL, // hp (전역)
+	gold: 0, // 시작 돈은 맵별 — resetGame/loadGame이 채움 (그 전엔 placeholder)
 	wave: 1,
+	mapId: 'map1', // 활성 맵 id (core/maps.js MAPS 키)
 	// 게임 월드 엔티티 — 타워/적/발사체를 한 객체로 묶음 (beams/splashes/zaps 등 일시적 시각 효과는 별도 평면 속성).
 	entities: {
 		towers: [],
@@ -43,6 +47,7 @@ export const game = {
 	toast: null,
 	bestWaveReached: 0,
 	waveSpawnCounts: {}, // 현재 웨이브 적 타입별 출현 누적 (HUD 요약용)
+	airShortcutNext: false, // 다음 공중 적이 지름길 차례인지 (정규↔지름길 교대; airShortcut 맵 전용)
 	ghostTower: null, // 2단계 배치 미리보기 { x, y, dragging }
 };
 
@@ -61,8 +66,18 @@ function persistBestWave(wave) {
 	} catch (e) {}
 }
 
-export function resetGame() {
-	Object.assign(game, INITIAL); // hp, gold
+// airShortcut 특성 맵 최초 진입 시 지름길 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
+function maybeShowShortcutIntro() {
+	if (!game.modal && getActiveMap().traits?.includes('airShortcut') && !hasSeenIntro(SHORTCUT_INTRO_KEY)) {
+		game.modal = { type: 'shortcutIntro' };
+	}
+}
+
+export function resetGame(mapId = 'map1') {
+	setActiveMap(mapId);
+	game.mapId = mapId;
+	Object.assign(game, INITIAL); // hp (전역)
+	game.gold = getActiveMap().startGold; // 시작 돈은 맵별
 	game.wave = 1;
 	game.entities.enemies = [];
 	game.entities.towers = [];
@@ -89,7 +104,9 @@ export function resetGame() {
 	game.toast = null;
 	game.bestWaveReached = loadBestWave();
 	game.waveSpawnCounts = {};
+	game.airShortcutNext = false;
 	game.ghostTower = null;
+	maybeShowShortcutIntro();
 }
 
 export function saveGame() {
@@ -100,6 +117,7 @@ export function saveGame() {
 	const base = game.waves[0] || createSpawner(game.wave);
 	const data = {
 		version: 1,
+		mapId: game.mapId,
 		wave: game.wave,
 		hp: game.hp,
 		gold: game.gold,
@@ -132,6 +150,9 @@ export function loadSaveData() {
 }
 
 export function loadGame(data) {
+	const mapId = data.mapId || 'map1'; // 구 세이브 하위호환
+	setActiveMap(mapId);
+	game.mapId = mapId;
 	game.wave = data.wave;
 	game.hp = data.hp;
 	game.gold = data.gold;
@@ -154,6 +175,7 @@ export function loadGame(data) {
 	game.paused = false;
 	game.holdDelete = null;
 	game.waveSpawnCounts = {};
+	game.airShortcutNext = false;
 	game.ghostTower = null;
 	game.bestWaveReached = Math.max(loadBestWave(), game.wave);
 	game.entities.towers = (data.towers || [])
@@ -179,15 +201,18 @@ export function loadGame(data) {
 		game.bossActive = true;
 		spawnBoss();
 	}
+	checkMapUnlocks(); // 불러온 진행이 이미 해금 조건을 충족하면 반영
+	maybeShowShortcutIntro();
 }
 
 // ============ Intro 플래그 ============
 // 로컬 저장 정보 전체 초기화 (타이틀 설정에서 호출)
 export function resetLocalData() {
 	const keys = [
-		SAVE_KEY, BEST_WAVE_KEY,
+		SAVE_KEY, BEST_WAVE_KEY, UNLOCKED_MAPS_KEY,
 		AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 		TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+		MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 	];
 	for (const key of keys) {
 		try { localStorage.removeItem(key); } catch (e) {}
@@ -216,4 +241,35 @@ export function getIntermissionEnabled() {
 }
 export function setIntermissionEnabled(on) {
 	try { localStorage.setItem(INTERMISSION_KEY, on ? '1' : '0'); } catch (e) {}
+}
+
+// ============ 맵 해금 ============
+// unlock.type === 'default' 인 맵은 항상 해금. 그 외(조건부)는 unlockMap으로 해금분만 저장.
+// (정의 순서대로 반환 → 맵 선택 순서 안정)
+export function getUnlockedMaps() {
+	let extra = [];
+	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
+	return Object.keys(MAPS).filter(id => MAPS[id].unlock?.type === 'default' || extra.includes(id));
+}
+export function unlockMap(id) {
+	if (!MAPS[id] || MAPS[id].unlock?.type === 'default') return false; // 없는 맵·기본 해금은 저장 불필요
+	let extra = [];
+	try { extra = JSON.parse(localStorage.getItem(UNLOCKED_MAPS_KEY)) || []; } catch (e) {}
+	if (extra.includes(id)) return false;
+	try { localStorage.setItem(UNLOCKED_MAPS_KEY, JSON.stringify([...extra, id])); } catch (e) {}
+	return true; // 신규 해금
+}
+
+// 해금 조건 평가 — 웨이브 진입/세이브 로드 시 호출. 'clearWave': 특정 맵 N웨이브 돌파 시 해금. (샌드박스 제외)
+export function checkMapUnlocks() {
+	if (game.sandbox) return;
+	for (const id in MAPS) {
+		const u = MAPS[id].unlock;
+		if (u && u.type === 'clearWave' && game.mapId === u.map && game.wave >= u.wave) {
+			// 최초 해금 시 안내 모달 (한 번만)
+			if (unlockMap(id) && !game.modal && !hasSeenIntro(MAP_UNLOCK_INTRO_KEY)) {
+				game.modal = { type: 'mapUnlock' };
+			}
+		}
+	}
 }

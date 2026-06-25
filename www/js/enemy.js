@@ -1,8 +1,9 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, path, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE,
+	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
+import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
 import { roundRect, pointToSegmentDist, drawPanel } from './core/helpers.js';
 import { getEnemySpeedFactor, towerInfoPanel } from './tower.js';
@@ -10,14 +11,28 @@ import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
 // ============ 웨이브 / 적 통계 헬퍼 ============
+// 맵별 웨이브 구성 파라미터 (기본 = 맵1). 맵의 waveComposition이 객체면 그 위에 덮어씀.
+const DEFAULT_WAVE = {
+	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
+	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
+	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
+	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
+};
+export function wparams() {
+	const wc = getActiveMap().waveComposition;
+	return (wc && typeof wc === 'object') ? { ...DEFAULT_WAVE, ...wc } : DEFAULT_WAVE;
+}
+
 export function getAirChance(wave) {
-	if (wave < 6) return 0;
-	return Math.min(0.5, (wave - 5) * 0.02);
+	const p = wparams();
+	if (wave < p.airStartWave) return 0;
+	return Math.min(p.airChanceCap, p.airStartChance + (wave - p.airStartWave) * p.airChanceStep);
 }
 
 export function getAirHpRatio(wave) {
-	if (wave < 31) return 0.6;
-	return Math.min(1.0, 0.6 + (wave - 30) * 0.02);
+	const p = wparams();
+	if (wave < p.airHpRampWave) return p.airHpBase;
+	return Math.min(p.airHpCap, p.airHpBase + (wave - (p.airHpRampWave - 1)) * p.airHpStep);
 }
 
 export function getRegenChance(wave) {
@@ -80,9 +95,12 @@ export function getBossType(wave) {
 
 export function getEnemiesPerWaveAt(wave) {
 	if (wave <= 1) return 8;
-	if (wave <= 39) return 8 + 2 * (wave - 1);
-	if (wave <= 79) return wave + 45;
-	return 124;
+	const p = wparams();
+	const ramp = p.countRampWave;    // 이 웨이브부터 증가량 +1
+	const cap = p.countCapWave;       // 이 웨이브 값에서 고정 (이후 불변)
+	if (wave <= ramp - 1) return 8 + 2 * (wave - 1); // 그 전까지 +2/wave
+	const base = 8 + 2 * (ramp - 2);  // (ramp-1)까지 +2 누적값
+	return base + (Math.min(wave, cap) - (ramp - 1));
 }
 
 export function computeBaseHpAt(wave) {
@@ -119,6 +137,7 @@ function getEnemyBaseSpeed(wave) {
 export function spawnEnemy(spawner) {
 	// 스폰 스탯은 그 스포너의 웨이브 기준 (병렬 웨이브는 각자 다른 웨이브일 수 있음).
 	const wave = spawner.wave;
+	const map = getActiveMap();
 	// 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
 	const barrierSpawner = Math.random() < getBarrierSpawnerChance(wave);
 	const regen = barrierSpawner ? false : Math.random() < getRegenChance(wave);
@@ -134,10 +153,17 @@ export function spawnEnemy(spawner) {
 	else hp = baseHp;
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = regen ? baseSpeed * 0.5 : baseSpeed;
+	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
+	let enemyPath = map.path;
+	if (isAir && map.airShortcutPath) {
+		if (game.airShortcutNext) enemyPath = map.airShortcutPath;
+		game.airShortcutNext = !game.airShortcutNext;
+	}
 	game.entities.enemies.push({
-		x: path[0].x,
-		y: path[0].y,
+		x: enemyPath[0].x,
+		y: enemyPath[0].y,
 		type: isAir ? 'air' : 'ground',
+		path: enemyPath,
 		speed,
 		segment: 0,
 		radius: 10,
@@ -251,10 +277,12 @@ export function spawnBoss() {
 	const type = getBossType(game.wave);
 	const bossHp = computeBossHp(game.wave);
 	const baseSpeed = getEnemyBaseSpeed(game.wave);
+	const path = getActiveMap().path;
 	game.entities.enemies.push({
 		x: path[0].x,
 		y: path[0].y,
 		type,
+		path, // 공중 보스도 무조건 정규 경로
 		speed: baseSpeed * 0.1,
 		segment: 0,
 		radius: 18,
@@ -278,6 +306,7 @@ export function updateEnemy(e, dt) {
 	if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
 		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * getRegenHealRate(game.wave) * dt);
 	}
+	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
 		if (!game.sandbox) game.hp -= 1;
 		e.dead = true;
@@ -356,7 +385,7 @@ export function drawBossHpBar() {
 	ctx.fillRect(bx, by, bw, bh);
 
 	const ratio = Math.max(0, boss.hp / boss.hpMax);
-	ctx.fillStyle = boss.type === 'air' ? '#a569bd' : '#c0392b';
+	ctx.fillStyle = boss.type === 'air' ? AIR_COLOR : '#c0392b';
 	ctx.fillRect(bx, by, bw * ratio, bh);
 
 	ctx.strokeStyle = '#fff';
@@ -542,7 +571,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
 	} else if (type === 'air') {
-		ctx.fillStyle = '#a569bd';
+		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();
 		ctx.moveTo(cx, cy - r);
 		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
@@ -569,7 +598,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
 	} else if (type === 'barrier') {
-		ctx.fillStyle = '#a569bd';
+		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();
 		ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
 		ctx.lineTo(cx + r * 0.9, cy - r * 0.6);

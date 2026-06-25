@@ -1,5 +1,6 @@
 import { ctx } from './canvas.js';
-import { path, PATH_WIDTH } from './config.js';
+import { PATH_WIDTH, AIR_COLOR } from './config.js';
+import { getActiveMap } from './maps.js';
 
 // ============ Geometry helpers ============
 export function pointToSegmentDist(px, py, ax, ay, bx, by) {
@@ -14,9 +15,22 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 }
 
 export function distanceToPath(x, y) {
+	const path = getActiveMap().path;
 	let min = Infinity;
 	for (let i = 0; i < path.length - 1; i++) {
 		const d = pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
+		if (d < min) min = d;
+	}
+	return min;
+}
+
+// 지름길(airShortcutCut)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화(tower.js).
+export function distanceToShortcut(x, y) {
+	const cut = getActiveMap().airShortcutCut;
+	if (!cut) return Infinity;
+	let min = Infinity;
+	for (let i = 0; i < cut.length - 1; i++) {
+		const d = pointToSegmentDist(x, y, cut[i].x, cut[i].y, cut[i + 1].x, cut[i + 1].y);
 		if (d < min) min = d;
 	}
 	return min;
@@ -66,6 +80,8 @@ export function hitButton(btn, p) {
 }
 
 export function drawPath(alpha = 1) {
+	const map = getActiveMap();
+	const path = map.path;
 	ctx.globalAlpha = alpha;
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = PATH_WIDTH;
@@ -75,6 +91,26 @@ export function drawPath(alpha = 1) {
 	ctx.moveTo(path[0].x, path[0].y);
 	for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
 	ctx.stroke();
+
+	// 공중 지름길 — 정규 경로와 구분되게 공중색 점선
+	const cut = map.airShortcutCut;
+	if (cut) {
+		ctx.strokeStyle = AIR_COLOR;
+		ctx.lineWidth = PATH_WIDTH * 0.55;
+		ctx.setLineDash([12, 9]);
+		ctx.beginPath();
+		ctx.moveTo(cut[0].x, cut[0].y);
+		for (let i = 1; i < cut.length; i++) ctx.lineTo(cut[i].x, cut[i].y);
+		ctx.stroke();
+		ctx.setLineDash([]);
+		// 양 끝 접합부를 점선 위상과 무관하게 동일하게 — 정규 경로와 맞닿는 지점에 둥근 조인트
+		ctx.fillStyle = AIR_COLOR;
+		for (const pt of cut) {
+			ctx.beginPath();
+			ctx.arc(pt.x, pt.y, PATH_WIDTH * 0.55 / 2, 0, Math.PI * 2);
+			ctx.fill();
+		}
+	}
 	ctx.globalAlpha = 1;
 }
 

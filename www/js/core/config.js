@@ -3,19 +3,8 @@ import { t } from './i18n.js';
 export const LOGICAL_W = 360;
 export const LOGICAL_H = 640;
 
-// 새 게임 시작 시 플레이어 초기 자원 — game 객체 초기 정의와 resetGame의 단일 출처.
-export const INITIAL = { hp: 20, gold: 100 };
-
-export const path = [
-	{ x: 60, y: 0 },
-	{ x: 60, y: 150 },
-	{ x: 280, y: 150 },
-	{ x: 280, y: 350 },
-	{ x: 80, y: 350 },
-	{ x: 80, y: 540 },
-	{ x: 300, y: 540 },
-	{ x: 300, y: 640 },
-];
+// 새 게임 시작 시 플레이어 초기 HP (전역). 시작 돈은 맵별 — core/maps.js의 startGold.
+export const INITIAL = { hp: 20 };
 
 export const TOWER = {
 	cost: 50,
@@ -234,6 +223,9 @@ export const TARGET_PRIORITY = ['air', 'ground'];
 // 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.
 export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'promotion' };
 
+// 공중 테마색 — 공중 적/보스, 공중 인트로 액센트, 공중 지름길 공용.
+export const AIR_COLOR = '#a569bd';
+
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
 export const ENEMY_SPEED_CAP_WAVE = 100; // 이 웨이브 이후 적 기본 이동 속도 고정
@@ -249,6 +241,7 @@ export const BARRIER_RADIUS = 60;
 
 export const SAVE_KEY = 'td_save_v1';
 export const BEST_WAVE_KEY = 'td_best_wave';
+export const UNLOCKED_MAPS_KEY = 'td_unlocked_maps';
 export const AIR_INTRO_KEY = 'td_seen_air_intro';
 export const BUFF_INTRO_KEY = 'td_seen_buff_intro';
 export const BOSS_INTRO_KEY = 'td_seen_boss_intro';
@@ -257,6 +250,8 @@ export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';
 export const REGEN_INTRO_KEY = 'td_seen_regen_intro';
 export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(병렬 호출) 안내 모달
+export const MAP_UNLOCK_INTRO_KEY = 'td_seen_map_unlock'; // 맵 해금 안내 모달
+export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 안내 모달 (airShortcut 맵 최초 진입)
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.
 // 배경음·효과음 마스터를 분리해 각각 저장.
