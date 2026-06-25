@@ -2,7 +2,7 @@ import {
 	SAVE_KEY, BEST_WAVE_KEY,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
-	MAP_UNLOCK_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, TOWER_PANEL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
@@ -66,6 +66,13 @@ function persistBestWave(wave) {
 	} catch (e) {}
 }
 
+// airShortcut 특성 맵 최초 진입 시 지름길 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
+function maybeShowShortcutIntro() {
+	if (!game.modal && getActiveMap().traits?.includes('airShortcut') && !hasSeenIntro(SHORTCUT_INTRO_KEY)) {
+		game.modal = { type: 'shortcutIntro' };
+	}
+}
+
 export function resetGame(mapId = 'map1') {
 	setActiveMap(mapId);
 	game.mapId = mapId;
@@ -99,6 +106,7 @@ export function resetGame(mapId = 'map1') {
 	game.waveSpawnCounts = {};
 	game.airShortcutNext = false;
 	game.ghostTower = null;
+	maybeShowShortcutIntro();
 }
 
 export function saveGame() {
@@ -194,6 +202,7 @@ export function loadGame(data) {
 		spawnBoss();
 	}
 	checkMapUnlocks(); // 불러온 진행이 이미 해금 조건을 충족하면 반영
+	maybeShowShortcutIntro();
 }
 
 // ============ Intro 플래그 ============
@@ -203,7 +212,7 @@ export function resetLocalData() {
 		SAVE_KEY, BEST_WAVE_KEY, UNLOCKED_MAPS_KEY,
 		AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 		TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
-		MAP_UNLOCK_INTRO_KEY,
+		MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 	];
 	for (const key of keys) {
 		try { localStorage.removeItem(key); } catch (e) {}

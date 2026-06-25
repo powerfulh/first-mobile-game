@@ -251,6 +251,7 @@ export const REGEN_INTRO_KEY = 'td_seen_regen_intro';
 export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(병렬 호출) 안내 모달
 export const MAP_UNLOCK_INTRO_KEY = 'td_seen_map_unlock'; // 맵 해금 안내 모달
+export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 안내 모달 (airShortcut 맵 최초 진입)
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.
 // 배경음·효과음 마스터를 분리해 각각 저장.

@@ -3,7 +3,7 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
-	MAP_UNLOCK_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from './core/config.js';
 import {
 	game, getOneTouchPlace, setOneTouchPlace,
@@ -505,6 +505,27 @@ function drawParallelIcon(cx, cy) {
 	}
 }
 
+function drawShortcutIcon(cx, cy) {
+	// 두 세로 길(회색) + 공중색 점선 가로지름
+	ctx.strokeStyle = '#8a7a5a';
+	ctx.lineWidth = 7;
+	ctx.lineCap = 'round';
+	for (const dx of [-16, 16]) {
+		ctx.beginPath();
+		ctx.moveTo(cx + dx, cy - 14);
+		ctx.lineTo(cx + dx, cy + 14);
+		ctx.stroke();
+	}
+	ctx.strokeStyle = AIR_COLOR;
+	ctx.lineWidth = 5;
+	ctx.setLineDash([5, 4]);
+	ctx.beginPath();
+	ctx.moveTo(cx - 16, cy);
+	ctx.lineTo(cx + 16, cy);
+	ctx.stroke();
+	ctx.setLineDash([]);
+}
+
 function drawMapUnlockIcon(cx, cy) {
 	// 미니 맵 카드 + 경로 squiggle
 	const w = 34, h = 26;
@@ -643,5 +664,13 @@ export const INTRO_MODALS = {
 		drawIcon: drawMapUnlockIcon,
 		title: '새로운 맵 해금!',
 		lines: ['1번 맵을 깊이 진행했습니다!', '새로운 맵이 해금되었습니다.', '게임 시작에서 선택하세요.'],
+	}),
+
+	shortcutIntro: makeIntro({
+		key: SHORTCUT_INTRO_KEY, accent: AIR_COLOR,
+		drawIcon: drawShortcutIcon,
+		title: '공중 지름길',
+		lines: ['공중 적은 갈림길에서 지름길로 빠질 수 있습니다.', '정규 경로와 번갈아 이용합니다.', '지상 적과 공중 보스는 정규 경로만 이용합니다.'],
+		lineSize: 12, lineStart: 148, lineGap: 24,
 	}),
 };
