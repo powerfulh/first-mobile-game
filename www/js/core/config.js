@@ -41,6 +41,7 @@ export const TOWER_ROLES = {
 		color: '#5d6d7e', color2: '#212f3d',
 		range: 100, fireRate: 1, damage: 3.6,
 		attackTypes: ['ground'], splash: 0,
+		projectileSpeed: 300, // 1티어
 		promotions: ['tank', 'buff'],
 	},
 	scout: {
@@ -48,6 +49,7 @@ export const TOWER_ROLES = {
 		color: '#16a085', color2: '#0e6655',
 		range: 140, fireRate: 1.2, damage: 1.6,
 		attackTypes: ['ground', 'air'], splash: 0,
+		projectileSpeed: 300, // 1티어
 		promotions: ['eagle', 'filder'],
 	},
 	tank: {
@@ -55,6 +57,7 @@ export const TOWER_ROLES = {
 		color: '#7e5109', color2: '#4a2810',
 		range: 90, fireRate: 0.8, damage: 5,
 		attackTypes: ['ground'], splash: 50,
+		projectileSpeed: 320, // 2티어
 		promotions: ['whale', 'trap'],
 	},
 	whale: {
@@ -62,6 +65,7 @@ export const TOWER_ROLES = {
 		color: '#5d4037', color2: '#3e2723',
 		range: 120, fireRate: 0.6, damage: 10,
 		attackTypes: ['ground'], splash: 80,
+		projectileSpeed: 340, // 3티어
 		promotions: [],
 	},
 	trap: {
@@ -77,6 +81,7 @@ export const TOWER_ROLES = {
 		color: '#d4ac0d', color2: '#9a7d0a',
 		range: 90, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
+		projectileSpeed: 320, // 2티어
 		promotions: ['beacon', 'demon'],
 		buffsRange: true,
 		boostsXp: true,
@@ -86,6 +91,7 @@ export const TOWER_ROLES = {
 		color: '#f4d03f', color2: '#b9770e',
 		range: 120, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
+		projectileSpeed: 340, // 3티어
 		promotions: [],
 		buffsRange: true,
 		buffsDamage: true,
@@ -108,6 +114,7 @@ export const TOWER_ROLES = {
 		color: '#2874a6', color2: '#1f618d',
 		range: 140, fireRate: 2.4, damage: 3.2,
 		attackTypes: ['air'], splash: 0,
+		projectileSpeed: 320, // 2티어
 		promotions: ['skydoom', 'interceptor'],
 	},
 	skydoom: {
@@ -115,6 +122,7 @@ export const TOWER_ROLES = {
 		color: '#1f3a5f', color2: '#0c1c30',
 		range: 140, fireRate: 2.4, damage: 5,
 		attackTypes: ['air'], splash: 50,
+		projectileSpeed: 340, // 3티어
 		promotions: [],
 	},
 	interceptor: {

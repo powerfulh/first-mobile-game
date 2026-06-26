@@ -409,7 +409,7 @@ export function updateTower(tower, dt) {
 					y: tower.y,
 					target: target,
 					damage,
-					speed: TOWER.projectileSpeed,
+					speed: cfg.projectileSpeed || TOWER.projectileSpeed,
 					shooter: tower,
 					splash: cfg.splash || 0,
 					splashColor: cfg.color,
