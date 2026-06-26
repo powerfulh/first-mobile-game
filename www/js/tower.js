@@ -194,10 +194,10 @@ export function canPlaceTower(x, y) {
 
 export function placeTower(x, y) {
 	if (!canPlaceTower(x, y)) return false;
-	const cfg = TOWER_ROLES.base;
+	const cfg = TOWER_ROLES.novice;
 	const tw = {
 		x, y,
-		role: 'base',
+		role: 'novice',
 		tier: 0,
 		range: cfg.range,
 		fireRate: cfg.fireRate,

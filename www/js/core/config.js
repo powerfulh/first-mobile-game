@@ -29,7 +29,7 @@ export const TIER4_RECIPES = {
 };
 
 export const TOWER_ROLES = {
-	base: {
+	novice: {
 		name: '기본', tagline: '균형형 · 지상 단일',
 		color: '#3498db', color2: '#1a5680',
 		range: 90, fireRate: 1.2, damage: 1.2,
@@ -42,7 +42,7 @@ export const TOWER_ROLES = {
 		range: 100, fireRate: 1, damage: 3.6,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 300, // 1티어
-		promotions: ['tank', 'buff'],
+		promotions: ['tank', 'base'],
 	},
 	scout: {
 		name: '스카웃', tagline: '원거리 다목적 · 지상/공중',
@@ -76,7 +76,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 		areaSweep: true,
 	},
-	buff: {
+	base: {
 		name: '배이스', tagline: '주변 아군 사거리·XP 강화',
 		color: '#d4ac0d', color2: '#9a7d0a',
 		range: 90, fireRate: 1, damage: 2,

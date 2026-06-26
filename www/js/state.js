@@ -116,7 +116,7 @@ export function saveGame() {
 	// 간격엔 RNG가 섞여 있어 그 값을 그대로 저장해야 같은 페이스/방어막 확률로 복원됨.
 	const base = game.waves[0] || createSpawner(game.wave);
 	const data = {
-		version: 1,
+		version: 2,
 		mapId: game.mapId,
 		wave: game.wave,
 		hp: game.hp,
@@ -142,7 +142,15 @@ export function loadSaveData() {
 		const raw = localStorage.getItem(SAVE_KEY);
 		if (!raw) return null;
 		const data = JSON.parse(raw);
-		if (data.version !== 1) return null;
+		if (data.version === 1) {
+			// v1 → v2: 역할 키 변경 (기본 base→novice, 배이스 buff→base). 키당 1회 매핑이라 연쇄 없음.
+			const ROLE_MIGRATION_V1 = { base: 'novice', buff: 'base' };
+			for (const td of data.towers || []) {
+				if (ROLE_MIGRATION_V1[td.role]) td.role = ROLE_MIGRATION_V1[td.role];
+			}
+			data.version = 2;
+		}
+		if (data.version !== 2) return null;
 		return data;
 	} catch (e) {
 		return null;

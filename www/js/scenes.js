@@ -397,12 +397,12 @@ function drawGhostTower() {
 	ctx.globalAlpha = 0.12;
 	ctx.fillStyle = '#3498db';
 	ctx.beginPath();
-	ctx.arc(g.x, g.y, TOWER_ROLES.base.range, 0, Math.PI * 2);
+	ctx.arc(g.x, g.y, TOWER_ROLES.novice.range, 0, Math.PI * 2);
 	ctx.fill();
 	ctx.globalAlpha = 1;
 	// 고스트 본체 (반투명) + 유효성 링
 	ctx.globalAlpha = 0.55;
-	drawTowerSprite('base', g.x, g.y, TOWER.radius);
+	drawTowerSprite('novice', g.x, g.y, TOWER.radius);
 	ctx.globalAlpha = 1;
 	ctx.strokeStyle = ok ? '#2ecc71' : '#e74c3c';
 	ctx.lineWidth = 2;
