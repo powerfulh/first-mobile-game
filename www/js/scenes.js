@@ -20,7 +20,7 @@ import {
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	towerInfoPanel, infoSettingsButton, infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
-	xpMaxFor, getXpGainAtWaveEnd,
+	grantWaveEndXp,
 	getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
@@ -517,12 +517,7 @@ scenes.playing = {
 			}
 		}
 		if (batchEnded) {
-			for (const tower of game.entities.towers) {
-				if (canPromote(tower)) {
-					const gain = getXpGainAtWaveEnd(tower);
-					tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, xpMaxFor(tower));
-				}
-			}
+			grantWaveEndXp();
 			// 잔여 장벽 정리 (배치 종료 시 사라짐)
 			game.entities.enemies = game.entities.enemies.filter(e => !e.isBarrier);
 			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)

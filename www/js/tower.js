@@ -117,6 +117,16 @@ export function getXpGainAtWaveEnd(tower) {
 	return 1;
 }
 
+// 웨이브 종료 보상 — 승급 가능한 모든 타워에 XP 지급 (배이스/비콘 근처면 버프 배수 반영).
+// 일반 배치 종료 시점과 병렬 웨이브 추가 호출 시점에서 공통 사용.
+export function grantWaveEndXp() {
+	for (const tower of game.entities.towers) {
+		if (!canPromote(tower)) continue;
+		const gain = getXpGainAtWaveEnd(tower);
+		tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, xpMaxFor(tower));
+	}
+}
+
 export function getEnemySpeedFactor(e) {
 	let factor = 1;
 	for (const tower of game.entities.towers) {
