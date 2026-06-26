@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
@@ -117,6 +117,16 @@ export function getXpGainAtWaveEnd(tower) {
 	return 1;
 }
 
+// 웨이브 종료 보상 — 승급 가능한 모든 타워에 XP 지급 (배이스/비콘 근처면 버프 배수 반영).
+// 일반 배치 종료 시점과 병렬 웨이브 추가 호출 시점에서 공통 사용.
+export function grantWaveEndXp() {
+	for (const tower of game.entities.towers) {
+		if (!canPromote(tower)) continue;
+		const gain = getXpGainAtWaveEnd(tower);
+		tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, xpMaxFor(tower));
+	}
+}
+
 export function getEnemySpeedFactor(e) {
 	let factor = 1;
 	for (const tower of game.entities.towers) {
@@ -184,10 +194,10 @@ export function canPlaceTower(x, y) {
 
 export function placeTower(x, y) {
 	if (!canPlaceTower(x, y)) return false;
-	const cfg = TOWER_ROLES.base;
+	const cfg = TOWER_ROLES.novice;
 	const tw = {
 		x, y,
-		role: 'base',
+		role: 'novice',
 		tier: 0,
 		range: cfg.range,
 		fireRate: cfg.fireRate,
@@ -409,7 +419,7 @@ export function updateTower(tower, dt) {
 					y: tower.y,
 					target: target,
 					damage,
-					speed: TOWER.projectileSpeed,
+					speed: cfg.projectileSpeed || TOWER.projectileSpeed,
 					shooter: tower,
 					splash: cfg.splash || 0,
 					splashColor: cfg.color,
@@ -674,7 +684,7 @@ function drawSiloBody(tower, cfg, selected) {
 		ctx.stroke();
 
 		// 헤드 붉은 점
-		ctx.fillStyle = '#c0392b';
+		ctx.fillStyle = ACCENT_RED;
 		ctx.beginPath();
 		ctx.arc(5, 0, 1.2, 0, Math.PI * 2);
 		ctx.fill();

@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR,
+	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
@@ -385,7 +385,7 @@ export function drawBossHpBar() {
 	ctx.fillRect(bx, by, bw, bh);
 
 	const ratio = Math.max(0, boss.hp / boss.hpMax);
-	ctx.fillStyle = boss.type === 'air' ? AIR_COLOR : '#c0392b';
+	ctx.fillStyle = boss.type === 'air' ? AIR_COLOR : ACCENT_RED;
 	ctx.fillRect(bx, by, bw * ratio, bh);
 
 	ctx.strokeStyle = '#fff';
@@ -563,7 +563,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 	const strokeW = opts.shielded ? 2 : 1;
 
 	if (type === 'ground') {
-		ctx.fillStyle = '#c0392b';
+		ctx.fillStyle = ACCENT_RED;
 		ctx.beginPath();
 		ctx.arc(cx, cy, r, 0, Math.PI * 2);
 		ctx.fill();

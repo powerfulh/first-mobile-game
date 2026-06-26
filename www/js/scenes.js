@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
-	PARALLEL_INTRO_KEY, TOWER_PANEL,
+	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -20,7 +20,7 @@ import {
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	towerInfoPanel, infoSettingsButton, infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
-	xpMaxFor, getXpGainAtWaveEnd,
+	grantWaveEndXp,
 	getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
@@ -104,7 +104,7 @@ let titleAnim = 0;
 let titleSave = null;
 
 function drawContinueButton(btn, wave) {
-	ctx.fillStyle = '#c0392b';
+	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';
@@ -397,12 +397,12 @@ function drawGhostTower() {
 	ctx.globalAlpha = 0.12;
 	ctx.fillStyle = '#3498db';
 	ctx.beginPath();
-	ctx.arc(g.x, g.y, TOWER_ROLES.base.range, 0, Math.PI * 2);
+	ctx.arc(g.x, g.y, TOWER_ROLES.novice.range, 0, Math.PI * 2);
 	ctx.fill();
 	ctx.globalAlpha = 1;
 	// 고스트 본체 (반투명) + 유효성 링
 	ctx.globalAlpha = 0.55;
-	drawTowerSprite('base', g.x, g.y, TOWER.radius);
+	drawTowerSprite('novice', g.x, g.y, TOWER.radius);
 	ctx.globalAlpha = 1;
 	ctx.strokeStyle = ok ? '#2ecc71' : '#e74c3c';
 	ctx.lineWidth = 2;
@@ -517,12 +517,7 @@ scenes.playing = {
 			}
 		}
 		if (batchEnded) {
-			for (const tower of game.entities.towers) {
-				if (canPromote(tower)) {
-					const gain = getXpGainAtWaveEnd(tower);
-					tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, xpMaxFor(tower));
-				}
-			}
+			grantWaveEndXp();
 			// 잔여 장벽 정리 (배치 종료 시 사라짐)
 			game.entities.enemies = game.entities.enemies.filter(e => !e.isBarrier);
 			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)

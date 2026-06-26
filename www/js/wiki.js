@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED } from './core/config.js';
 import { roundRect, hitButton } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
@@ -27,10 +27,10 @@ const TAP_THRESHOLD_PX = 8;
 
 // 타워 트리 그룹 (사용자 결정: 전직 트리별)
 const TOWER_GROUPS = [
-	{ label: '기본', roles: ['base'] },
+	{ label: '기본', roles: ['novice'] },
 	{
 		label: '벙커 계열',
-		roles: ['bunker', 'tank', 'whale', 'trap', 'buff', 'beacon', 'demon'],
+		roles: ['bunker', 'tank', 'whale', 'trap', 'base', 'beacon', 'demon'],
 	},
 	{
 		label: '스카웃 계열',
@@ -101,7 +101,7 @@ for (const e of ENEMY_ENTRIES) {
 export const wiki = {
 	category: 'tower', // 'tower' | 'enemy'
 	scroll: 0,
-	expandedKey: null, // 'tower:base', 'tower:radar', ...
+	expandedKey: null, // 'tower:novice', 'tower:radar', ...
 	drag: null,
 	contentMax: 0, // 마지막 draw에서 계산된 컨텐츠 끝 y (스크롤 한계 산정용)
 	returnTo: 'title', // 나갈 때 돌아갈 씬 — 호출 측이 changeScene 전에 설정
@@ -227,7 +227,7 @@ function drawHeader() {
 }
 
 function drawTab(btn, label, active) {
-	ctx.fillStyle = active ? '#c0392b' : '#2c3e50';
+	ctx.fillStyle = active ? ACCENT_RED : '#2c3e50';
 	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = active ? '#fff' : 'rgba(255, 255, 255, 0.3)';

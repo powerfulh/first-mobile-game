@@ -2,6 +2,7 @@ import { game, saveGame, checkMapUnlocks } from './state.js';
 import {
 	getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt, wparams,
 } from './enemy.js';
+import { grantWaveEndXp } from './tower.js';
 
 // 보스 웨이브 판정 (20웨이브마다). 순수 웨이브 번호 로직 — wave.js에 거주.
 export function isBossWave(wave) {
@@ -116,6 +117,9 @@ export function extraWaveBossBlocked() {
 
 // 추가 웨이브 — 진행 중 웨이브를 유지한 채 frontier+1 웨이브를 병렬로 추가.
 export function callExtraWave() {
+	// 병렬 호출은 배치를 합치므로 배치 종료 보상이 1회만 발생 → 호출 시점에
+	// 웨이브 종료 XP를 선지급해 순차 진행과 보상 횟수를 맞춘다 (XP 버프 포함).
+	grantWaveEndXp();
 	const next = game.waveFrontier + 1;
 	game.waves.push(createSpawner(next));
 	game.waveFrontier = next;
