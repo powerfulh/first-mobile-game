@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
@@ -674,7 +674,7 @@ function drawSiloBody(tower, cfg, selected) {
 		ctx.stroke();
 
 		// 헤드 붉은 점
-		ctx.fillStyle = '#c0392b';
+		ctx.fillStyle = ACCENT_RED;
 		ctx.beginPath();
 		ctx.arc(5, 0, 1.2, 0, Math.PI * 2);
 		ctx.fill();

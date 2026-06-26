@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED } from './core/config.js';
 import { roundRect, hitButton } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
@@ -227,7 +227,7 @@ function drawHeader() {
 }
 
 function drawTab(btn, label, active) {
-	ctx.fillStyle = active ? '#c0392b' : '#2c3e50';
+	ctx.fillStyle = active ? ACCENT_RED : '#2c3e50';
 	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = active ? '#fff' : 'rgba(255, 255, 255, 0.3)';

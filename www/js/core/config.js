@@ -226,6 +226,9 @@ export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'pro
 // 공중 테마색 — 공중 적/보스, 공중 인트로 액센트, 공중 지름길 공용.
 export const AIR_COLOR = '#a569bd';
 
+// 기본 액센트 빨강 — 버튼/보스/활성 탭/인트로 액센트 공용.
+export const ACCENT_RED = '#c0392b';
+
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
 export const ENEMY_SPEED_CAP_WAVE = 100; // 이 웨이브 이후 적 기본 이동 속도 고정

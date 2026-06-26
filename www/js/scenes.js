@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
-	PARALLEL_INTRO_KEY, TOWER_PANEL,
+	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -104,7 +104,7 @@ let titleAnim = 0;
 let titleSave = null;
 
 function drawContinueButton(btn, wave) {
-	ctx.fillStyle = '#c0392b';
+	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';

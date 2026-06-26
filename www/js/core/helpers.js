@@ -1,5 +1,5 @@
 import { ctx } from './canvas.js';
-import { PATH_WIDTH, AIR_COLOR } from './config.js';
+import { PATH_WIDTH, AIR_COLOR, ACCENT_RED } from './config.js';
 import { getActiveMap } from './maps.js';
 
 // ============ Geometry helpers ============
@@ -61,7 +61,7 @@ export function drawPanel(x, y, w, h, opts = {}) {
 }
 
 export function drawButton(btn, label) {
-	ctx.fillStyle = '#c0392b';
+	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';
@@ -115,7 +115,7 @@ export function drawPath(alpha = 1) {
 }
 
 export function drawCloseX(btn) {
-	ctx.fillStyle = '#c0392b';
+	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';

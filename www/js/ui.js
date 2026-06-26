@@ -1,6 +1,6 @@
 import { ctx, hpEl, goldEl, waveEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, AIR_COLOR,
+	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
@@ -599,7 +599,7 @@ export const INTRO_MODALS = {
 	}),
 
 	bossIntro: makeIntro({
-		key: BOSS_INTRO_KEY, accent: '#c0392b',
+		key: BOSS_INTRO_KEY, accent: ACCENT_RED,
 		drawIcon: drawBossIcon,
 		title: '보스 등장!',
 		lines: ['20 웨이브마다 보스가 등장합니다.', '일반 적보다 훨씬 단단하지만 느리게 이동합니다.'],

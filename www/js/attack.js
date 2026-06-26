@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED } from './core/config.js';
 import { game } from './state.js';
 import { pointToSegmentDist } from './core/helpers.js';
 import {
@@ -351,7 +351,7 @@ function drawMissile(p) {
 	ctx.stroke();
 
 	// 헤드 (붉은 점)
-	ctx.fillStyle = '#c0392b';
+	ctx.fillStyle = ACCENT_RED;
 	ctx.beginPath();
 	ctx.arc(5, 0, 1.3, 0, Math.PI * 2);
 	ctx.fill();
