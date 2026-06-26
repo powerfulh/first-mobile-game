@@ -96,7 +96,7 @@ export function drawPath(alpha = 1) {
 	if (cut) {
 		ctx.strokeStyle = AIR_COLOR;
 		ctx.lineWidth = PATH_WIDTH * 0.55;
-		ctx.setLineDash([12, 9]);
+		ctx.setLineDash([6, 5]);
 		ctx.beginPath();
 		ctx.moveTo(cut[0].x, cut[0].y);
 		for (let i = 1; i < cut.length; i++) ctx.lineTo(cut[i].x, cut[i].y);
