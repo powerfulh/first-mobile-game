@@ -142,8 +142,10 @@ export function loadSaveData() {
 		const raw = localStorage.getItem(SAVE_KEY);
 		if (!raw) return null;
 		const data = JSON.parse(raw);
+		// [260801 이후 삭제] v1 → v2 마이그레이션: 역할 키 변경 (기본 base→novice, 배이스 buff→base).
+		// 키당 1회 매핑이라 연쇄 없음. 삭제 시 아래 version === 1 블록 전체와 함께,
+		// version 체크를 `!== 2`에서 단일 버전 검사로 되돌릴 것.
 		if (data.version === 1) {
-			// v1 → v2: 역할 키 변경 (기본 base→novice, 배이스 buff→base). 키당 1회 매핑이라 연쇄 없음.
 			const ROLE_MIGRATION_V1 = { base: 'novice', buff: 'base' };
 			for (const td of data.towers || []) {
 				if (ROLE_MIGRATION_V1[td.role]) td.role = ROLE_MIGRATION_V1[td.role];
