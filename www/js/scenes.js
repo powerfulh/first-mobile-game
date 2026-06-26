@@ -267,7 +267,6 @@ function drawMapThumb(map, b) {
 	const oy = b.y + pad + (ah - LOGICAL_H * s) / 2;
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = 4;
-	ctx.lineCap = 'round';
 	ctx.lineJoin = 'round';
 	ctx.beginPath();
 	ctx.moveTo(ox + map.path[0].x * s, oy + map.path[0].y * s);
@@ -421,14 +420,12 @@ function drawGhostTower() {
 	ctx.lineWidth = 2;
 	ctx.stroke();
 	ctx.lineWidth = 4;
-	ctx.lineCap = 'round';
 	ctx.lineJoin = 'round';
 	ctx.beginPath();
 	ctx.moveTo(r.x + 13, r.y + r.h / 2);
 	ctx.lineTo(r.x + r.w * 0.42, r.y + r.h - 14);
 	ctx.lineTo(r.x + r.w - 11, r.y + 14);
 	ctx.stroke();
-	ctx.lineCap = 'butt';
 	ctx.globalAlpha = 1;
 }
 
@@ -590,7 +587,6 @@ scenes.playing = {
 			const tower = game.holdDelete.tower;
 			ctx.strokeStyle = '#e74c3c';
 			ctx.lineWidth = 3;
-			ctx.lineCap = 'round';
 			ctx.beginPath();
 			ctx.arc(tower.x, tower.y, TOWER.radius + 7, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
 			ctx.stroke();

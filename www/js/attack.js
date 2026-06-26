@@ -304,7 +304,6 @@ export function drawZap(z) {
 		ctx.globalAlpha = alpha * 0.55;
 		ctx.strokeStyle = z.color;
 		ctx.lineWidth = 5;
-		ctx.lineCap = 'round';
 		ctx.lineJoin = 'round';
 		ctx.stroke();
 
@@ -376,7 +375,6 @@ export function drawBeam(b) {
 	ctx.globalAlpha = alpha * 0.5;
 	ctx.strokeStyle = b.color;
 	ctx.lineWidth = 6;
-	ctx.lineCap = 'round';
 	ctx.beginPath();
 	ctx.moveTo(b.x1, b.y1);
 	ctx.lineTo(b.x2, b.y2);

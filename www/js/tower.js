@@ -529,7 +529,6 @@ function drawSupportBody(tower, cfg, selected) {
 	ctx.globalAlpha = 0.35 + 0.3 * pulse;
 	ctx.strokeStyle = cfg.color;
 	ctx.lineWidth = 2;
-	ctx.lineCap = 'butt'; // 외부(빔/전기 효과)에서 누수된 lineCap이 점선 대시 끝 모양에 영향 주지 않도록 명시
 	ctx.setLineDash([4, 3]);
 	ctx.beginPath();
 	ctx.arc(tower.x, tower.y, r + 7, 0, Math.PI * 2);
@@ -1024,7 +1023,6 @@ function drawGearButton(btn) {
 	ctx.fillStyle = '#fff';
 	const r = 5;
 	ctx.lineWidth = 2;
-	ctx.lineCap = 'butt'; // 외부(빔/전기 효과)에서 누수된 lineCap에 영향받지 않도록 명시
 	ctx.beginPath();
 	for (let i = 0; i < 8; i++) {
 		const a = (Math.PI * 2 * i) / 8;

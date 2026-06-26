@@ -306,7 +306,6 @@ function drawVolumeSliders(sliderCy) {
 		ctx.fillText(t(sl.label), 44, cy);
 
 		// 트랙 배경 + 채움
-		ctx.lineCap = 'round';
 		ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
 		ctx.lineWidth = 4;
 		ctx.beginPath();
@@ -318,7 +317,6 @@ function drawVolumeSliders(sliderCy) {
 		ctx.moveTo(tr.x, cy);
 		ctx.lineTo(knobX, cy);
 		ctx.stroke();
-		ctx.lineCap = 'butt';
 
 		// 노브
 		ctx.fillStyle = '#fff';
@@ -362,14 +360,12 @@ function drawSettingsCheckboxes(checkboxY) {
 		if (on) {
 			ctx.strokeStyle = '#fff';
 			ctx.lineWidth = 2.5;
-			ctx.lineCap = 'round';
 			ctx.lineJoin = 'round';
 			ctx.beginPath();
 			ctx.moveTo(bx + 4, by + box / 2);
 			ctx.lineTo(bx + box * 0.42, by + box - 5);
 			ctx.lineTo(bx + box - 3, by + 4);
 			ctx.stroke();
-			ctx.lineCap = 'butt';
 		}
 		ctx.fillStyle = '#fff';
 		ctx.font = '14px sans-serif';
@@ -509,7 +505,6 @@ function drawShortcutIcon(cx, cy) {
 	// 두 세로 길(회색) + 공중색 점선 가로지름
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = 7;
-	ctx.lineCap = 'round';
 	for (const dx of [-16, 16]) {
 		ctx.beginPath();
 		ctx.moveTo(cx + dx, cy - 14);
@@ -537,7 +532,6 @@ function drawMapUnlockIcon(cx, cy) {
 	ctx.stroke();
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = 3;
-	ctx.lineCap = 'round';
 	ctx.lineJoin = 'round';
 	ctx.beginPath();
 	ctx.moveTo(cx - 10, cy - 8);

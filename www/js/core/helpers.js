@@ -85,7 +85,6 @@ export function drawPath(alpha = 1) {
 	ctx.globalAlpha = alpha;
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = PATH_WIDTH;
-	ctx.lineCap = 'round';
 	ctx.lineJoin = 'round';
 	ctx.beginPath();
 	ctx.moveTo(path[0].x, path[0].y);

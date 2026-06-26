@@ -454,7 +454,6 @@ function drawRegenAura(cx, cy, baseR) {
 	const now = performance.now();
 	ctx.strokeStyle = '#fff';
 	ctx.lineWidth = 1.5;
-	ctx.lineCap = 'round';
 	for (let i = 0; i < count; i++) {
 		const phase = i / count;
 		const t = ((now / period) + phase) % 1;
@@ -473,7 +472,6 @@ function drawRegenAura(cx, cy, baseR) {
 		ctx.stroke();
 	}
 	ctx.globalAlpha = 1;
-	ctx.lineCap = 'butt';
 }
 
 // 적 외형(본체 모양)만 그림 — HP바·마크링·재생 오라 등 게임 오버레이는 제외.
