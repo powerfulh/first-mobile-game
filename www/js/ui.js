@@ -80,13 +80,18 @@ export function drawWaveSpawnSummary() {
 // ============ Pause button ============
 export const pauseButton = { x: 8, y: 592, w: 44, h: 44 };
 
-export function drawPauseButton() {
+// 좌하단 사각 컨트롤 버튼 배경 (일시정지·추가 웨이브 공용) — 둥근 사각 + 반투명 흰 테두리.
+function drawHudButtonBg(rect) {
 	ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
-	roundRect(pauseButton.x, pauseButton.y, pauseButton.w, pauseButton.h, 8);
+	roundRect(rect.x, rect.y, rect.w, rect.h, 8);
 	ctx.fill();
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
+}
+
+export function drawPauseButton() {
+	drawHudButtonBg(pauseButton);
 
 	ctx.fillStyle = '#fff';
 	if (game.paused) {
@@ -111,12 +116,7 @@ export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
 export function drawNextWaveButton() {
 	// 호출 불가(보스·인터미션·최대 병렬 수)일 때 흐리게
 	ctx.globalAlpha = canCallExtraWave() ? 1 : 0.35;
-	ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
-	roundRect(nextWaveButton.x, nextWaveButton.y, nextWaveButton.w, nextWaveButton.h, 8);
-	ctx.fill();
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-	ctx.lineWidth = 1;
-	ctx.stroke();
+	drawHudButtonBg(nextWaveButton);
 
 	// ⏩ 빨리감기 — 다음 웨이브 병렬 호출
 	ctx.fillStyle = '#fff';
