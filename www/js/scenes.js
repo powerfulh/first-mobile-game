@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
-	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED,
+	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -139,7 +139,7 @@ scenes.title = {
 
 		ctx.textAlign = 'center';
 
-		ctx.fillStyle = '#f1c40f';
+		ctx.fillStyle = GOLD;
 		ctx.font = 'bold 22px sans-serif';
 		ctx.fillText('PROMOTION', LOGICAL_W / 2, 122);
 

@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED, INFO_BLUE, SLATE } from './core/config.js';
 import { roundRect, hitButton } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
@@ -227,7 +227,7 @@ function drawHeader() {
 }
 
 function drawTab(btn, label, active) {
-	ctx.fillStyle = active ? ACCENT_RED : '#2c3e50';
+	ctx.fillStyle = active ? ACCENT_RED : SLATE;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = active ? '#fff' : 'rgba(255, 255, 255, 0.3)';
@@ -301,7 +301,7 @@ function drawAccordionItem(y, { expanded, iconFn, name, tagline, detailFn }) {
 		ctx.fillStyle = expanded ? '#22322a' : '#1c2820';
 		ctx.fillRect(0, y, LOGICAL_W, ITEM_H);
 		if (expanded) {
-			ctx.strokeStyle = '#5dade2';
+			ctx.strokeStyle = INFO_BLUE;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, y);

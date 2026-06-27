@@ -1,6 +1,6 @@
 import { ctx, hpEl, goldEl, waveEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED,
+	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
@@ -139,7 +139,7 @@ export function drawNextWaveButton() {
 	if (!hasSeenIntro(PARALLEL_INTRO_KEY)) {
 		const bx = nextWaveButton.x + nextWaveButton.w - 3;
 		const by = nextWaveButton.y + 3;
-		ctx.fillStyle = '#f1c40f';
+		ctx.fillStyle = GOLD;
 		ctx.beginPath();
 		ctx.arc(bx, by, 8, 0, Math.PI * 2);
 		ctx.fill();
@@ -312,7 +312,7 @@ function drawVolumeSliders(sliderCy) {
 		ctx.moveTo(tr.x, cy);
 		ctx.lineTo(tr.x + tr.w, cy);
 		ctx.stroke();
-		ctx.strokeStyle = '#5dade2';
+		ctx.strokeStyle = INFO_BLUE;
 		ctx.beginPath();
 		ctx.moveTo(tr.x, cy);
 		ctx.lineTo(knobX, cy);
@@ -323,7 +323,7 @@ function drawVolumeSliders(sliderCy) {
 		ctx.beginPath();
 		ctx.arc(knobX, cy, tr.knobR, 0, Math.PI * 2);
 		ctx.fill();
-		ctx.strokeStyle = '#5dade2';
+		ctx.strokeStyle = INFO_BLUE;
 		ctx.lineWidth = 2;
 		ctx.stroke();
 
@@ -351,7 +351,7 @@ function drawSettingsCheckboxes(checkboxY) {
 		const rowY = checkboxY[i];
 		const bx = CHECKBOX_X;
 		const by = rowY + (CHECKBOX_H - box) / 2;
-		ctx.fillStyle = on ? '#5dade2' : '#2c3e50';
+		ctx.fillStyle = on ? INFO_BLUE : SLATE;
 		roundRect(bx, by, box, box, 4);
 		ctx.fill();
 		ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -412,7 +412,7 @@ export function drawSettingsModal(buttons) {
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
 	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 
-	drawPanel(p.x, p.y, p.w, p.h, { radius: 12, stroke: '#5dade2' });
+	drawPanel(p.x, p.y, p.w, p.h, { radius: 12, stroke: INFO_BLUE });
 
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'alphabetic';
@@ -489,7 +489,7 @@ function drawTier4Icon(cx, cy) {
 	ctx.beginPath();
 	ctx.arc(cx - 12, cy, 12, 0, Math.PI * 2);
 	ctx.fill();
-	ctx.fillStyle = '#f1c40f';
+	ctx.fillStyle = GOLD;
 	ctx.beginPath();
 	ctx.arc(cx + 12, cy, 12, 0, Math.PI * 2);
 	ctx.fill();
@@ -503,7 +503,7 @@ function drawTier4Icon(cx, cy) {
 
 function drawParallelIcon(cx, cy) {
 	// ⏩ 빨리감기 두 삼각형 — 추가 웨이브 버튼과 동일 모티프
-	ctx.fillStyle = '#5dade2';
+	ctx.fillStyle = INFO_BLUE;
 	const w = 11, h = 20;
 	for (const dx of [-w, 1]) {
 		ctx.beginPath();
@@ -541,7 +541,7 @@ function drawMapUnlockIcon(cx, cy) {
 	ctx.fillStyle = '#2d4a2b';
 	roundRect(cx - w / 2, cy - h / 2, w, h, 4);
 	ctx.fill();
-	ctx.strokeStyle = '#f1c40f';
+	ctx.strokeStyle = GOLD;
 	ctx.lineWidth = 2;
 	ctx.stroke();
 	ctx.strokeStyle = '#8a7a5a';
@@ -614,7 +614,7 @@ export const INTRO_MODALS = {
 	}),
 
 	shieldIntro: makeIntro({
-		key: SHIELD_INTRO_KEY, accent: '#5dade2',
+		key: SHIELD_INTRO_KEY, accent: INFO_BLUE,
 		drawIcon: (cx, cy) => drawEnemySprite('ground', cx, cy, 14, { shielded: true }),
 		title: '방어막 적 등장!',
 		lines: ['일부 적이 방어막을 두르고 등장합니다.', '받는 데미지가 감소합니다.'],
@@ -652,7 +652,7 @@ export const INTRO_MODALS = {
 	}),
 
 	parallelIntro: makeIntro({
-		key: PARALLEL_INTRO_KEY, accent: '#5dade2', dimAlpha: 0.7,
+		key: PARALLEL_INTRO_KEY, accent: INFO_BLUE, dimAlpha: 0.7,
 		panel: { x: 20, y: 160, w: 320, h: 320 },
 		confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
 		drawIcon: drawParallelIcon, iconY: 54,
@@ -668,7 +668,7 @@ export const INTRO_MODALS = {
 	}),
 
 	mapUnlock: makeIntro({
-		key: MAP_UNLOCK_INTRO_KEY, accent: '#f1c40f',
+		key: MAP_UNLOCK_INTRO_KEY, accent: GOLD,
 		drawIcon: drawMapUnlockIcon,
 		title: '새로운 맵 해금!',
 		lines: ['1번 맵을 깊이 진행했습니다!', '새로운 맵이 해금되었습니다.', '게임 시작에서 선택하세요.'],

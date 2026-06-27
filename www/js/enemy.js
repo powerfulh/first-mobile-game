@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
+	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED, INFO_BLUE,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
@@ -337,7 +337,7 @@ function drawEnemyHpBar(e, cy) {
 	const ratio = e.hp / e.hpMax;
 	ctx.fillStyle = '#000';
 	ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW, barH);
-	ctx.fillStyle = e.shielded ? '#5dade2' : '#2ecc71';
+	ctx.fillStyle = e.shielded ? INFO_BLUE : '#2ecc71';
 	ctx.fillRect(e.x - barW / 2, cy - e.radius - 8, barW * ratio, barH);
 }
 
@@ -526,7 +526,7 @@ export function drawEnemyInfoPanel(e) {
 	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 	ctx.fillRect(bx, by, bw, bh);
-	ctx.fillStyle = e.shielded ? '#5dade2' : '#2ecc71';
+	ctx.fillStyle = e.shielded ? INFO_BLUE : '#2ecc71';
 	ctx.fillRect(bx, by, bw * ratio, bh);
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
 	ctx.lineWidth = 1;
@@ -557,7 +557,7 @@ export function drawEnemyInfoPanel(e) {
 }
 
 export function drawEnemySprite(type, cx, cy, r, opts = {}) {
-	const stroke = opts.shielded ? '#5dade2' : '#000';
+	const stroke = opts.shielded ? INFO_BLUE : '#000';
 	const strokeW = opts.shielded ? 2 : 1;
 
 	if (type === 'ground') {

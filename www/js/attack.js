@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED, GOLD, SLATE } from './core/config.js';
 import { game } from './state.js';
 import { pointToSegmentDist } from './core/helpers.js';
 import {
@@ -321,7 +321,7 @@ function drawMissile(p) {
 	ctx.globalAlpha = 1;
 
 	// 본체 (캡슐)
-	ctx.fillStyle = '#2c3e50';
+	ctx.fillStyle = SLATE;
 	ctx.beginPath();
 	ctx.moveTo(-6, -2.5);
 	ctx.lineTo(4, -2.5);
@@ -348,7 +348,7 @@ export function drawProjectile(p) {
 		drawMissile(p);
 		return;
 	}
-	ctx.fillStyle = '#f1c40f';
+	ctx.fillStyle = GOLD;
 	ctx.beginPath();
 	ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
 	ctx.fill();

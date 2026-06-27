@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
@@ -692,7 +692,7 @@ function drawSiloBody(tower, cfg, selected) {
 
 	// 좌상단 작동 LED (깜빡임)
 	const blink = (performance.now() % 900) < 450;
-	ctx.fillStyle = blink ? '#f1c40f' : 'rgba(241, 196, 15, 0.25)';
+	ctx.fillStyle = blink ? GOLD : 'rgba(241, 196, 15, 0.25)';
 	ctx.beginPath();
 	ctx.arc(x + 3, y + 3, 1.6, 0, Math.PI * 2);
 	ctx.fill();
@@ -795,7 +795,7 @@ export function drawTower(tower) {
 	if (isPromotionReady(tower)) {
 		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
 		ctx.globalAlpha = 0.35 + 0.45 * pulse;
-		ctx.strokeStyle = isTarget ? '#1abc9c' : '#f1c40f';
+		ctx.strokeStyle = isTarget ? '#1abc9c' : GOLD;
 		ctx.lineWidth = 3;
 		ctx.beginPath();
 		ctx.arc(tower.x, tower.y, TOWER.radius + 5, 0, Math.PI * 2);
@@ -813,7 +813,7 @@ export function drawTower(tower) {
 		const by = tower.y + TOWER.radius + 5;
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
 		ctx.fillRect(bx, by, bw, bh);
-		ctx.fillStyle = ratio >= 1 ? '#f1c40f' : '#5dade2';
+		ctx.fillStyle = ratio >= 1 ? GOLD : INFO_BLUE;
 		ctx.fillRect(bx, by, bw * ratio, bh);
 	}
 }
@@ -834,7 +834,7 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	ctx.fill('evenodd');
 
 	ctx.globalAlpha = strokeAlpha;
-	ctx.strokeStyle = '#5dade2';
+	ctx.strokeStyle = INFO_BLUE;
 	ctx.lineWidth = 1;
 	ctx.beginPath();
 	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
@@ -992,7 +992,7 @@ export function drawTowerInfoPanel(tower) {
 		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 		ctx.fillRect(bx, by, bw, bh);
-		ctx.fillStyle = tower.xp >= xpMax ? '#f1c40f' : '#5dade2';
+		ctx.fillStyle = tower.xp >= xpMax ? GOLD : INFO_BLUE;
 		ctx.fillRect(bx, by, bw * ratio, bh);
 		ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
 		ctx.lineWidth = 1;
@@ -1011,7 +1011,7 @@ export function drawTowerInfoPanel(tower) {
 function drawGearButton(btn) {
 	const cx = btn.x + btn.w / 2;
 	const cy = btn.y + btn.h / 2;
-	ctx.fillStyle = '#2c3e50';
+	ctx.fillStyle = SLATE;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -1103,7 +1103,7 @@ export function drawTowerSettingsCard(tower) {
 		const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
 		ctx.globalAlpha = sweep ? 0.45 : 1;
 		drawCellButton(s);
-		ctx.fillStyle = '#f1c40f';
+		ctx.fillStyle = GOLD;
 		ctx.font = 'bold 20px sans-serif';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
@@ -1130,7 +1130,7 @@ export function drawTowerSettingsCard(tower) {
 
 // 버튼 배경 (셀 공통) — 눌러서 토글됨이 보이도록.
 function drawCellButton(cell) {
-	ctx.fillStyle = '#2c3e50';
+	ctx.fillStyle = SLATE;
 	roundRect(cell.x, cell.y, cell.w, cell.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -1214,7 +1214,7 @@ function drawPromotionCard(slot, role, cost) {
 	ctx.fillText(cfg.tagline || '', slot.x + 68, slot.y + 74);
 
 	ctx.textAlign = 'right';
-	ctx.fillStyle = canAfford ? '#f1c40f' : '#666';
+	ctx.fillStyle = canAfford ? GOLD : '#666';
 	ctx.font = 'bold 16px sans-serif';
 	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
 }
@@ -1240,7 +1240,7 @@ function drawTier4ResultCard(slot, role, cost) {
 	ctx.fillText(cfg.name, slot.x + 80, slot.y + 32);
 
 	ctx.textAlign = 'right';
-	ctx.fillStyle = canAfford ? '#f1c40f' : '#666';
+	ctx.fillStyle = canAfford ? GOLD : '#666';
 	ctx.font = 'bold 16px sans-serif';
 	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
 
@@ -1284,12 +1284,12 @@ export function isTier4ChoiceContext(tower) {
 
 export function drawPromotionPanel(tower) {
 	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
-		radius: 12, fill: '#0f1620', stroke: '#f1c40f', alpha: 0.92,
+		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
 	});
 
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#f1c40f';
+	ctx.fillStyle = GOLD;
 	ctx.font = 'bold 18px sans-serif';
 	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 

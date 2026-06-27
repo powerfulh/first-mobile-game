@@ -235,6 +235,11 @@ export const AIR_COLOR = '#a569bd';
 // 기본 액센트 빨강 — 버튼/보스/활성 탭/인트로 액센트 공용.
 export const ACCENT_RED = '#c0392b';
 
+// UI 팔레트 — 자주 쓰는 강조색 상수화 (값 동일, 톤 조정 단일 지점). 타워 cfg.color2 등 게임 데이터와는 별개.
+export const GOLD = '#f1c40f';       // XP 가득·골드 비용·활성 강조
+export const INFO_BLUE = '#5dade2';  // 정보/선택/방어막 하이라이트
+export const SLATE = '#2c3e50';      // 어두운 패널/비활성 배경
+
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
 export const ENEMY_SPEED_CAP_WAVE = 100; // 이 웨이브 이후 적 기본 이동 속도 고정
