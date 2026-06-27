@@ -65,7 +65,7 @@ export function applySplashHit(shooter, impactX, impactY, damage, radius, attack
 // (x,y)에 광역 타격 + 폭발 시각효과. p에서 shooter/damage/splash/attackTypes/색을 읽음. updateProjectile 4곳 공용.
 function explodeAt(x, y, p) {
 	applySplashHit(p.shooter, x, y, p.damage, p.splash, p.attackTypes);
-	game.splashes.push({
+	game.effects.splashes.push({
 		x, y,
 		radius: p.splash,
 		life: 0.3, maxLife: 0.3,
@@ -84,7 +84,7 @@ export function fireInstantBeam(tower, target, damage) {
 		blocker = projectileHitsBarrier(tower.x, tower.y, target.x, target.y);
 	}
 	if (blocker) {
-		game.beams.push({
+		game.effects.beams.push({
 			x1: tower.x, y1: tower.y,
 			x2: blocker.x, y2: blocker.y,
 			life: 0.15, maxLife: 0.15,
@@ -92,7 +92,7 @@ export function fireInstantBeam(tower, target, damage) {
 		});
 		applyTowerHit(tower, blocker.barrier, dmg);
 	} else {
-		game.beams.push({
+		game.effects.beams.push({
 			x1: tower.x, y1: tower.y,
 			x2: target.x, y2: target.y,
 			life: 0.15, maxLife: 0.15,
@@ -120,7 +120,7 @@ export function fireLineBeam(tower, target, damage) {
 	const endX = tower.x + Math.cos(angle) * beamLen;
 	const endY = tower.y + Math.sin(angle) * beamLen;
 
-	game.beams.push({
+	game.effects.beams.push({
 		x1: tower.x, y1: tower.y,
 		x2: endX, y2: endY,
 		life: 0.2,
@@ -258,7 +258,7 @@ export function spawnZap(x, y, radius, color) {
 		}
 		bolts.push(points);
 	}
-	game.zaps.push({
+	game.effects.zaps.push({
 		x, y, color, bolts,
 		life: 0.25, maxLife: 0.25,
 	});

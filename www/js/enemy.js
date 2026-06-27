@@ -210,7 +210,7 @@ export function spawnBarrier(x, y) {
 
 // 장벽 적 처치 시 호출 — 즉시 생성 대신 짧은 애니메이션 후 spawnBarrier.
 export function startBarrierSpawn(x, y) {
-	game.barrierSpawnFx.push({
+	game.effects.barrierSpawnFx.push({
 		x, y,
 		life: 0.55,
 		maxLife: 0.55,

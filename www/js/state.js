@@ -16,16 +16,19 @@ export const game = {
 	gold: 0, // 시작 돈은 맵별 — resetGame/loadGame이 채움 (그 전엔 placeholder)
 	wave: 1,
 	mapId: 'map1', // 활성 맵 id (core/maps.js MAPS 키)
-	// 게임 월드 엔티티 — 타워/적/발사체를 한 객체로 묶음 (beams/splashes/zaps 등 일시적 시각 효과는 별도 평면 속성).
+	// 게임 월드 엔티티 — 타워/적/발사체를 한 객체로 묶음.
 	entities: {
 		towers: [],
 		enemies: [],
 		projectiles: [],
 	},
-	beams: [],
-	splashes: [],
-	zaps: [],
-	barrierSpawnFx: [],
+	// 일시적 시각 효과 — 매 프레임 갱신·필터·그리기되는 단명 객체 (entities와 대칭으로 묶음).
+	effects: {
+		beams: [],
+		splashes: [],
+		zaps: [],
+		barrierSpawnFx: [],
+	},
 	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개).
 	// 초기엔 빈 배열 — 게임 시작 시 resetGame/loadGame/setupWave가 채움 (그 전엔 활성 스포너 없음).
 	// 각 스포너가 자기 wave/spawnTimer/spawnedThisWave/spawnInterval/enemiesPerWave/isBoss 보유 — 자기 적 소멸 시 개별 제거(완료 추적).
@@ -82,10 +85,10 @@ export function resetGame(mapId = 'map1') {
 	game.entities.enemies = [];
 	game.entities.towers = [];
 	game.entities.projectiles = [];
-	game.beams = [];
-	game.splashes = [];
-	game.zaps = [];
-	game.barrierSpawnFx = [];
+	game.effects.beams = [];
+	game.effects.splashes = [];
+	game.effects.zaps = [];
+	game.effects.barrierSpawnFx = [];
 	game.waves = [createSpawner(1)];
 	game.waveFrontier = game.wave;
 	game.waveState = 'spawning';
@@ -170,10 +173,10 @@ export function loadGame(data) {
 	game.waveFrontier = game.wave;
 	game.entities.enemies = [];
 	game.entities.projectiles = [];
-	game.beams = [];
-	game.splashes = [];
-	game.zaps = [];
-	game.barrierSpawnFx = [];
+	game.effects.beams = [];
+	game.effects.splashes = [];
+	game.effects.zaps = [];
+	game.effects.barrierSpawnFx = [];
 	game.waveState = 'spawning';
 	game.intermissionTimer = 0;
 	game.bossActive = false;

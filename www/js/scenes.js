@@ -323,10 +323,10 @@ function enterSandbox() {
 function jumpToWave(targetWave) {
 	game.entities.enemies = [];
 	game.entities.projectiles = [];
-	game.beams = [];
-	game.splashes = [];
-	game.zaps = [];
-	game.barrierSpawnFx = [];
+	game.effects.beams = [];
+	game.effects.splashes = [];
+	game.effects.zaps = [];
+	game.effects.barrierSpawnFx = [];
 	game.bossActive = false;
 	game.intermissionTimer = 0;
 	game.selectedTower = null;
@@ -475,17 +475,17 @@ scenes.playing = {
 		for (const e of game.entities.enemies) updateEnemy(e, dt);
 		for (const tower of game.entities.towers) updateTower(tower, dt);
 		for (const p of game.entities.projectiles) updateProjectile(p, dt);
-		for (const b of game.beams) updateBeam(b, dt);
-		for (const s of game.splashes) updateSplash(s, dt);
-		for (const z of game.zaps) updateZap(z, dt);
-		for (const fx of game.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
+		for (const b of game.effects.beams) updateBeam(b, dt);
+		for (const s of game.effects.splashes) updateSplash(s, dt);
+		for (const z of game.effects.zaps) updateZap(z, dt);
+		for (const fx of game.effects.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
 
 		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
 		game.entities.projectiles = game.entities.projectiles.filter(p => !p.dead);
-		game.beams = game.beams.filter(b => !b.dead);
-		game.splashes = game.splashes.filter(s => !s.dead);
-		game.zaps = game.zaps.filter(z => !z.dead);
-		game.barrierSpawnFx = game.barrierSpawnFx.filter(fx => !fx.dead);
+		game.effects.beams = game.effects.beams.filter(b => !b.dead);
+		game.effects.splashes = game.effects.splashes.filter(s => !s.dead);
+		game.effects.zaps = game.effects.zaps.filter(z => !z.dead);
+		game.effects.barrierSpawnFx = game.effects.barrierSpawnFx.filter(fx => !fx.dead);
 
 		let batchEnded = false;
 		if (game.waveState === 'spawning') {
@@ -509,7 +509,7 @@ scenes.playing = {
 				}
 			}
 			// 모든 웨이브 완료 + 장벽 생성 fx 없음 → 배치 종료 (다음 웨이브로 진행)
-			if (game.waves.length === 0 && game.barrierSpawnFx.length === 0) {
+			if (game.waves.length === 0 && game.effects.barrierSpawnFx.length === 0) {
 				batchEnded = true;
 			}
 		}
@@ -574,10 +574,10 @@ scenes.playing = {
 			ctx.stroke();
 		}
 		for (const pr of game.entities.projectiles) drawProjectile(pr);
-		for (const b of game.beams) drawBeam(b);
-		for (const s of game.splashes) drawSplash(s);
-		for (const z of game.zaps) drawZap(z);
-		for (const fx of game.barrierSpawnFx) drawBarrierSpawnFx(fx);
+		for (const b of game.effects.beams) drawBeam(b);
+		for (const s of game.effects.splashes) drawSplash(s);
+		for (const z of game.effects.zaps) drawZap(z);
+		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);
 
 		drawBossHpBar();
 		drawWaveSpawnSummary();
