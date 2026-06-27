@@ -1,3 +1,6 @@
+# 명령어는 Bash 로
+파워쉘 금지, 필요 시 요청
+
 # 정적 검증
 `npm.cmd run lint` (= eslint www/js)
 `echo` 이런 불필요한 추가 명령어 금지
