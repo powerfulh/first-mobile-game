@@ -62,6 +62,17 @@ export function applySplashHit(shooter, impactX, impactY, damage, radius, attack
 	}
 }
 
+// (x,y)에 광역 타격 + 폭발 시각효과. p에서 shooter/damage/splash/attackTypes/색을 읽음. updateProjectile 4곳 공용.
+function explodeAt(x, y, p) {
+	applySplashHit(p.shooter, x, y, p.damage, p.splash, p.attackTypes);
+	game.splashes.push({
+		x, y,
+		radius: p.splash,
+		life: 0.3, maxLife: 0.3,
+		color: p.splashColor || '#fff',
+	});
+}
+
 export function fireInstantBeam(tower, target, damage) {
 	const cfg = TOWER_ROLES[tower.role];
 	const dmg = damage !== undefined ? damage : tower.damage;
@@ -135,13 +146,7 @@ function handleBarrierBlock(p, oldX, oldY, newX, newY) {
 	const hit = projectileHitsBarrier(oldX, oldY, newX, newY);
 	if (!hit) return false;
 	if (p.splash > 0) {
-		applySplashHit(p.shooter, hit.x, hit.y, p.damage, p.splash, p.attackTypes);
-		game.splashes.push({
-			x: hit.x, y: hit.y,
-			radius: p.splash,
-			life: 0.3, maxLife: 0.3,
-			color: p.splashColor || '#fff',
-		});
+		explodeAt(hit.x, hit.y, p);
 		// splash 반경 안에 장벽 중심이 안 들어오는 경우만 단발 데미지 보장 (중복 방지)
 		const dToBarrier = Math.hypot(hit.barrier.x - hit.x, hit.barrier.y - hit.y);
 		if (dToBarrier > p.splash) {
@@ -164,13 +169,7 @@ export function updateProjectile(p, dt) {
 		const dx = p.tx - p.x;
 		const dy = p.ty - p.y;
 		if (dx * p.vx + dy * p.vy <= 0) {
-			applySplashHit(p.shooter, p.tx, p.ty, p.damage, p.splash, p.attackTypes);
-			game.splashes.push({
-				x: p.tx, y: p.ty,
-				radius: p.splash,
-				life: 0.3, maxLife: 0.3,
-				color: p.splashColor || '#fff',
-			});
+			explodeAt(p.tx, p.ty, p);
 			p.dead = true;
 		}
 		return;
@@ -191,13 +190,7 @@ export function updateProjectile(p, dt) {
 			const d = Math.hypot(e.x - p.x, e.y - p.y);
 			if (d <= e.radius) {
 				if (p.splash > 0) {
-					applySplashHit(p.shooter, p.x, p.y, p.damage, p.splash, p.attackTypes);
-					game.splashes.push({
-						x: p.x, y: p.y,
-						radius: p.splash,
-						life: 0.3, maxLife: 0.3,
-						color: p.splashColor || '#fff',
-					});
+					explodeAt(p.x, p.y, p);
 				} else {
 					applyTowerHit(p.shooter, e, p.damage);
 				}
@@ -220,15 +213,7 @@ export function updateProjectile(p, dt) {
 		// 마지막 점프 — target 직전에 장벽 만남 검사
 		if (handleBarrierBlock(p, p.x, p.y, p.target.x, p.target.y)) return;
 		if (p.splash > 0) {
-			const ix = p.target.x;
-			const iy = p.target.y;
-			applySplashHit(p.shooter, ix, iy, p.damage, p.splash, p.attackTypes);
-			game.splashes.push({
-				x: ix, y: iy,
-				radius: p.splash,
-				life: 0.3, maxLife: 0.3,
-				color: p.splashColor || '#fff',
-			});
+			explodeAt(p.target.x, p.target.y, p);
 		} else {
 			applyTowerHit(p.shooter, p.target, p.damage);
 		}
