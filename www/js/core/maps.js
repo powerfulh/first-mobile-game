@@ -71,10 +71,6 @@ export function getActiveMap() {
 	return MAPS[activeMapId];
 }
 
-export function getActiveMapId() {
-	return activeMapId;
-}
-
 export function setActiveMap(id) {
 	if (MAPS[id]) activeMapId = id;
 }

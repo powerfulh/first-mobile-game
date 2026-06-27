@@ -226,8 +226,6 @@ for (const role in TOWER_ROLES) {
 	if (r.description) r.description = r.description.map(line => t(line));
 }
 
-export const TARGET_PRIORITY = ['air', 'ground'];
-
 // 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.
 export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'promotion' };
 
@@ -244,10 +242,7 @@ export const HUD_RESERVED_TOP = 36;
 export const HOLD_DELETE_SECONDS = 1.0;
 export const WAVE_END_XP_MULTIPLIER = 5;
 
-export const REGEN_START_WAVE = 111;
 export const REGEN_HEAL_RATE = 0.12; // hpMax 기준 초당 회복 비율
-
-export const BARRIER_START_WAVE = 151;
 export const BARRIER_RADIUS = 60;
 
 export const SAVE_KEY = 'td_save_v1';
