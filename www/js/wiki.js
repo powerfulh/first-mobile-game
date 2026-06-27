@@ -421,9 +421,6 @@ function drawTowerItem(y, role, cfg, expanded) {
 function drawTowerDetail(y, role, cfg) {
 	let cy = y + DETAIL_TOP_PAD;
 
-	// 펼친 상세 배경
-	ctx.fillStyle = '#15201a';
-
 	// 스탯
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
@@ -478,9 +475,6 @@ function drawTowerDetail(y, role, cfg) {
 	}
 
 	cy += DETAIL_BOTTOM_PAD;
-
-	// 배경 (먼저 그렸어야 하지만 높이 계산 후 fillRect로 가능 — 단순화: 항목 본 줄 색으로 통일)
-	// (시각적 단순성을 위해 별도 배경 fill 생략)
 	return cy;
 }
 
@@ -606,16 +600,10 @@ function measureTowerDetailH(role, cfg) {
 	const desc = cfg.description || [];
 	if (desc.length > 0) {
 		cy += 4;
-		cy += desc.length * 17 + Math.max(0, estimateWrapExtraLines(desc) * 17);
+		cy += desc.length * 17;
 	} else if (cfg.tagline) {
 		cy += 4 + 16;
 	}
 	cy += DETAIL_BOTTOM_PAD;
 	return cy;
-}
-
-function estimateWrapExtraLines(lines) {
-	// 단순 어림 — 실제 wrap 발생 빈도 추정용. 보수적으로 0 반환 (대부분 한 줄)
-	// 정확도는 낮지만 tap 영역 계산용으로 충분 (오차 시 다음 항목 영역이 약간 이동)
-	return 0;
 }
