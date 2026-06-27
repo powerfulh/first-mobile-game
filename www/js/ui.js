@@ -11,7 +11,7 @@ import {
 } from './state.js';
 import { roundRect, drawButton, drawPanel, hitButton } from './core/helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
-import { getSfxVolume, setSfxVolume } from './sfx.js';
+import { getSfxVolume, setSfxVolume, playButton } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
 import { canCallExtraWave } from './wave.js';
 import { t } from './core/i18n.js';
@@ -385,6 +385,20 @@ export function settingsCheckboxTap(p) {
 		if (hitButton(rect, p)) {
 			SETTINGS_CHECKBOXES[i].set(!SETTINGS_CHECKBOXES[i].get());
 			return true;
+		}
+	}
+	return false;
+}
+
+// 설정 모달이 열린 동안의 탭 처리 (title/playing 씬 공용). 모달이라 탭은 전부 소비됨.
+// 슬라이더·체크박스는 자체 처리, 버튼은 action() 실행 — action()이 닫기를 원하면(truthy) true 반환.
+export function settingsModalTap(p, buttons) {
+	if (volumePointerDown(p)) return false;
+	if (settingsCheckboxTap(p)) { playButton(); return false; }
+	const { btns } = settingsLayout(buttons.length);
+	for (let i = 0; i < buttons.length; i++) {
+		if (hitButton(btns[i], p)) {
+			return !!buttons[i].action();
 		}
 	}
 	return false;

@@ -34,8 +34,8 @@ import {
 	nextWaveButton, drawNextWaveButton,
 	INTRO_MODALS,
 	setToast, updateToast, drawToast,
-	drawSettingsModal, settingsLayout, settingsCheckboxTap,
-	volumePointerDown, volumePointerMove, volumePointerUp,
+	drawSettingsModal, settingsModalTap,
+	volumePointerMove, volumePointerUp,
 } from './ui.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
@@ -173,15 +173,7 @@ scenes.title = {
 	},
 	pointerDown(p) {
 		if (this.settingsOpen) {
-			if (volumePointerDown(p)) return;
-			if (settingsCheckboxTap(p)) { playButton(); return; }
-			const { btns } = settingsLayout(titleSettingsButtons.length);
-			for (let i = 0; i < titleSettingsButtons.length; i++) {
-				if (hitButton(btns[i], p)) {
-					if (titleSettingsButtons[i].action()) this.settingsOpen = false;
-					return;
-				}
-			}
+			if (settingsModalTap(p, titleSettingsButtons)) this.settingsOpen = false;
 			return;
 		}
 		if (titleSave && hitButton(titleButtonsWithSave.continueBtn, p)) {
@@ -641,15 +633,7 @@ scenes.playing = {
 	},
 	pointerDown(p) {
 		if (game.settingsOpen) {
-			if (volumePointerDown(p)) return;
-			if (settingsCheckboxTap(p)) { playButton(); return; }
-			const { btns } = settingsLayout(playingSettingsButtons.length);
-			for (let i = 0; i < playingSettingsButtons.length; i++) {
-				if (hitButton(btns[i], p)) {
-					if (playingSettingsButtons[i].action()) game.settingsOpen = false;
-					return;
-				}
-			}
+			if (settingsModalTap(p, playingSettingsButtons)) game.settingsOpen = false;
 			return;
 		}
 		if (game.modal) {
