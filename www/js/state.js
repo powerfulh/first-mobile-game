@@ -76,6 +76,14 @@ function maybeShowShortcutIntro() {
 	}
 }
 
+// 일시적 시각 효과(game.effects) 전부 비움 — resetGame/loadGame/jumpToWave 공용.
+export function clearEffects() {
+	game.effects.beams = [];
+	game.effects.splashes = [];
+	game.effects.zaps = [];
+	game.effects.barrierSpawnFx = [];
+}
+
 export function resetGame(mapId = 'map1') {
 	setActiveMap(mapId);
 	game.mapId = mapId;
@@ -85,10 +93,7 @@ export function resetGame(mapId = 'map1') {
 	game.entities.enemies = [];
 	game.entities.towers = [];
 	game.entities.projectiles = [];
-	game.effects.beams = [];
-	game.effects.splashes = [];
-	game.effects.zaps = [];
-	game.effects.barrierSpawnFx = [];
+	clearEffects();
 	game.waves = [createSpawner(1)];
 	game.waveFrontier = game.wave;
 	game.waveState = 'spawning';
@@ -173,10 +178,7 @@ export function loadGame(data) {
 	game.waveFrontier = game.wave;
 	game.entities.enemies = [];
 	game.entities.projectiles = [];
-	game.effects.beams = [];
-	game.effects.splashes = [];
-	game.effects.zaps = [];
-	game.effects.barrierSpawnFx = [];
+	clearEffects();
 	game.waveState = 'spawning';
 	game.intermissionTimer = 0;
 	game.bossActive = false;

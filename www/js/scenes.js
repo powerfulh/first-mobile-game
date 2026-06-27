@@ -6,7 +6,7 @@ import {
 import {
 	game, resetGame, loadGame, loadSaveData,
 	hasSeenIntro, setIntroSeen, resetLocalData, getOneTouchPlace,
-	getIntermissionEnabled, getUnlockedMaps,
+	getIntermissionEnabled, getUnlockedMaps, clearEffects,
 } from './state.js';
 import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
@@ -323,10 +323,7 @@ function enterSandbox() {
 function jumpToWave(targetWave) {
 	game.entities.enemies = [];
 	game.entities.projectiles = [];
-	game.effects.beams = [];
-	game.effects.splashes = [];
-	game.effects.zaps = [];
-	game.effects.barrierSpawnFx = [];
+	clearEffects();
 	game.bossActive = false;
 	game.intermissionTimer = 0;
 	game.selectedTower = null;
