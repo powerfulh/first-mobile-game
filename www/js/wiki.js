@@ -293,7 +293,9 @@ function drawEnemyIcon(type, cx, cy) {
 	drawEnemySprite(type, cx, cy, 12);
 }
 
-function drawEnemyItem(y, entry, expanded) {
+// 위키 아코디언 항목 1줄 (타워·적 공용) — 배경 / 펼침 시 상단 강조선 / 아이콘 / 이름·tagline / ▲▼.
+// 펼침 시 detailFn(y)로 상세를 그리고 그 바닥 + 간격을 다음 y로 반환.
+function drawAccordionItem(y, { expanded, iconFn, name, tagline, detailFn }) {
 	const inView = y + ITEM_H >= CONTENT_TOP && y < CONTENT_BOTTOM;
 	if (inView) {
 		ctx.fillStyle = expanded ? '#22322a' : '#1c2820';
@@ -307,17 +309,17 @@ function drawEnemyItem(y, entry, expanded) {
 			ctx.stroke();
 		}
 
-		drawEnemyIcon(entry.key, 28, y + ITEM_H / 2);
+		iconFn(28, y + ITEM_H / 2);
 
 		ctx.textAlign = 'left';
 		ctx.textBaseline = 'alphabetic';
 		ctx.fillStyle = '#fff';
 		ctx.font = 'bold 15px sans-serif';
 		const nameY = y + ITEM_H / 2 - 3;
-		ctx.fillText(entry.name, 54, nameY);
+		ctx.fillText(name, 54, nameY);
 		ctx.fillStyle = '#9ab';
 		ctx.font = '11px sans-serif';
-		ctx.fillText(entry.tagline || '', 54, nameY + 16);
+		ctx.fillText(tagline || '', 54, nameY + 16);
 
 		ctx.fillStyle = '#6c7';
 		ctx.font = '12px sans-serif';
@@ -329,9 +331,19 @@ function drawEnemyItem(y, entry, expanded) {
 
 	let nextY = y + ITEM_H + ITEM_GAP;
 	if (expanded) {
-		nextY = drawEnemyDetail(y + ITEM_H, entry) + ITEM_GAP;
+		nextY = detailFn(y + ITEM_H) + ITEM_GAP;
 	}
 	return nextY;
+}
+
+function drawEnemyItem(y, entry, expanded) {
+	return drawAccordionItem(y, {
+		expanded,
+		iconFn: (cx, cy) => drawEnemyIcon(entry.key, cx, cy),
+		name: entry.name,
+		tagline: entry.tagline,
+		detailFn: (dy) => drawEnemyDetail(dy, entry),
+	});
 }
 
 function drawEnemyDetail(y, entry) {
@@ -372,50 +384,13 @@ function drawGroupHeader(y, label) {
 }
 
 function drawTowerItem(y, role, cfg, expanded) {
-	// 항목 본 줄
-	const inView = y + ITEM_H >= CONTENT_TOP && y < CONTENT_BOTTOM;
-	if (inView) {
-		ctx.fillStyle = expanded ? '#22322a' : '#1c2820';
-		ctx.fillRect(0, y, LOGICAL_W, ITEM_H);
-		if (expanded) {
-			ctx.strokeStyle = cfg.color;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, y);
-			ctx.lineTo(LOGICAL_W, y);
-			ctx.stroke();
-		}
-
-		// 외관 미리보기 — 게임과 동일한 타워 그래픽 (tower.js 공용 스프라이트)
-		drawTowerSprite(role, 28, y + ITEM_H / 2);
-
-		// 이름 + tagline
-		ctx.textAlign = 'left';
-		ctx.textBaseline = 'alphabetic';
-		ctx.fillStyle = '#fff';
-		ctx.font = 'bold 15px sans-serif';
-		const nameY = y + ITEM_H / 2 - 3;
-		ctx.fillText(cfg.name, 54, nameY);
-		ctx.fillStyle = '#9ab';
-		ctx.font = '11px sans-serif';
-		ctx.fillText(cfg.tagline || '', 54, nameY + 16);
-
-		// 펼침 화살표
-		ctx.fillStyle = '#6c7';
-		ctx.font = '12px sans-serif';
-		ctx.textAlign = 'right';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(expanded ? '▲' : '▼', LOGICAL_W - 14, y + ITEM_H / 2);
-		ctx.textBaseline = 'alphabetic';
-	}
-
-	let nextY = y + ITEM_H + ITEM_GAP;
-
-	if (expanded) {
-		nextY = drawTowerDetail(y + ITEM_H, role, cfg) + ITEM_GAP;
-	}
-
-	return nextY;
+	return drawAccordionItem(y, {
+		expanded,
+		iconFn: (cx, cy) => drawTowerSprite(role, cx, cy),
+		name: cfg.name,
+		tagline: cfg.tagline,
+		detailFn: (dy) => drawTowerDetail(dy, role, cfg),
+	});
 }
 
 function drawTowerDetail(y, role, cfg) {
