@@ -432,13 +432,18 @@ export function updateTower(tower, dt) {
 }
 
 // ============ Draw — 본체 ============
+// 본체 선택 테두리 스타일 — 선택 시 흰색 굵게, 평소 cfg.color2. stroke()/strokeRect()는 호출부에서.
+function applyBodyStrokeStyle(selected, cfg) {
+	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
+	ctx.lineWidth = selected ? 3 : 2;
+}
+
 function drawCannonBody(tower, cfg, selected) {
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
 	ctx.arc(tower.x, tower.y, TOWER.radius, 0, Math.PI * 2);
 	ctx.fill();
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.stroke();
 
 	ctx.save();
@@ -462,8 +467,7 @@ function drawBeamEmitterBody(tower, cfg, selected) {
 	}
 	ctx.closePath();
 	ctx.fill();
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.stroke();
 
 	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 350);
@@ -485,8 +489,7 @@ function drawAreaSweepBody(tower, cfg, selected) {
 	ctx.lineTo(tower.x - r, tower.y);
 	ctx.closePath();
 	ctx.fill();
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.stroke();
 
 	ctx.fillStyle = '#fff';
@@ -510,8 +513,7 @@ function drawSupportBody(tower, cfg, selected) {
 	}
 	ctx.closePath();
 	ctx.fill();
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.stroke();
 
 	// 배럴 (공격 가능 시)
@@ -555,8 +557,7 @@ function drawGatlingBody(tower, cfg, selected) {
 	ctx.beginPath();
 	ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2);
 	ctx.fill();
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.stroke();
 
 	// 다발 배럴 (3개 평행, tower.angle 방향)
@@ -608,8 +609,7 @@ function drawAssassinBody(tower, cfg, selected) {
 	ctx.lineTo(0, r * 0.9);
 	ctx.closePath();
 	ctx.fill();
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.stroke();
 
 	// 중심 짙은 코어
@@ -637,8 +637,7 @@ function drawSiloBody(tower, cfg, selected) {
 	// 본체 - 사각형 격납고
 	ctx.fillStyle = cfg.color;
 	ctx.fillRect(x, y, w, w);
-	ctx.strokeStyle = selected ? '#fff' : cfg.color2;
-	ctx.lineWidth = selected ? 3 : 2;
+	applyBodyStrokeStyle(selected, cfg);
 	ctx.strokeRect(x, y, w, w);
 
 	// 격납고 도어 분할 라인 (십자)
