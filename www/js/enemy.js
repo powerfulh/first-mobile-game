@@ -29,7 +29,10 @@ export function computeBaseHpAt(wave) {
 	for (let i = 1; i <= 4; i++) {
 		hpExtra += Math.max(0, wave - i * 50) * 0.1;
 	}
-	return Math.round((2 + (wave - 1) * 0.6 + hpExtra) * 10) / 10;
+	// 1~10웨이브는 완만하게(+0.4/wave), 11웨이브부터 기존 +0.6/wave (10웨이브 값에서 연속). 모든 맵 공통.
+	const earlyGain = Math.min(wave - 1, 9) * 0.4; // wave 1→10 증가분 (최대 9회)
+	const lateGain = Math.max(0, wave - 10) * 0.6; // wave 10 이후 증가분
+	return Math.round((2 + earlyGain + lateGain + hpExtra) * 10) / 10;
 }
 
 export function getAirChance(wave) {
