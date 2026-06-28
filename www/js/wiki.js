@@ -346,7 +346,7 @@ function drawEnemyItem(y, entry, expanded) {
 	});
 }
 
-function drawEnemyDetail(y, entry) {
+function drawEnemyDetail(y, entry, measure = false) {
 	let cy = y + DETAIL_TOP_PAD;
 
 	ctx.textAlign = 'left';
@@ -354,19 +354,16 @@ function drawEnemyDetail(y, entry) {
 	ctx.fillStyle = '#dde';
 	ctx.font = '12px sans-serif';
 	for (const line of entry.description || []) {
-		cy = drawWrappedLine(line, 18, cy, LOGICAL_W - 36, 17, '• ');
+		cy = drawWrappedLine(line, 18, cy, LOGICAL_W - 36, 17, '• ', measure);
 	}
 
 	cy += DETAIL_BOTTOM_PAD;
 	return cy;
 }
 
+// 탭 높이는 그리기와 동일 경로(measure 모드)로 산출 → wrap된 줄까지 반영, 손 동기화 제거.
 function measureEnemyDetailH(entry) {
-	let cy = DETAIL_TOP_PAD;
-	const desc = entry.description || [];
-	cy += desc.length * 17;
-	cy += DETAIL_BOTTOM_PAD;
-	return cy;
+	return drawEnemyDetail(0, entry, true);
 }
 
 function drawGroupHeader(y, label) {
@@ -490,14 +487,15 @@ function describeLineage(role) {
 }
 
 // 단순 단어 wrap (한글에선 글자 단위 분할이 자연스러우니 글자 너비 측정 기반)
-function drawWrappedLine(text, x, y, maxW, lineH, prefix) {
+// measure=true면 칠하지 않고 줄바꿈 높이만 누적 → 탭 히트 영역 계산이 실제 그림과 일치.
+function drawWrappedLine(text, x, y, maxW, lineH, prefix, measure = false) {
 	const indent = prefix ? ctx.measureText(prefix).width : 0;
 	let line = prefix || '';
 	let firstLine = true;
 	for (const ch of text) {
 		const test = line + ch;
 		if (ctx.measureText(test).width > maxW && line.length > (prefix ? prefix.length : 0)) {
-			ctx.fillText(line, x, y);
+			if (!measure) ctx.fillText(line, x, y);
 			y += lineH;
 			line = (firstLine ? ' '.repeat(Math.round(indent / 3)) : '') + ch;
 			firstLine = false;
@@ -506,7 +504,7 @@ function drawWrappedLine(text, x, y, maxW, lineH, prefix) {
 		}
 	}
 	if (line.length > 0) {
-		ctx.fillText(line, x, y);
+		if (!measure) ctx.fillText(line, x, y);
 		y += lineH;
 	}
 	return y;
@@ -560,8 +558,8 @@ function handleContentTap(p) {
 
 			y = itemBottom + ITEM_GAP;
 			if (expanded) {
-				const detailH = measureEnemyDetailH(entry);
-				y += detailH + ITEM_GAP;
+				// drawAccordionItem과 동일: 헤더 바닥 + 상세 높이 + 간격(1회)
+				y = itemBottom + measureEnemyDetailH(entry) + ITEM_GAP;
 			}
 		}
 	}
