@@ -264,6 +264,14 @@ export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(
 export const MAP_UNLOCK_INTRO_KEY = 'td_seen_map_unlock'; // 맵 해금 안내 모달
 export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 안내 모달 (airShortcut 맵 최초 진입)
 
+// 인트로 플래그 키 전체. resetLocalData가 이 배열을 spread 해 초기화 누락을 막는다.
+// 새 인트로 추가 시 위 상수 정의와 이 배열에 함께 등록할 것.
+export const INTRO_KEYS = [
+	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
+	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
+];
+
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.
 // 배경음·효과음 마스터를 분리해 각각 저장.
 export const BGM_VOLUME_KEY = 'td_volume';
