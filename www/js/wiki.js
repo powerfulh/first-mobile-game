@@ -390,7 +390,7 @@ function drawTowerItem(y, role, cfg, expanded) {
 	});
 }
 
-function drawTowerDetail(y, role, cfg) {
+function drawTowerDetail(y, role, cfg, measure = false) {
 	let cy = y + DETAIL_TOP_PAD;
 
 	// 스탯
@@ -415,7 +415,7 @@ function drawTowerDetail(y, role, cfg) {
 	statLines.push(t('공격 대상: {types}', { types: atkText }) + (cfg.splash ? t('  (광역 {n})', { n: cfg.splash }) : ''));
 
 	for (const line of statLines) {
-		ctx.fillText(line, 18, cy);
+		if (!measure) ctx.fillText(line, 18, cy);
 		cy += 17;
 	}
 	cy += 4;
@@ -425,7 +425,7 @@ function drawTowerDetail(y, role, cfg) {
 	if (lineageLines.length > 0) {
 		ctx.fillStyle = '#9ab39a';
 		for (const ln of lineageLines) {
-			ctx.fillText(ln, 18, cy);
+			if (!measure) ctx.fillText(ln, 18, cy);
 			cy += 17;
 		}
 	}
@@ -437,13 +437,13 @@ function drawTowerDetail(y, role, cfg) {
 		ctx.fillStyle = '#dde';
 		ctx.font = '12px sans-serif';
 		for (const line of desc) {
-			cy = drawWrappedLine(line, 18, cy, LOGICAL_W - 36, 17, '• ');
+			cy = drawWrappedLine(line, 18, cy, LOGICAL_W - 36, 17, '• ', measure);
 		}
 	} else if (cfg.tagline) {
 		cy += 4;
 		ctx.fillStyle = '#9ab';
 		ctx.font = '11px sans-serif';
-		cy = drawWrappedLine(cfg.tagline, 18, cy, LOGICAL_W - 36, 16, '');
+		cy = drawWrappedLine(cfg.tagline, 18, cy, LOGICAL_W - 36, 16, '', measure);
 	}
 
 	cy += DETAIL_BOTTOM_PAD;
@@ -534,9 +534,8 @@ function handleContentTap(p) {
 
 				y = itemBottom + ITEM_GAP;
 				if (expanded) {
-					// 펼친 상세 영역은 탭 무반응 (다음 항목까지 계산 위해 높이 재계산)
-					const detailH = measureTowerDetailH(role, cfg);
-					y += detailH + ITEM_GAP;
+					// drawAccordionItem과 동일: 헤더 바닥 + 상세 높이 + 간격(1회)
+					y = itemBottom + measureTowerDetailH(role, cfg) + ITEM_GAP;
 				}
 			}
 			y += 6;
@@ -565,18 +564,7 @@ function handleContentTap(p) {
 	}
 }
 
+// 탭 높이는 그리기와 동일 경로(measure 모드)로 산출 → wrap된 줄까지 반영, 손 동기화 제거.
 function measureTowerDetailH(role, cfg) {
-	// drawTowerDetail의 cy 계산 흐름과 일치해야 함
-	let cy = DETAIL_TOP_PAD;
-	cy += 17 * 3 + 4; // stat 3줄
-	cy += describeLineage(role).length * 17; // 전직 관계 — 항목당 1줄
-	const desc = cfg.description || [];
-	if (desc.length > 0) {
-		cy += 4;
-		cy += desc.length * 17;
-	} else if (cfg.tagline) {
-		cy += 4 + 16;
-	}
-	cy += DETAIL_BOTTOM_PAD;
-	return cy;
+	return drawTowerDetail(0, role, cfg, true);
 }
