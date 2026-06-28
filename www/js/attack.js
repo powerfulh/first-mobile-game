@@ -35,7 +35,8 @@ export function applyTowerHit(shooter, target, damage) {
 			}
 		}
 	}
-	if (target.hp <= 0) {
+	// 부동소수점 잔차로 정확히 0이 안 될 수 있어(예: 3.6 - 1.2×3 ≈ 4.4e-16 > 0) 미세 양수도 사망 처리.
+	if (target.hp <= 1e-6) {
 		target.dead = true;
 		if (target.isBoss) {
 			game.gold += getBossReward(game.wave);
