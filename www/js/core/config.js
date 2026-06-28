@@ -154,7 +154,7 @@ export const TOWER_ROLES = {
 	dealman: {
 		name: '딜맨', tagline: '관통 빔 · 고HP 우선 · 지상 / 공중',
 		color: '#cb4335', color2: '#922b21',
-		range: 200, fireRate: 1, damage: 12,
+		range: 180, fireRate: 1, damage: 10,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
 		instantHit: true,
