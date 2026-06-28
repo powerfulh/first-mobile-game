@@ -476,6 +476,18 @@ scenes.playing = {
 		game.effects.zaps = game.effects.zaps.filter(z => !z.dead);
 		game.effects.barrierSpawnFx = game.effects.barrierSpawnFx.filter(fx => !fx.dead);
 
+		// 게임오버 판정을 웨이브 완료·저장보다 먼저 — 마지막 적이 골인하며 hp가 0이 된 프레임에
+		// 다음 웨이브가 setup·저장되면 hp 0 상태가 저장돼 불러올 때 즉시 게임오버가 됨.
+		if (game.hp <= 0) {
+			game.hp = 0;
+			game.selectedTower = null;
+			game.selectedEnemy = null;
+			game.towerPanel = TOWER_PANEL.INFO;
+			game.ghostTower = null;
+			changeScene('gameOver');
+			return;
+		}
+
 		let batchEnded = false;
 		if (game.waveState === 'spawning') {
 			if (game.bossActive) {
@@ -527,15 +539,6 @@ scenes.playing = {
 
 		if (!game.modal && !hasSeenIntro(TIER4_INTRO_KEY) && hasReadyTier4Candidate()) {
 			game.modal = { type: 'tier4Intro' };
-		}
-
-		if (game.hp <= 0) {
-			game.hp = 0;
-			game.selectedTower = null;
-			game.selectedEnemy = null;
-			game.towerPanel = TOWER_PANEL.INFO;
-			game.ghostTower = null;
-			changeScene('gameOver');
 		}
 	},
 	draw() {
