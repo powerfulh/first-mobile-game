@@ -18,9 +18,18 @@ const DEFAULT_WAVE = {
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 };
+
 export function wparams() {
 	const wc = getActiveMap().waveComposition;
 	return (wc && typeof wc === 'object') ? { ...DEFAULT_WAVE, ...wc } : DEFAULT_WAVE;
+}
+
+export function computeBaseHpAt(wave) {
+	let hpExtra = 0;
+	for (let i = 1; i <= 4; i++) {
+		hpExtra += Math.max(0, wave - i * 50) * 0.1;
+	}
+	return Math.round((2 + (wave - 1) * 0.6 + hpExtra) * 10) / 10;
 }
 
 export function getAirChance(wave) {
@@ -103,14 +112,6 @@ export function getEnemiesPerWaveAt(wave) {
 	return base + (Math.min(wave, cap) - (ramp - 1));
 }
 
-export function computeBaseHpAt(wave) {
-	let hpExtra = 0;
-	for (let i = 1; i <= 4; i++) {
-		hpExtra += Math.max(0, wave - i * 50) * 0.1;
-	}
-	return Math.round((2 + (wave - 1) * 0.6 + hpExtra) * 10) / 10;
-}
-
 export function computeBossHp(wave) {
 	const n = Math.min(70, getEnemiesPerWaveAt(wave)); // 보스 HP 계산용 일반 적 수 상한 260623 땡트랩으로 200이 뚫리길래 너무 약하다 싶어서 70
 	const baseHp = computeBaseHpAt(wave);
@@ -138,6 +139,7 @@ export function spawnEnemy(spawner) {
 	// 스폰 스탯은 그 스포너의 웨이브 기준 (병렬 웨이브는 각자 다른 웨이브일 수 있음).
 	const wave = spawner.wave;
 	const map = getActiveMap();
+	const baseHp = computeBaseHpAt(wave);
 	// 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
 	const barrierSpawner = Math.random() < getBarrierSpawnerChance(wave);
 	const regen = barrierSpawner ? false : Math.random() < getRegenChance(wave);
@@ -145,7 +147,6 @@ export function spawnEnemy(spawner) {
 	const isAir = barrierSpawner || isAirPlain; // 장벽 적은 공중 타입
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	const baseHp = computeBaseHpAt(wave);
 	// 장벽 적: 일반 적과 동일 HP/속도 (공중 HP 비율 미적용, 슬로우 미적용)
 	let hp;
 	if (barrierSpawner) hp = baseHp;
