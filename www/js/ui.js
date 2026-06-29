@@ -186,10 +186,8 @@ const SETTINGS_DY = {
 	btnTop: 210, bottomPad: 40,
 };
 
-// 마지막으로 그린 레이아웃 — 씬에서 위임하는 hit-test(슬라이더/체크박스)가 공유.
-let settingsHitLayout = null;
-
 // 버튼 개수로 패널 높이를 정하고 화면 세로 중앙에 배치. 콘텐츠 좌표는 panel.y 기준 상대.
+// 순수 함수(count만 의존) — draw와 hit-test가 각자 호출해 동일 좌표를 얻는다.
 function settingsLayout(count) {
 	const D = SETTINGS_DY;
 	const lastBtnBottomDY = count
@@ -231,21 +229,19 @@ function sliderValueFromX(px) {
 }
 
 // 포인터가 어느 슬라이더 트랙 위인지 반환 (없으면 -1)
-function hitSlider(p) {
-	if (!settingsHitLayout) return -1;
+function hitSlider(p, sliderCy) {
 	const s = SLIDER_TRACK;
 	if (p.x < s.x - 22 || p.x > s.x + s.w + 22) return -1;
-	const ys = settingsHitLayout.sliderCy;
 	for (let i = 0; i < SLIDERS.length; i++) {
-		if (Math.abs(p.y - ys[i]) <= 14) return i;
+		if (Math.abs(p.y - sliderCy[i]) <= 14) return i;
 	}
 	return -1;
 }
 
 // 슬라이더 드래그 — 설정 모달이 열린 씬에서 pointer 콜백이 위임.
 // 이벤트를 소비하면 true 반환 (씬은 그 경우 다른 처리 스킵).
-export function volumePointerDown(p) {
-	const i = hitSlider(p);
+export function volumePointerDown(p, sliderCy) {
+	const i = hitSlider(p, sliderCy);
 	if (i < 0) return false;
 	activeSlider = i;
 	SLIDERS[i].set(sliderValueFromX(p.x));
@@ -347,12 +343,10 @@ function drawSettingsCheckboxes(checkboxY) {
 	ctx.textBaseline = 'alphabetic';
 }
 
-// 체크박스 탭 처리 — 소비 시 true (설정 모달 열린 씬이 위임). y는 마지막 그린 레이아웃 기준.
-export function settingsCheckboxTap(p) {
-	if (!settingsHitLayout) return false;
-	const ys = settingsHitLayout.checkboxY;
+// 체크박스 탭 처리 — 소비 시 true (설정 모달 열린 씬이 위임). checkboxY는 settingsLayout 산출값.
+export function settingsCheckboxTap(p, checkboxY) {
 	for (let i = 0; i < SETTINGS_CHECKBOXES.length; i++) {
-		const rect = { x: CHECKBOX_X, y: ys[i], w: CHECKBOX_W, h: CHECKBOX_H };
+		const rect = { x: CHECKBOX_X, y: checkboxY[i], w: CHECKBOX_W, h: CHECKBOX_H };
 		if (hitButton(rect, p)) {
 			SETTINGS_CHECKBOXES[i].set(!SETTINGS_CHECKBOXES[i].get());
 			return true;
@@ -364,9 +358,9 @@ export function settingsCheckboxTap(p) {
 // 설정 모달이 열린 동안의 탭 처리 (title/playing 씬 공용). 모달이라 탭은 전부 소비됨.
 // 슬라이더·체크박스는 자체 처리, 버튼은 action() 실행 — action()이 닫기를 원하면(truthy) true 반환.
 export function settingsModalTap(p, buttons) {
-	if (volumePointerDown(p)) return false;
-	if (settingsCheckboxTap(p)) { playButton(); return false; }
-	const { btns } = settingsLayout(buttons.length);
+	const { btns, sliderCy, checkboxY } = settingsLayout(buttons.length);
+	if (volumePointerDown(p, sliderCy)) return false;
+	if (settingsCheckboxTap(p, checkboxY)) { playButton(); return false; }
 	for (let i = 0; i < buttons.length; i++) {
 		if (hitButton(btns[i], p)) {
 			return !!buttons[i].action();
@@ -376,9 +370,7 @@ export function settingsModalTap(p, buttons) {
 }
 
 export function drawSettingsModal(buttons) {
-	const layout = settingsLayout(buttons.length);
-	settingsHitLayout = layout; // 씬 hit-test(슬라이더/체크박스) 공유용
-	const { panel: p, btns, guideY, titleY, sliderCy, checkboxY } = layout;
+	const { panel: p, btns, guideY, titleY, sliderCy, checkboxY } = settingsLayout(buttons.length);
 
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
 	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
