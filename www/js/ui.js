@@ -7,13 +7,12 @@ import {
 } from './core/config.js';
 import {
 	game, getOneTouchPlace, setOneTouchPlace,
-	getIntermissionEnabled, setIntermissionEnabled, hasSeenIntro,
+	getIntermissionEnabled, setIntermissionEnabled,
 } from './state.js';
 import { roundRect, drawButton, drawPanel, hitButton } from './core/helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume, playButton } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
-import { canCallExtraWave } from './wave.js';
 import { t } from './core/i18n.js';
 
 // ============ 웨이브 적 출현 요약 ============
@@ -97,9 +96,10 @@ export function drawPauseButton() {
 // 현재 웨이브 종료를 기다리지 않고 즉시 다음 웨이브를 호출. 일시정지 버튼 바로 위.
 export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
 
-export function drawNextWaveButton() {
+// enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부 — 둘 다 호출부(scenes)에서 계산해 전달.
+export function drawNextWaveButton({ enabled, showBadge }) {
 	// 호출 불가(보스·인터미션·최대 병렬 수)일 때 흐리게
-	ctx.globalAlpha = canCallExtraWave() ? 1 : 0.35;
+	ctx.globalAlpha = enabled ? 1 : 0.35;
 	drawHudButtonBg(nextWaveButton);
 
 	// ⏩ 빨리감기 — 다음 웨이브 병렬 호출
@@ -120,7 +120,7 @@ export function drawNextWaveButton() {
 	ctx.globalAlpha = 1;
 
 	// 아직 안내 모달을 안 본 경우 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)
-	if (!hasSeenIntro(PARALLEL_INTRO_KEY)) {
+	if (showBadge) {
 		const bx = nextWaveButton.x + nextWaveButton.w - 3;
 		const by = nextWaveButton.y + 3;
 		ctx.fillStyle = GOLD;

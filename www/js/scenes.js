@@ -622,7 +622,10 @@ scenes.playing = {
 		}
 
 		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
-			drawNextWaveButton();
+			drawNextWaveButton({
+				enabled: canCallExtraWave(),
+				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
+			});
 			drawPauseButton();
 		}
 		if (game.paused) drawPausedOverlay();
