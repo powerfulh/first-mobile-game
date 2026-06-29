@@ -2,10 +2,17 @@ import { LOGICAL_W, LOGICAL_H } from './config.js';
 
 export const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game'));
 export const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
-export const hpEl = document.getElementById('hp');
-export const goldEl = document.getElementById('gold');
-export const waveEl = document.getElementById('wave');
+const hpEl = document.getElementById('hp');
+const goldEl = document.getElementById('gold');
+const waveEl = document.getElementById('wave');
 export const hudEl = document.getElementById('hud');
+
+// HUD 텍스트 setter — 표시 문자열만 받아 DOM에 반영. 포맷/게임 로직은 호출부(ui.js)에.
+export function setHud({ hp, gold, wave }) {
+	hpEl.textContent = hp;
+	goldEl.textContent = gold;
+	waveEl.textContent = wave;
+}
 
 function resize() {
 	const dpr = window.devicePixelRatio || 1;

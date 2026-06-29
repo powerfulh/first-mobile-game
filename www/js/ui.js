@@ -1,4 +1,4 @@
-import { ctx, hpEl, goldEl, waveEl } from './core/canvas.js';
+import { ctx, setHud } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
@@ -18,18 +18,22 @@ import { t } from './core/i18n.js';
 
 // ============ HUD ============
 export function updateHUD() {
-	hpEl.textContent = `HP: ${game.hp}`;
-	goldEl.textContent = `Gold: ${game.gold}${game.bossActive ? ' 🔒' : ''}`;
 	// 활성 웨이브 범위로 표기 — 먼저 끝난 웨이브는 제거되므로 범위가 좁아짐.
 	// {낮은 활성}~{높은 활성}, 하나면 단일 번호. 활성 없음(배치 전환/인터미션)이면 game.wave.
 	const waves = game.waves || [];
+	let wave;
 	if (waves.length === 0) {
-		waveEl.textContent = `Wave: ${game.wave}`;
+		wave = `Wave: ${game.wave}`;
 	} else {
 		let lo = waves[0].wave, hi = waves[0].wave;
 		for (const s of waves) { if (s.wave < lo) lo = s.wave; if (s.wave > hi) hi = s.wave; }
-		waveEl.textContent = lo === hi ? `Wave: ${lo}` : `Wave: ${lo}~${hi}`;
+		wave = lo === hi ? `Wave: ${lo}` : `Wave: ${lo}~${hi}`;
 	}
+	setHud({
+		hp: `HP: ${game.hp}`,
+		gold: `Gold: ${game.gold}${game.bossActive ? ' 🔒' : ''}`,
+		wave,
+	});
 }
 
 // ============ 웨이브 적 출현 요약 ============
