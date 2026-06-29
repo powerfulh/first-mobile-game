@@ -175,9 +175,11 @@ export function spawnEnemy(spawner) {
 		hp: hp,
 		bobPhase: Math.random() * Math.PI * 2,
 		shielded,
+		shieldReduction: shielded ? getShieldReduction(wave) : 0,
 		regen,
+		regenRate: regen ? getRegenHealRate(wave) : 0,
 		barrierSpawner,
-		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적용
+		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
 	const cat = barrierSpawner ? 'barrier' : regen ? 'regen' : isAirPlain ? 'air' : 'ground';
@@ -198,8 +200,8 @@ export function spawnEnemy(spawner) {
 
 // 장벽 객체 — 일반 적과 game.entities.enemies에 함께 들어감 (e.isBarrier=true).
 // 공중 타입이라 공중 공격 가능 타워의 타깃이 됨.
-export function spawnBarrier(x, y) {
-	const hp = computeBaseHpAt(game.wave) * 2;
+export function spawnBarrier(x, y, wave) {
+	const hp = computeBaseHpAt(wave) * 2;
 	game.entities.enemies.push({
 		x, y,
 		type: 'air',
@@ -213,9 +215,10 @@ export function spawnBarrier(x, y) {
 }
 
 // 장벽 적 처치 시 호출 — 즉시 생성 대신 짧은 애니메이션 후 spawnBarrier.
-export function startBarrierSpawn(x, y) {
+// wave: 죽은 장벽 적의 웨이브 — 생성될 장벽 HP 기준.
+export function startBarrierSpawn(x, y, wave) {
 	game.effects.barrierSpawnFx.push({
-		x, y,
+		x, y, wave,
 		life: 0.55,
 		maxLife: 0.55,
 	});
@@ -225,7 +228,7 @@ export function updateBarrierSpawnFx(fx, dt) {
 	fx.life -= dt;
 	if (fx.life <= 0) {
 		fx.dead = true;
-		spawnBarrier(fx.x, fx.y);
+		spawnBarrier(fx.x, fx.y, fx.wave);
 	}
 }
 
@@ -308,7 +311,7 @@ export function updateEnemy(e, dt) {
 		return;
 	}
 	if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
-		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * getRegenHealRate(game.wave) * dt);
+		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
 	}
 	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
@@ -550,13 +553,13 @@ export function drawEnemyInfoPanel(e) {
 
 	// 종류별 추가 항목 — 방어막(데미지 감소량) / 재생(초당 회복률) / 장벽(생성 장벽 체력)
 	if (e.shielded) {
-		ctx.fillText(t('방어력: {n}', { n: getShieldReduction(game.wave).toFixed(1) }), sx, rowY());
+		ctx.fillText(t('방어력: {n}', { n: e.shieldReduction.toFixed(1) }), sx, rowY());
 	}
 	if (e.regen) {
-		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(getRegenHealRate(game.wave) * 100) }), sx, rowY());
+		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(e.regenRate * 100) }), sx, rowY());
 	}
 	if (e.barrierSpawner) {
-		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(game.wave) * 2) }), sx, rowY());
+		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(e.waveNum) * 2) }), sx, rowY());
 	}
 }
 
