@@ -36,9 +36,9 @@ import {
 	nextWaveButton, drawNextWaveButton,
 	INTRO_MODALS,
 	drawToast,
-	drawSettingsModal, settingsModalTap,
-	volumePointerMove, volumePointerUp,
+	drawSettingsModal,
 } from './ui.js';
+import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
 

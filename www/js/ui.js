@@ -5,14 +5,9 @@ import {
 	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from './core/config.js';
-import {
-	getOneTouchPlace, setOneTouchPlace,
-	getIntermissionEnabled, setIntermissionEnabled,
-} from './state.js';
-import { roundRect, drawButton, drawPanel, hitButton } from './core/helpers.js';
-import { getBgmVolume, setBgmVolume } from './audio.js';
-import { getSfxVolume, setSfxVolume, playButton } from './sfx.js';
+import { roundRect, drawButton, drawPanel } from './core/helpers.js';
 import { drawEnemySprite } from './enemy.js';
+import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
 
 // ============ 웨이브 적 출현 요약 ============
@@ -171,97 +166,36 @@ export function drawPausedOverlay() {
 	ctx.textBaseline = 'alphabetic';
 }
 
-// ============ Settings modal (통합) ============
-// 게임 중 백 버튼 / 타이틀 설정 버튼 모두 동일 모달 사용.
-// 호출자가 buttons 배열을 넘김 — 각 { label, action }. 버튼 위치/패널 높이는
-// settingsLayout이 버튼 개수에 맞춰 계산 (씬의 hit-test도 동일 함수 사용).
-// 하단 가이드 문구는 모달 소스에 고정.
-const SETTINGS_PANEL = { x: 30, w: 300 };
-const SETTINGS_BTN = { x: 80, w: 200, h: 50, gap: 12 };
-// panel.y(상단) 기준 내부 세로 오프셋 — 콘텐츠를 모두 패널 상대 배치해 세로 중앙 정렬 가능.
-const SETTINGS_DY = {
-	title: 48,
-	sliderTop: 90, sliderGap: 30,
-	checkboxTop: 140, checkboxGap: 30,
-	btnTop: 210, bottomPad: 40,
-};
+// ============ Settings modal (그리기) — 모델·레이아웃·입력은 settings-modal.js ============
+export function drawSettingsModal(buttons) {
+	const { panel: p, btns, guideY, titleY, sliderCy, checkboxY, sliders, checkboxes } = settingsView(buttons);
 
-// 버튼 개수로 패널 높이를 정하고 화면 세로 중앙에 배치. 콘텐츠 좌표는 panel.y 기준 상대.
-// 순수 함수(count만 의존) — draw와 hit-test가 각자 호출해 동일 좌표를 얻는다.
-function settingsLayout(count) {
-	const D = SETTINGS_DY;
-	const lastBtnBottomDY = count
-		? D.btnTop + (count - 1) * (SETTINGS_BTN.h + SETTINGS_BTN.gap) + SETTINGS_BTN.h
-		: D.btnTop;
-	const h = lastBtnBottomDY + D.bottomPad;
-	const y = Math.round((LOGICAL_H - h) / 2);
-	const panel = { x: SETTINGS_PANEL.x, y, w: SETTINGS_PANEL.w, h };
-	const btns = [];
-	for (let i = 0; i < count; i++) {
-		btns.push({
-			x: SETTINGS_BTN.x,
-			y: y + D.btnTop + i * (SETTINGS_BTN.h + SETTINGS_BTN.gap),
-			w: SETTINGS_BTN.w,
-			h: SETTINGS_BTN.h,
-		});
-	}
-	return {
-		panel, btns,
-		titleY: y + D.title,
-		sliderCy: SLIDERS.map((_, i) => y + D.sliderTop + i * D.sliderGap),
-		checkboxY: SETTINGS_CHECKBOXES.map((_, i) => y + D.checkboxTop + i * D.checkboxGap),
-		guideY: y + h - 16,
-	};
+	ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+	drawPanel(p.x, p.y, p.w, p.h, { radius: 12, stroke: INFO_BLUE });
+
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 22px sans-serif';
+	ctx.fillText(t('설정'), LOGICAL_W / 2, titleY);
+
+	drawVolumeSliders(sliders, sliderCy);
+	drawSettingsCheckboxes(checkboxes, checkboxY);
+
+	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], t(buttons[i].label));
+
+	ctx.fillStyle = '#9ab';
+	ctx.font = '12px sans-serif';
+	ctx.fillText(t('이전 버튼을 눌러 닫습니다'), LOGICAL_W / 2, guideY);
 }
 
-// ---- 볼륨 슬라이더 (배경음 / 효과음 마스터 분리) ----
-// 가로 1줄 레이아웃: 라벨(왼쪽) · 트랙 · % (오른쪽). 각 슬라이더는 get/set로 연결.
-const SLIDER_TRACK = { x: 108, w: 150, knobR: 9 };
-const SLIDERS = [
-	{ label: '배경음', get: getBgmVolume, set: setBgmVolume },
-	{ label: '효과음', get: getSfxVolume, set: setSfxVolume },
-];
-let activeSlider = -1; // 드래그 중인 슬라이더 인덱스 (-1 = 없음)
-
-function sliderValueFromX(px) {
-	const s = SLIDER_TRACK;
-	return Math.min(1, Math.max(0, (px - s.x) / s.w));
-}
-
-// 포인터가 어느 슬라이더 트랙 위인지 반환 (없으면 -1)
-function hitSlider(p, sliderCy) {
-	const s = SLIDER_TRACK;
-	if (p.x < s.x - 22 || p.x > s.x + s.w + 22) return -1;
-	for (let i = 0; i < SLIDERS.length; i++) {
-		if (Math.abs(p.y - sliderCy[i]) <= 14) return i;
-	}
-	return -1;
-}
-
-// 슬라이더 드래그 — 설정 모달이 열린 씬에서 pointer 콜백이 위임.
-// 이벤트를 소비하면 true 반환 (씬은 그 경우 다른 처리 스킵).
-export function volumePointerDown(p, sliderCy) {
-	const i = hitSlider(p, sliderCy);
-	if (i < 0) return false;
-	activeSlider = i;
-	SLIDERS[i].set(sliderValueFromX(p.x));
-	return true;
-}
-export function volumePointerMove(p) {
-	if (activeSlider < 0) return false;
-	SLIDERS[activeSlider].set(sliderValueFromX(p.x));
-	return true;
-}
-export function volumePointerUp() {
-	const was = activeSlider >= 0;
-	activeSlider = -1;
-	return was;
-}
-
-function drawVolumeSliders(sliderCy) {
+// 가로 1줄 레이아웃: 라벨(왼쪽) · 트랙 · % (오른쪽). value/label은 settingsView가 주입.
+function drawVolumeSliders(sliders, sliderCy) {
 	const tr = SLIDER_TRACK;
-	SLIDERS.forEach((sl, i) => {
-		const v = sl.get();
+	sliders.forEach((sl, i) => {
+		const v = sl.value;
 		const cy = sliderCy[i];
 		const knobX = tr.x + v * tr.w;
 
@@ -303,18 +237,11 @@ function drawVolumeSliders(sliderCy) {
 	ctx.textBaseline = 'alphabetic';
 }
 
-// ---- 설정 체크박스 (볼륨 슬라이더 아래) ----
-// 공통 x/폭/높이 + 줄마다 y. get/set로 각 선호값 연결 (체크=on).
-const CHECKBOX_X = 80, CHECKBOX_W = 200, CHECKBOX_H = 26, CHECKBOX_BOX = 20;
-const SETTINGS_CHECKBOXES = [
-	{ label: '원터치 배치', get: getOneTouchPlace, set: setOneTouchPlace },
-	{ label: '웨이브 간 인터미션', get: getIntermissionEnabled, set: setIntermissionEnabled },
-];
-
-function drawSettingsCheckboxes(checkboxY) {
+// 체크박스 (볼륨 슬라이더 아래). on/label은 settingsView가 주입.
+function drawSettingsCheckboxes(checkboxes, checkboxY) {
 	const box = CHECKBOX_BOX;
-	SETTINGS_CHECKBOXES.forEach((c, i) => {
-		const on = c.get();
+	checkboxes.forEach((c, i) => {
+		const on = c.on;
 		const rowY = checkboxY[i];
 		const bx = CHECKBOX_X;
 		const by = rowY + (CHECKBOX_H - box) / 2;
@@ -341,56 +268,6 @@ function drawSettingsCheckboxes(checkboxY) {
 		ctx.fillText(t(c.label), bx + box + 10, rowY + CHECKBOX_H / 2);
 	});
 	ctx.textBaseline = 'alphabetic';
-}
-
-// 체크박스 탭 처리 — 소비 시 true (설정 모달 열린 씬이 위임). checkboxY는 settingsLayout 산출값.
-export function settingsCheckboxTap(p, checkboxY) {
-	for (let i = 0; i < SETTINGS_CHECKBOXES.length; i++) {
-		const rect = { x: CHECKBOX_X, y: checkboxY[i], w: CHECKBOX_W, h: CHECKBOX_H };
-		if (hitButton(rect, p)) {
-			SETTINGS_CHECKBOXES[i].set(!SETTINGS_CHECKBOXES[i].get());
-			return true;
-		}
-	}
-	return false;
-}
-
-// 설정 모달이 열린 동안의 탭 처리 (title/playing 씬 공용). 모달이라 탭은 전부 소비됨.
-// 슬라이더·체크박스는 자체 처리, 버튼은 action() 실행 — action()이 닫기를 원하면(truthy) true 반환.
-export function settingsModalTap(p, buttons) {
-	const { btns, sliderCy, checkboxY } = settingsLayout(buttons.length);
-	if (volumePointerDown(p, sliderCy)) return false;
-	if (settingsCheckboxTap(p, checkboxY)) { playButton(); return false; }
-	for (let i = 0; i < buttons.length; i++) {
-		if (hitButton(btns[i], p)) {
-			return !!buttons[i].action();
-		}
-	}
-	return false;
-}
-
-export function drawSettingsModal(buttons) {
-	const { panel: p, btns, guideY, titleY, sliderCy, checkboxY } = settingsLayout(buttons.length);
-
-	ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-	drawPanel(p.x, p.y, p.w, p.h, { radius: 12, stroke: INFO_BLUE });
-
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 22px sans-serif';
-	ctx.fillText(t('설정'), LOGICAL_W / 2, titleY);
-
-	drawVolumeSliders(sliderCy);
-	drawSettingsCheckboxes(checkboxY);
-
-	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], t(buttons[i].label));
-
-	ctx.fillStyle = '#9ab';
-	ctx.font = '12px sans-serif';
-	ctx.fillText(t('이전 버튼을 눌러 닫습니다'), LOGICAL_W / 2, guideY);
 }
 
 // ============ Intro modals ============
