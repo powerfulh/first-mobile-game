@@ -1,4 +1,4 @@
-import { ctx, setHud } from './core/canvas.js';
+import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
@@ -15,26 +15,6 @@ import { getSfxVolume, setSfxVolume, playButton } from './sfx.js';
 import { drawEnemySprite } from './enemy.js';
 import { canCallExtraWave } from './wave.js';
 import { t } from './core/i18n.js';
-
-// ============ HUD ============
-export function updateHUD() {
-	// 활성 웨이브 범위로 표기 — 먼저 끝난 웨이브는 제거되므로 범위가 좁아짐.
-	// {낮은 활성}~{높은 활성}, 하나면 단일 번호. 활성 없음(배치 전환/인터미션)이면 game.wave.
-	const waves = game.waves || [];
-	let wave;
-	if (waves.length === 0) {
-		wave = `Wave: ${game.wave}`;
-	} else {
-		let lo = waves[0].wave, hi = waves[0].wave;
-		for (const s of waves) { if (s.wave < lo) lo = s.wave; if (s.wave > hi) hi = s.wave; }
-		wave = lo === hi ? `Wave: ${lo}` : `Wave: ${lo}~${hi}`;
-	}
-	setHud({
-		hp: `HP: ${game.hp}`,
-		gold: `Gold: ${game.gold}${game.bossActive ? ' 🔒' : ''}`,
-		wave,
-	});
-}
 
 // ============ 웨이브 적 출현 요약 ============
 // HUD 웨이브 아래(우측 상단)에 작게 — 적 스프라이트 + 누적 개수.
@@ -156,17 +136,7 @@ export function drawNextWaveButton() {
 	}
 }
 
-// ============ Toast ============
-export function setToast(text, life = 1.5) {
-	game.toast = { text, life, maxLife: life };
-}
-
-export function updateToast(dt) {
-	if (!game.toast) return;
-	game.toast.life -= dt;
-	if (game.toast.life <= 0) game.toast = null;
-}
-
+// ============ Toast (그리기) — 상태 관리는 toast.js ============
 export function drawToast() {
 	if (!game.toast) return;
 	const t = game.toast;

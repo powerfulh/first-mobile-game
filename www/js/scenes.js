@@ -29,11 +29,13 @@ import {
 } from './attack.js';
 import { startNextWave, setupWave, callExtraWave, canCallExtraWave, extraWaveBossBlocked } from './wave.js';
 import { t } from './core/i18n.js';
+import { updateHUD } from './hud.js';
+import { setToast, updateToast } from './toast.js';
 import {
-	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
+	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
 	INTRO_MODALS,
-	setToast, updateToast, drawToast,
+	drawToast,
 	drawSettingsModal, settingsModalTap,
 	volumePointerMove, volumePointerUp,
 } from './ui.js';
