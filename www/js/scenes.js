@@ -357,7 +357,7 @@ function selectTowerAt(p) {
 function selectEnemyAt(p) {
 	for (let i = game.entities.enemies.length - 1; i >= 0; i--) {
 		const e = game.entities.enemies[i];
-		if (e.isBarrier) continue; // 장벽은 선택 대상에서 제외
+		if (e.kind === 'barrier') continue; // 장벽은 선택 대상에서 제외
 		if (Math.hypot(p.x - e.x, p.y - e.y) <= e.radius + 6) {
 			game.selectedEnemy = e;
 			game.selectedTower = null;
@@ -493,7 +493,7 @@ scenes.playing = {
 		let batchEnded = false;
 		if (game.waveState === 'spawning') {
 			if (game.bossActive) {
-				if (!game.entities.enemies.some(e => e.isBoss)) {
+				if (!game.entities.enemies.some(e => e.kind === 'boss')) {
 					game.bossActive = false;
 					game.entities.enemies = [];
 					game.waves = [];
@@ -506,7 +506,7 @@ scenes.playing = {
 				while (game.waves.length > 0) {
 					const sp = game.waves[0];
 					const done = sp.spawnedThisWave >= sp.enemiesPerWave
-						&& !game.entities.enemies.some(e => !e.isBarrier && e.waveNum === sp.wave);
+						&& !game.entities.enemies.some(e => e.kind !== 'barrier' && e.waveNum === sp.wave);
 					if (!done) break;
 					game.waves.shift();
 				}
@@ -519,7 +519,7 @@ scenes.playing = {
 		if (batchEnded) {
 			grantWaveEndXp();
 			// 잔여 장벽 정리 (배치 종료 시 사라짐)
-			game.entities.enemies = game.entities.enemies.filter(e => !e.isBarrier);
+			game.entities.enemies = game.entities.enemies.filter(e => e.kind !== 'barrier');
 			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)
 			game.wave = game.waveFrontier;
 			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;

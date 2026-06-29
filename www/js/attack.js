@@ -38,15 +38,15 @@ export function applyTowerHit(shooter, target, damage) {
 	// 부동소수점 잔차로 정확히 0이 안 될 수 있어(예: 3.6 - 1.2×3 ≈ 4.4e-16 > 0) 미세 양수도 사망 처리.
 	if (target.hp <= 1e-6) {
 		target.dead = true;
-		if (target.isBoss) {
+		if (target.kind === 'boss') {
 			game.gold += getBossReward(game.wave);
-		} else if (target.isBarrier) {
+		} else if (target.kind === 'barrier') {
 			// 장벽은 보상 없음
 		} else if (!game.bossActive) {
 			game.gold += ENEMY_KILL_REWARD;
 		}
 		// 장벽 적 처치 시 그 자리에 장벽 생성 (짧은 애니메이션 후). 장벽 HP는 그 적의 웨이브 기준.
-		if (target.barrierSpawner) {
+		if (target.kind === 'barrierSpawner') {
 			startBarrierSpawn(target.x, target.y, target.waveNum);
 		}
 	}
@@ -186,7 +186,7 @@ export function updateProjectile(p, dt) {
 		if (handleBarrierBlock(p, oldX, oldY, p.x, p.y)) return;
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
-			if (e.isBarrier) continue; // 장벽은 handleBarrierBlock에서 처리됨
+			if (e.kind === 'barrier') continue; // 장벽은 handleBarrierBlock에서 처리됨
 			if (p.attackTypes && !p.attackTypes.includes(e.type)) continue;
 			const d = Math.hypot(e.x - p.x, e.y - p.y);
 			if (d <= e.radius) {
