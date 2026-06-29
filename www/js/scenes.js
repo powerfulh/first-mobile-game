@@ -574,7 +574,7 @@ scenes.playing = {
 		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);
 
 		drawBossHpBar();
-		drawWaveSpawnSummary();
+		drawWaveSpawnSummary(game.waveSpawnCounts);
 
 		if (game.holdDelete) {
 			const progress = Math.min(1, game.holdDelete.accumulated / HOLD_DELETE_SECONDS);
@@ -626,7 +626,7 @@ scenes.playing = {
 				enabled: canCallExtraWave(),
 				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
 			});
-			drawPauseButton();
+			drawPauseButton(game.paused);
 		}
 		if (game.paused) drawPausedOverlay();
 
@@ -637,7 +637,7 @@ scenes.playing = {
 
 		if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
-		drawToast();
+		if (game.toast) drawToast(game.toast);
 	},
 	pointerDown(p) {
 		if (game.settingsOpen) {

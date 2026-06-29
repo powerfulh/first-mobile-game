@@ -6,7 +6,7 @@ import {
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from './core/config.js';
 import {
-	game, getOneTouchPlace, setOneTouchPlace,
+	getOneTouchPlace, setOneTouchPlace,
 	getIntermissionEnabled, setIntermissionEnabled,
 } from './state.js';
 import { roundRect, drawButton, drawPanel, hitButton } from './core/helpers.js';
@@ -20,8 +20,7 @@ import { t } from './core/i18n.js';
 // 아직 출현하지 않은 종류는 표시 안 함 (count>0 만, 순서: 일반·공중·재생·장벽).
 const SPAWN_SUMMARY_ORDER = ['ground', 'air', 'regen', 'barrier'];
 
-export function drawWaveSpawnSummary() {
-	const counts = game.waveSpawnCounts || {};
+export function drawWaveSpawnSummary(counts = {}) {
 	const entries = SPAWN_SUMMARY_ORDER.filter(t => counts[t] > 0);
 	if (entries.length === 0) return;
 
@@ -73,11 +72,11 @@ function drawHudButtonBg(rect) {
 	ctx.stroke();
 }
 
-export function drawPauseButton() {
+export function drawPauseButton(paused) {
 	drawHudButtonBg(pauseButton);
 
 	ctx.fillStyle = '#fff';
-	if (game.paused) {
+	if (paused) {
 		// ▶ Play
 		ctx.beginPath();
 		ctx.moveTo(pauseButton.x + 15, pauseButton.y + 11);
@@ -93,7 +92,7 @@ export function drawPauseButton() {
 }
 
 // ============ Next-wave button ============
-// 현재 웨이브 종료를 기다리지 않고 즉시 다음 웨이브를 호출. 일시정지 버튼 바로 위.
+// 일시정지 버튼 바로 위.
 export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
 
 // enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부 — 둘 다 호출부(scenes)에서 계산해 전달.
@@ -102,7 +101,7 @@ export function drawNextWaveButton({ enabled, showBadge }) {
 	ctx.globalAlpha = enabled ? 1 : 0.35;
 	drawHudButtonBg(nextWaveButton);
 
-	// ⏩ 빨리감기 — 다음 웨이브 병렬 호출
+	// ⏩ 빨리감기
 	ctx.fillStyle = '#fff';
 	const x = nextWaveButton.x, y = nextWaveButton.y;
 	ctx.beginPath();
@@ -119,7 +118,7 @@ export function drawNextWaveButton({ enabled, showBadge }) {
 	ctx.fill();
 	ctx.globalAlpha = 1;
 
-	// 아직 안내 모달을 안 본 경우 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)
+	// 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)
 	if (showBadge) {
 		const bx = nextWaveButton.x + nextWaveButton.w - 3;
 		const by = nextWaveButton.y + 3;
@@ -137,14 +136,12 @@ export function drawNextWaveButton({ enabled, showBadge }) {
 }
 
 // ============ Toast (그리기) — 상태 관리는 toast.js ============
-export function drawToast() {
-	if (!game.toast) return;
-	const t = game.toast;
-	const alpha = Math.min(1, t.life / 0.3);
+export function drawToast(toast) {
+	const alpha = Math.min(1, toast.life / 0.3);
 
 	ctx.font = 'bold 14px sans-serif';
 	ctx.textAlign = 'center';
-	const textW = ctx.measureText(t.text).width;
+	const textW = ctx.measureText(toast.text).width;
 	const w = textW + 32;
 	const h = 28;
 	const x = (LOGICAL_W - w) / 2;
@@ -158,7 +155,7 @@ export function drawToast() {
 	ctx.globalAlpha = alpha;
 	ctx.fillStyle = '#fff';
 	ctx.textBaseline = 'middle';
-	ctx.fillText(t.text, LOGICAL_W / 2, y + h / 2);
+	ctx.fillText(toast.text, LOGICAL_W / 2, y + h / 2);
 	ctx.textBaseline = 'alphabetic';
 	ctx.globalAlpha = 1;
 }
