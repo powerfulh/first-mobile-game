@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, drawEnemyInfoPanel,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, enemyInfoView,
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
@@ -38,6 +38,7 @@ import {
 	drawSettingsModal,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
+import { drawEnemyInfoPanel } from './ui/game.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
@@ -606,7 +607,7 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower);
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(game.selectedEnemy);
+			drawEnemyInfoPanel(enemyInfoView(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
