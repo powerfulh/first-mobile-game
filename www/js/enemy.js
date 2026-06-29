@@ -143,30 +143,32 @@ export function spawnEnemy(spawner) {
 	const wave = spawner.wave;
 	const map = getActiveMap();
 	const baseHp = computeBaseHpAt(wave);
-	// 적 타입 결정: 나중에 정의된 종부터 배타적으로 확률 굴림.
-	const barrierSpawner = Math.random() < getBarrierSpawnerChance(wave);
-	const regen = barrierSpawner ? false : Math.random() < getRegenChance(wave);
-	const isAirPlain = !barrierSpawner && !regen && Math.random() < getAirChance(wave);
-	const isAir = barrierSpawner || isAirPlain; // 장벽 적은 공중 타입
+	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. GA 타입(type)은 kind에 종속.
+	//  barrierSpawner→공중, regen→지상, plain→공중 확률 굴림.
+	let kind, type;
+	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; type = 'air'; }
+	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; type = 'ground'; }
+	else { kind = 'plain'; type = Math.random() < getAirChance(wave) ? 'air' : 'ground'; }
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	// 장벽 적: 일반 적과 동일 HP/속도 (공중 HP 비율 미적용, 슬로우 미적용)
+	// HP: 장벽 적은 전체 HP(공중 비율 미적용), 그 외 공중(plain-air)만 공중 비율 적용
 	let hp;
-	if (barrierSpawner) hp = baseHp;
-	else if (isAir) hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
+	if (kind === 'barrierSpawner') hp = baseHp;
+	else if (type === 'air') hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
 	else hp = baseHp;
 	const baseSpeed = getEnemyBaseSpeed(wave);
-	const speed = regen ? baseSpeed * 0.5 : baseSpeed;
+	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
 	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
 	let enemyPath = map.path;
-	if (isAir && map.airShortcutPath) {
+	if (type === 'air' && map.airShortcutPath) {
 		if (game.airShortcutNext) enemyPath = map.airShortcutPath;
 		game.airShortcutNext = !game.airShortcutNext;
 	}
 	game.entities.enemies.push({
 		x: enemyPath[0].x,
 		y: enemyPath[0].y,
-		type: isAir ? 'air' : 'ground',
+		type,
+		kind,
 		path: enemyPath,
 		speed,
 		segment: 0,
@@ -176,29 +178,27 @@ export function spawnEnemy(spawner) {
 		bobPhase: Math.random() * Math.PI * 2,
 		shielded,
 		shieldReduction: shielded ? getShieldReduction(wave) : 0,
-		regen,
-		regenRate: regen ? getRegenHealRate(wave) : 0,
-		barrierSpawner,
+		regenRate: kind === 'regen' ? getRegenHealRate(wave) : 0,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
-	const cat = barrierSpawner ? 'barrier' : regen ? 'regen' : isAirPlain ? 'air' : 'ground';
+	const cat = kind === 'barrierSpawner' ? 'barrier' : kind === 'regen' ? 'regen' : type === 'air' ? 'air' : 'ground';
 	game.waveSpawnCounts[cat] = (game.waveSpawnCounts[cat] || 0) + 1;
-	if (isAirPlain && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
+	if (kind === 'plain' && type === 'air' && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
 		game.modal = { type: 'airIntro' };
 	}
 	if (shielded && !game.modal && !hasSeenIntro(SHIELD_INTRO_KEY)) {
 		game.modal = { type: 'shieldIntro' };
 	}
-	if (regen && !game.modal && !hasSeenIntro(REGEN_INTRO_KEY)) {
+	if (kind === 'regen' && !game.modal && !hasSeenIntro(REGEN_INTRO_KEY)) {
 		game.modal = { type: 'regenIntro' };
 	}
-	if (barrierSpawner && !game.modal && !hasSeenIntro(BARRIER_INTRO_KEY)) {
+	if (kind === 'barrierSpawner' && !game.modal && !hasSeenIntro(BARRIER_INTRO_KEY)) {
 		game.modal = { type: 'barrierIntro' };
 	}
 }
 
-// 장벽 객체 — 일반 적과 game.entities.enemies에 함께 들어감 (e.isBarrier=true).
+// 장벽 객체 — 일반 적과 game.entities.enemies에 함께 들어감 (e.kind='barrier').
 // 공중 타입이라 공중 공격 가능 타워의 타깃이 됨.
 export function spawnBarrier(x, y, wave) {
 	const hp = computeBaseHpAt(wave) * 2;
@@ -210,7 +210,7 @@ export function spawnBarrier(x, y, wave) {
 		radius: BARRIER_RADIUS,
 		hpMax: hp,
 		hp: hp,
-		isBarrier: true,
+		kind: 'barrier',
 	});
 }
 
@@ -296,7 +296,7 @@ export function spawnBoss() {
 		hpMax: bossHp,
 		hp: bossHp,
 		bobPhase: Math.random() * Math.PI * 2,
-		isBoss: true,
+		kind: 'boss',
 		angle: Math.PI / 2,
 	});
 	if (!game.modal && !hasSeenIntro(BOSS_INTRO_KEY)) {
@@ -306,11 +306,11 @@ export function spawnBoss() {
 
 // ============ Update ============
 export function updateEnemy(e, dt) {
-	if (e.isBarrier) {
+	if (e.kind === 'barrier') {
 		// 장벽은 그 자리 고정 — 이동/회복 없음
 		return;
 	}
-	if (e.regen && !e.regenDisabled && e.hp < e.hpMax) {
+	if (e.kind === 'regen' && !e.regenDisabled && e.hp < e.hpMax) {
 		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
 	}
 	const path = e.path || getActiveMap().path;
@@ -323,7 +323,7 @@ export function updateEnemy(e, dt) {
 	const dx = target.x - e.x;
 	const dy = target.y - e.y;
 	const dist = Math.hypot(dx, dy);
-	if (e.isBoss && dist > 0) {
+	if (e.kind === 'boss' && dist > 0) {
 		e.angle = Math.atan2(dy, dx);
 	}
 	const move = e.speed * getEnemySpeedFactor(e) * dt;
@@ -379,7 +379,7 @@ export function drawBossHpBar() {
 	if (!game.bossActive) return;
 	let boss = null;
 	for (const e of game.entities.enemies) {
-		if (e.isBoss && !e.dead) { boss = e; break; }
+		if (e.kind === 'boss' && !e.dead) { boss = e; break; }
 	}
 	if (!boss) return;
 
@@ -485,12 +485,13 @@ function drawRegenAura(cx, cy, baseR) {
 // drawEnemy(게임)와 위키·인트로가 공유하는 단일 소스. (cx,cy) 중심·r 반지름.
 // 적 종류 이름 (플래그 우선순위로 유도 — 스폰 분류 순서와 동일).
 function getEnemyName(e) {
-	if (e.isBoss) return t('보스');
-	if (e.isBarrier) return t('장벽');
-	if (e.barrierSpawner) return t('장벽 적');
-	if (e.regen) return t('재생 적');
-	if (e.type === 'air') return t('공중 적');
-	return t('일반 적');
+	switch (e.kind) {
+		case 'boss': return t('보스');
+		case 'barrier': return t('장벽');
+		case 'barrierSpawner': return t('장벽 적');
+		case 'regen': return t('재생 적');
+		default: return e.type === 'air' ? t('공중 적') : t('일반 적'); // plain
+	}
 }
 
 // 적 정보 카드 — 타워 정보 패널과 동일 위치/스타일. 선택된 적의 실시간 스탯 표시.
@@ -502,7 +503,7 @@ export function drawEnemyInfoPanel(e) {
 	ctx.textBaseline = 'alphabetic';
 
 	// 이름 + 스프라이트 아이콘
-	const spriteType = (e.isBarrier || e.barrierSpawner) ? 'barrier' : e.regen ? 'regen' : e.type;
+	const spriteType = (e.kind === 'barrier' || e.kind === 'barrierSpawner') ? 'barrier' : e.kind === 'regen' ? 'regen' : e.type;
 	drawEnemySprite(spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
@@ -555,10 +556,10 @@ export function drawEnemyInfoPanel(e) {
 	if (e.shielded) {
 		ctx.fillText(t('방어력: {n}', { n: e.shieldReduction.toFixed(1) }), sx, rowY());
 	}
-	if (e.regen) {
+	if (e.kind === 'regen') {
 		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(e.regenRate * 100) }), sx, rowY());
 	}
-	if (e.barrierSpawner) {
+	if (e.kind === 'barrierSpawner') {
 		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(e.waveNum) * 2) }), sx, rowY());
 	}
 }
@@ -704,17 +705,17 @@ function drawBarrier(e) {
 }
 
 export function drawEnemy(e) {
-	if (e.isBarrier) {
+	if (e.kind === 'barrier') {
 		drawBarrier(e);
 		return;
 	}
-	if (e.isBoss) {
+	if (e.kind === 'boss') {
 		if (e.type === 'ground') drawGroundBoss(e);
 		else if (e.type === 'air') drawAirBoss(e);
 		if (e.marked) drawMarkRing(e, e.y);
 		return; // 보스 HP는 고정 UI에 표시
 	}
-	if (e.regen) {
+	if (e.kind === 'regen') {
 		drawRegenEnemy(e);
 		if (e.marked) drawMarkRing(e, e.y);
 		return;
@@ -722,7 +723,7 @@ export function drawEnemy(e) {
 	if (e.type === 'air') {
 		const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
 		const cy = e.y + bobY - 3;
-		drawEnemySprite(e.barrierSpawner ? 'barrier' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
+		drawEnemySprite(e.kind === 'barrierSpawner' ? 'barrier' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
 		drawEnemyHpBar(e, cy);
 		if (e.marked) drawMarkRing(e, cy);
 	} else {
@@ -737,7 +738,7 @@ export function drawEnemy(e) {
 // 시작점이 어떤 장벽 안에 있으면 무조건 차단 (안에서는 공격 불가).
 export function isBlockedByBarrier(fromX, fromY, target) {
 	for (const b of game.entities.enemies) {
-		if (!b.isBarrier || b.dead) continue;
+		if (b.kind !== 'barrier' || b.dead) continue;
 		if (b === target) continue;
 		// 시작점이 장벽 안 → 무조건 차단
 		if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) return true;
@@ -755,7 +756,7 @@ export function findBarrierBlockDist(fromX, fromY, angle, maxDist, excludeTarget
 	const uy = Math.sin(angle);
 	let minDist = null;
 	for (const b of game.entities.enemies) {
-		if (!b.isBarrier || b.dead) continue;
+		if (b.kind !== 'barrier' || b.dead) continue;
 		if (b === excludeTarget) continue;
 		if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) {
 			// 시작점이 장벽 안 → 즉시 차단
@@ -787,7 +788,7 @@ export function projectileHitsBarrier(fromX, fromY, toX, toY) {
 	const uy = dy / length;
 	let nearest = null;
 	for (const b of game.entities.enemies) {
-		if (!b.isBarrier || b.dead) continue;
+		if (b.kind !== 'barrier' || b.dead) continue;
 		if (Math.hypot(fromX - b.x, fromY - b.y) < b.radius) {
 			// 시작점이 안 → 거리 0
 			if (!nearest || 0 < nearest.dist) {

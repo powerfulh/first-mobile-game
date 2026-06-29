@@ -310,7 +310,7 @@ export function updateTower(tower, dt) {
 		let bestVal = 0;
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
-			if (e.isBarrier) continue;
+			if (e.kind === 'barrier') continue;
 			if (e.type === 'ground' ? !tower.canGround : !tower.canAir) continue;
 			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d < minRange) continue;
@@ -343,7 +343,7 @@ export function updateTower(tower, dt) {
 					if (!allowed.includes(e.type)) continue;
 					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 					if (d > hitRange) continue;
-					if (!e.isBarrier && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
+					if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
 					applyTowerHit(tower, e, damage);
 				}
 				spawnZap(tower.x, tower.y, range, cfg.color);
