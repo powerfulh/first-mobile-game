@@ -190,7 +190,7 @@ const SETTINGS_DY = {
 let settingsHitLayout = null;
 
 // 버튼 개수로 패널 높이를 정하고 화면 세로 중앙에 배치. 콘텐츠 좌표는 panel.y 기준 상대.
-export function settingsLayout(count) {
+function settingsLayout(count) {
 	const D = SETTINGS_DY;
 	const lastBtnBottomDY = count
 		? D.btnTop + (count - 1) * (SETTINGS_BTN.h + SETTINGS_BTN.gap) + SETTINGS_BTN.h
