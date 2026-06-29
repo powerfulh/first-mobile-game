@@ -29,14 +29,16 @@ import {
 } from './attack.js';
 import { startNextWave, setupWave, callExtraWave, canCallExtraWave, extraWaveBossBlocked } from './wave.js';
 import { t } from './core/i18n.js';
+import { updateHUD } from './hud.js';
+import { setToast, updateToast } from './toast.js';
 import {
-	updateHUD, drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
+	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
-	INTRO_MODALS,
-	setToast, updateToast, drawToast,
-	drawSettingsModal, settingsModalTap,
-	volumePointerMove, volumePointerUp,
+	drawToast,
+	drawSettingsModal,
 } from './ui.js';
+import { INTRO_MODALS } from './ui/intro-modals.js';
+import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
 
@@ -572,7 +574,7 @@ scenes.playing = {
 		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);
 
 		drawBossHpBar();
-		drawWaveSpawnSummary();
+		drawWaveSpawnSummary(game.waveSpawnCounts);
 
 		if (game.holdDelete) {
 			const progress = Math.min(1, game.holdDelete.accumulated / HOLD_DELETE_SECONDS);
@@ -620,8 +622,11 @@ scenes.playing = {
 		}
 
 		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
-			drawNextWaveButton();
-			drawPauseButton();
+			drawNextWaveButton({
+				enabled: canCallExtraWave(),
+				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
+			});
+			drawPauseButton(game.paused);
 		}
 		if (game.paused) drawPausedOverlay();
 
@@ -632,7 +637,7 @@ scenes.playing = {
 
 		if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
-		drawToast();
+		if (game.toast) drawToast(game.toast);
 	},
 	pointerDown(p) {
 		if (game.settingsOpen) {
