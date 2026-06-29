@@ -7,13 +7,13 @@ import {
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
-	findBarrierBlockDist, projectileHitsBarrier, getShieldReduction,
+	findBarrierBlockDist, projectileHitsBarrier,
 } from './enemy.js';
 
 export function applyTowerHit(shooter, target, damage) {
 	if (!target || target.dead) return;
-	const shieldReduction = getShieldReduction(game.wave);
-	const effective = target.shielded ? Math.max(0, damage - shieldReduction) : damage;
+	// 방어막 감소량은 스폰 시 그 적의 웨이브 기준으로 고정(target.shieldReduction).
+	const effective = target.shielded ? Math.max(0, damage - target.shieldReduction) : damage;
 	const hpBefore = target.hp;
 	const dealt = Math.min(effective, hpBefore);
 	const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시
@@ -45,9 +45,9 @@ export function applyTowerHit(shooter, target, damage) {
 		} else if (!game.bossActive) {
 			game.gold += ENEMY_KILL_REWARD;
 		}
-		// 장벽 적 처치 시 그 자리에 장벽 생성 (짧은 애니메이션 후)
+		// 장벽 적 처치 시 그 자리에 장벽 생성 (짧은 애니메이션 후). 장벽 HP는 그 적의 웨이브 기준.
 		if (target.barrierSpawner) {
-			startBarrierSpawn(target.x, target.y);
+			startBarrierSpawn(target.x, target.y, target.waveNum);
 		}
 	}
 }
