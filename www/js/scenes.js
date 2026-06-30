@@ -392,7 +392,7 @@ function drawGhostTower() {
 	ctx.globalAlpha = 1;
 	// 고스트 본체 (반투명) + 유효성 링
 	ctx.globalAlpha = 0.55;
-	drawTowerSprite('novice', g.x, g.y, TOWER.radius);
+	drawTowerSprite('novice', g.x, g.y);
 	ctx.globalAlpha = 1;
 	ctx.strokeStyle = ok ? '#2ecc71' : '#e74c3c';
 	ctx.lineWidth = 2;
