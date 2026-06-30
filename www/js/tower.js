@@ -8,7 +8,8 @@ import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, d
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
-import { isBlockedByBarrier, drawEnemySprite, enemyGA } from './enemy.js';
+import { isBlockedByBarrier, enemyGA } from './enemy.js';
+import { drawEnemySprite } from './ui/sprite.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============

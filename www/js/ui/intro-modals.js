@@ -9,7 +9,7 @@ import {
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from '../core/config.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
-import { drawEnemySprite } from '../enemy.js';
+import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 표준 모달 레이아웃 (대부분 공유, tier4만 별도)

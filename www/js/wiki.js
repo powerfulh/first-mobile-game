@@ -3,7 +3,7 @@ import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED, INFO_BLUE
 import { roundRect, hitButton } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
-import { drawEnemySprite } from './enemy.js';
+import { drawEnemySprite } from './ui/sprite.js';
 import { playButton } from './sfx.js';
 import { t } from './core/i18n.js';
 

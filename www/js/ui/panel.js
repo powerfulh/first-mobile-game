@@ -2,8 +2,9 @@
 import { ctx } from '../core/canvas.js';
 import { INFO_BLUE } from '../core/config.js';
 import { drawPanel } from '../core/helpers.js';
-import { drawEnemySprite, enemyGA } from '../enemy.js';
+import { enemyGA } from '../enemy.js';
 import { towerInfoPanel } from '../tower.js';
+import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });

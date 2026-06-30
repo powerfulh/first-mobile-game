@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, GOLD, INFO_BLUE, SLATE } from './core/config.js';
 import { roundRect, drawButton, drawPanel } from './core/helpers.js';
-import { drawEnemySprite } from './enemy.js';
+import { drawEnemySprite } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
 
