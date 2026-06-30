@@ -18,7 +18,7 @@ export function drawEnemyInfoPanel(e, factor) {
 	ctx.textBaseline = 'alphabetic';
 
 	// 이름 + 스프라이트 아이콘 (스프라이트 종류는 kind에서 유도)
-	const spriteType = e.kind === 'regen' ? 'regen' : e.kind === 'barrierSpawner' ? 'barrier' : enemyGA(e);
+	const spriteType = e.kind === 'regen' ? 'regen' : e.kind === 'barrierSpawner' ? 'barrierSpawner' : enemyGA(e);
 	drawEnemySprite(spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';

@@ -76,7 +76,7 @@ const ENEMY_ENTRIES = [
 		],
 	},
 	{
-		key: 'barrier',
+		key: 'barrierSpawner',
 		name: '장벽 적',
 		tagline: '후반 등장 · 처치 시 장벽 생성',
 		description: [

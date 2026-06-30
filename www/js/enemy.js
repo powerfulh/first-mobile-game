@@ -180,7 +180,7 @@ export function spawnEnemy(spawner) {
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
-	const cat = kind === 'barrierSpawner' ? 'barrier' : kind === 'regen' ? 'regen' : kind === 'air' ? 'air' : 'ground';
+	const cat = kind === 'barrierSpawner' ? 'barrierSpawner' : kind === 'regen' ? 'regen' : kind === 'air' ? 'air' : 'ground';
 	game.waveSpawnCounts[cat] = (game.waveSpawnCounts[cat] || 0) + 1;
 	if (kind === 'air' && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
 		game.modal = { type: 'airIntro' };
@@ -543,7 +543,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
-	} else if (type === 'barrier') {
+	} else if (type === 'barrierSpawner') {
 		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();
 		ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
@@ -667,7 +667,7 @@ export function drawEnemy(e) {
 	if (AIR_KINDS.has(e.kind)) {
 		const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
 		const cy = e.y + bobY - 3;
-		drawEnemySprite(e.kind === 'barrierSpawner' ? 'barrier' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
+		drawEnemySprite(e.kind === 'barrierSpawner' ? 'barrierSpawner' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
 		drawEnemyHpBar(e, cy);
 		if (e.marked) drawMarkRing(e, cy);
 	} else {

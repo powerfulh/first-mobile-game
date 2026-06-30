@@ -216,7 +216,7 @@ export const INTRO_MODALS = {
 
 	barrierIntro: makeIntro({
 		key: BARRIER_INTRO_KEY, accent: '#aab7c4',
-		drawIcon: (cx, cy) => drawEnemySprite('barrier', cx, cy, 14),
+		drawIcon: (cx, cy) => drawEnemySprite('barrierSpawner', cx, cy, 14),
 		title: '장벽 적 등장!',
 		lines: ['장벽 적이 등장합니다.', '처치한 자리에 장벽이 생성되어', '공중 공격을 차단합니다.'],
 	}),
