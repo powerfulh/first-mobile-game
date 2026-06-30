@@ -21,7 +21,7 @@ import {
 	infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor,
-	getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
+	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
@@ -749,19 +749,7 @@ scenes.playing = {
 				return;
 			}
 			if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
-				const state = getPromotionButtonState(game.selectedTower);
-				if (!state.active || !state.action) return;
-				playButton();
-				if (state.action === 'openTier3Choice') {
-					game.towerPanel = TOWER_PANEL.PROMOTION;
-				} else if (state.action === 'setTarget') {
-					game.promotionTarget = game.selectedTower;
-					game.selectedTower = null;
-				} else if (state.action === 'cancelTarget') {
-					game.promotionTarget = null;
-				} else if (state.action === 'openTier4Choice') {
-					game.towerPanel = TOWER_PANEL.PROMOTION;
-				}
+				if (handlePromotionButton(game.selectedTower)) playButton();
 				return;
 			}
 		}

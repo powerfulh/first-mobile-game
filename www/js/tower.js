@@ -2,6 +2,7 @@ import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
+	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
@@ -854,7 +855,7 @@ export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
 // 정보 카드 전직 버튼의 현재 상태 (라벨 + 활성/액션 종류)
 // action: 'cancelTarget' | 'fuseTier4' | 'setTarget' | 'openTier3Choice' | null
-export function getPromotionButtonState(tower) {
+function getPromotionButtonState(tower) {
 	const ready = isPromotionReady(tower);
 	const cost = promotionCostFor(tower);
 	const xpMax = xpMaxFor(tower);
@@ -887,6 +888,22 @@ export function getPromotionButtonState(tower) {
 	else if (!afford) label = t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
 	else label = t('전직 ({cost}G)', { cost: cost.toLocaleString() });
 	return { active, action: active ? 'openTier3Choice' : null, label };
+}
+
+// 전직 버튼 탭 처리 — 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
+// 소비 시 true (호출부에서 사운드). 버튼 존재·hit 판정은 호출부(scenes)가 담당.
+export function handlePromotionButton(tower) {
+	const { active, action } = getPromotionButtonState(tower);
+	if (!active || !action) return false;
+	if (action === 'openTier3Choice' || action === 'openTier4Choice') {
+		game.towerPanel = TOWER_PANEL.PROMOTION;
+	} else if (action === 'setTarget') {
+		game.promotionTarget = tower;
+		game.selectedTower = null;
+	} else if (action === 'cancelTarget') {
+		game.promotionTarget = null;
+	}
+	return true;
 }
 
 function drawPromotionButton(tower) {
