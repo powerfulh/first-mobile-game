@@ -151,10 +151,8 @@ export function spawnEnemy(spawner) {
 	else { kind = 'plain'; type = Math.random() < getAirChance(wave) ? 'air' : 'ground'; }
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	// HP: 장벽 적은 전체 HP(공중 비율 미적용), 그 외 공중(plain-air)만 공중 비율 적용
 	let hp;
-	if (kind === 'barrierSpawner') hp = baseHp;
-	else if (type === 'air') hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
+	if (type === 'air') hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
 	else hp = baseHp;
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
@@ -180,7 +178,7 @@ export function spawnEnemy(spawner) {
 		shielded,
 		shieldReduction: shielded ? getShieldReduction(wave) : 0,
 		regenRate: kind === 'regen' ? getRegenHealRate(wave) : 0,
-		barrierHp: kind === 'barrierSpawner' ? computeBaseHpAt(wave) * 2 : 0,
+		barrierHp: kind === 'barrierSpawner' ? hp * 2 : 0,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
