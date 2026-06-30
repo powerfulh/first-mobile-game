@@ -169,6 +169,7 @@ export function spawnEnemy(spawner) {
 		y: enemyPath[0].y,
 		type,
 		kind,
+		name: enemyName(kind, type),
 		path: enemyPath,
 		speed,
 		segment: 0,
@@ -179,6 +180,7 @@ export function spawnEnemy(spawner) {
 		shielded,
 		shieldReduction: shielded ? getShieldReduction(wave) : 0,
 		regenRate: kind === 'regen' ? getRegenHealRate(wave) : 0,
+		barrierHp: kind === 'barrierSpawner' ? computeBaseHpAt(wave) * 2 : 0,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
@@ -211,6 +213,7 @@ export function spawnBarrier(x, y, wave) {
 		hpMax: hp,
 		hp: hp,
 		kind: 'barrier',
+		name: enemyName('barrier', 'air'),
 	});
 }
 
@@ -297,6 +300,7 @@ export function spawnBoss() {
 		hp: bossHp,
 		bobPhase: Math.random() * Math.PI * 2,
 		kind: 'boss',
+		name: enemyName('boss', type),
 		angle: Math.PI / 2,
 	});
 	if (!game.modal && !hasSeenIntro(BOSS_INTRO_KEY)) {
@@ -483,35 +487,15 @@ function drawRegenAura(cx, cy, baseR) {
 
 // 적 외형(본체 모양)만 그림 — HP바·마크링·재생 오라 등 게임 오버레이는 제외.
 // drawEnemy(게임)와 위키·인트로가 공유하는 단일 소스. (cx,cy) 중심·r 반지름.
-// 적 종류 이름 (플래그 우선순위로 유도 — 스폰 분류 순서와 동일).
-function getEnemyName(e) {
-	switch (e.kind) {
+// 적 종류 이름 — kind/type(스폰 시 고정)에서 유도. 스폰 시 e.name으로 박아 둠.
+function enemyName(kind, type) {
+	switch (kind) {
 		case 'boss': return t('보스');
 		case 'barrier': return t('장벽');
 		case 'barrierSpawner': return t('장벽 적');
 		case 'regen': return t('재생 적');
-		default: return e.type === 'air' ? t('공중 적') : t('일반 적'); // plain
+		default: return type === 'air' ? t('공중 적') : t('일반 적'); // plain
 	}
-}
-
-// 적 정보 뷰모델 — 선택된 적의 표시 데이터를 계산 (그리기는 ui/game.js drawEnemyInfoPanel).
-// 이동 속도(getEnemySpeedFactor)·HP는 라이브, 이름/방어막/재생/장벽은 스폰 시 고정값.
-export function enemyInfoView(e) {
-	const factor = getEnemySpeedFactor(e);
-	const view = {
-		name: getEnemyName(e),
-		spriteType: (e.kind === 'barrier' || e.kind === 'barrierSpawner') ? 'barrier' : e.kind === 'regen' ? 'regen' : e.type,
-		isAir: e.type === 'air',
-		hp: e.hp,
-		hpMax: e.hpMax,
-		shielded: e.shielded,
-		effSpeed: Math.round(e.speed * factor),
-		slowPct: factor < 1 ? Math.round((1 - factor) * 100) : 0,
-	};
-	if (e.shielded) view.shieldReduction = e.shieldReduction;
-	if (e.kind === 'regen') view.regenPct = Math.round(e.regenRate * 100);
-	if (e.kind === 'barrierSpawner') view.barrierHp = computeBaseHpAt(e.waveNum) * 2;
-	return view;
 }
 
 export function drawEnemySprite(type, cx, cy, r, opts = {}) {

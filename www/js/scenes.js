@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, enemyInfoView,
+	updateBarrierSpawnFx, drawBarrierSpawnFx,
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
@@ -20,7 +20,7 @@ import {
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	towerInfoPanel, infoSettingsButton, infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
-	grantWaveEndXp,
+	grantWaveEndXp, getEnemySpeedFactor,
 	getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
@@ -607,7 +607,7 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower);
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(enemyInfoView(game.selectedEnemy));
+			drawEnemyInfoPanel(game.selectedEnemy, getEnemySpeedFactor(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
