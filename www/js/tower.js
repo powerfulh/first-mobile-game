@@ -59,7 +59,7 @@ export function hasReadyTier4Candidate() {
 }
 
 // ============ Buff / range helpers ============
-// 버프 적용 사거리 계산 (비공개) — base는 인스턴스가 아니라 config(role)에서. 결과는 recomputeRanges가 tower.range에 캐시.
+// 버프 적용 사거리 계산 (비공개) — base는 인스턴스가 아니라 config(role)에서. 결과는 recomputeStats가 tower.range에 캐시.
 function getEffectiveRange(tower, visited) {
 	const base = TOWER_ROLES[tower.role].range;
 	visited = visited || new Set();
@@ -84,26 +84,28 @@ function getEffectiveRange(tower, visited) {
 	}
 }
 
-// 버프 적용 사거리를 모든 타워의 tower.range에 캐시. 타워 집합·tier·role이 바뀔 때만 호출.
-export function recomputeRanges() {
-	for (const tower of game.entities.towers) {
-		tower.range = getEffectiveRange(tower);
-	}
+// 버프 적용 사거리·데미지를 모든 타워에 캐시. 타워 집합·tier·role이 바뀔 때만 호출.
+// 데미지 계산이 사거리 캐시(other.range)를 읽으므로 반드시 사거리 루프 이후에.
+export function recomputeStats() {
+	for (const tower of game.entities.towers) tower.range = getEffectiveRange(tower);
+	for (const tower of game.entities.towers) tower.damage = getEffectiveDamage(tower);
 }
 
-export function getEffectiveDamage(tower) {
+// 버프 적용 데미지 계산 (비공개) — base는 config(role)에서. 결과는 recomputeStats가 tower.damage에 캐시.
+function getEffectiveDamage(tower) {
+	const base = TOWER_ROLES[tower.role].damage;
 	const buffRate = TOWER.buffRates[tower.tier];
-	if (buffRate === undefined) return tower.damage;
+	if (buffRate === undefined) return base;
 	for (const other of game.entities.towers) {
 		if (other === tower) continue;
 		const otherCfg = TOWER_ROLES[other.role];
 		if (!otherCfg.buffsDamage) continue;
 		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 		if (d <= other.range) {
-			return tower.damage * (1 + buffRate);
+			return base * (1 + buffRate);
 		}
 	}
-	return tower.damage;
+	return base;
 }
 
 export function getXpGainAtWaveEnd(tower) {
@@ -196,13 +198,10 @@ export function canPlaceTower(x, y) {
 
 export function placeTower(x, y) {
 	if (!canPlaceTower(x, y)) return false;
-	const cfg = TOWER_ROLES.novice;
 	const tw = {
 		x, y,
 		role: 'novice',
 		tier: 0,
-		fireRate: cfg.fireRate,
-		damage: cfg.damage,
 		cooldown: 0,
 		angle: 0,
 		xp: 0,
@@ -212,7 +211,7 @@ export function placeTower(x, y) {
 	applyTowerPriorityDefaults(tw);
 	applyTierStats(tw);
 	game.entities.towers.push(tw);
-	recomputeRanges();
+	recomputeStats();
 	if (!game.sandbox) game.gold -= TOWER.cost;
 	return true;
 }
@@ -228,13 +227,11 @@ export function promoteTower(tower, role) {
 	const prevRole = tower.role;
 	tower.role = role;
 	tower.tier += 1;
-	tower.fireRate = cfg.fireRate;
-	tower.damage = cfg.damage;
 	tower.cooldown = 0;
 	tower.xp = 0;
 	applyTowerPriorityOnPromote(tower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 	applyTierStats(tower); // 새 tier 기준 목표 XP·전직 비용 재계산
-	recomputeRanges();
+	recomputeStats();
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
@@ -266,13 +263,11 @@ export function promoteToTier4(secondTower) {
 	const prevRole = secondTower.role;
 	secondTower.role = resultRole;
 	secondTower.tier = 4;
-	secondTower.fireRate = cfg.fireRate;
-	secondTower.damage = cfg.damage;
 	secondTower.cooldown = 0;
 	secondTower.xp = 0;
 	applyTowerPriorityOnPromote(secondTower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 	applyTierStats(secondTower); // tier 4 기준 (목표 XP·전직 비용 0)
-	recomputeRanges();
+	recomputeStats();
 	return true;
 }
 
@@ -337,7 +332,7 @@ export function updateTower(tower, dt) {
 	if (target) {
 		tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
 		if (tower.cooldown <= 0) {
-			const damage = getEffectiveDamage(tower);
+			const damage = tower.damage;
 			if (cfg.areaSweep) {
 				// 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer)
 				// areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
@@ -431,7 +426,7 @@ export function updateTower(tower, dt) {
 					attackTypes: allowed,
 				});
 			}
-			tower.cooldown = 1 / tower.fireRate;
+			tower.cooldown = 1 / cfg.fireRate;
 		}
 	}
 }
@@ -571,7 +566,7 @@ function drawGatlingBody(tower, cfg, selected) {
 	ctx.rotate(tower.angle);
 
 	// 발사 직후 짧은 반동 (cooldown 마지막 30%)
-	const interval = 1 / tower.fireRate;
+	const interval = 1 / cfg.fireRate;
 	const recoiling = tower.cooldown > interval * 0.7;
 	const recoilOffset = recoiling ? -1.5 : 0;
 
@@ -667,7 +662,7 @@ function drawSiloBody(tower, cfg, selected) {
 	ctx.fill();
 
 	// 미사일 (angle 방향, 발사 직후 잠시 숨김)
-	const ready = tower.cooldown < (1 / tower.fireRate) * 0.7;
+	const ready = tower.cooldown < (1 / cfg.fireRate) * 0.7;
 	if (ready) {
 		ctx.save();
 		ctx.translate(tower.x, tower.y);
@@ -766,7 +761,6 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
 		tier: isTier4 ? 4 : 1,
 		angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
 		cooldown: 0,
-		fireRate: cfg.fireRate || 1,
 	};
 	// 본체는 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
 	const scale = (opts.radius || TOWER.radius) / TOWER.radius;
@@ -919,15 +913,16 @@ export function drawTowerInfoPanel(tower) {
 	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('없음');
 
 	if (hasAttack) {
-		const effDmg = getEffectiveDamage(tower);
-		const dmgBuffPct = effDmg > tower.damage ? Math.round((effDmg / tower.damage - 1) * 100) : 0;
-		const dpsValue = Math.round(effDmg * tower.fireRate * 10) / 10;
+		const effDmg = tower.damage;
+		const baseDmg = cfg.damage;
+		const dmgBuffPct = effDmg > baseDmg ? Math.round((effDmg / baseDmg - 1) * 100) : 0;
+		const dpsValue = Math.round(effDmg * cfg.fireRate * 10) / 10;
 		const dmgValue = Math.round(effDmg * 10) / 10;
 		const dmgStr = dmgBuffPct > 0
 			? t('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
-			: t('데미지: {dmg} ({dps}/초)', { dmg: tower.damage, dps: dpsValue });
+			: t('데미지: {dmg} ({dps}/초)', { dmg: baseDmg, dps: dpsValue });
 		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(t('발사속도: {rate}/초', { rate: tower.fireRate.toFixed(1) }), sx, sy + 18);
+		ctx.fillText(t('발사속도: {rate}/초', { rate: cfg.fireRate.toFixed(1) }), sx, sy + 18);
 	} else {
 		ctx.fillText(t('데미지: —'), sx, sy);
 		ctx.fillText(t('발사속도: —'), sx, sy + 18);

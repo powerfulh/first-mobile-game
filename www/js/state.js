@@ -7,7 +7,7 @@ import {
 import { getActiveMap, setActiveMap, MAPS } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
-import { applyTowerPriorityDefaults, applyTierStats, recomputeRanges } from './tower.js';
+import { applyTowerPriorityDefaults, applyTierStats, recomputeStats } from './tower.js';
 
 export const game = {
 	...INITIAL, // hp (전역)
@@ -194,10 +194,8 @@ export function loadGame(data) {
 	game.entities.towers = (data.towers || [])
 		.filter(td => TOWER_ROLES[td.role])
 		.map(td => {
-			const cfg = TOWER_ROLES[td.role];
 			const tw = {
 				x: td.x, y: td.y, role: td.role, tier: td.tier,
-				fireRate: cfg.fireRate, damage: cfg.damage,
 				cooldown: 0, angle: 0, xp: td.xp || 0,
 				totalDamage: td.totalDamage || 0,
 				waveDamage: 0,
@@ -211,7 +209,7 @@ export function loadGame(data) {
 			return tw;
 		});
 
-	recomputeRanges(); // 로드된 타워들의 버프 적용 사거리 캐시
+	recomputeStats(); // 로드된 타워 버프 적용 사거리·데미지 캐시
 	if (isBossWave(game.wave)) {
 		game.bossActive = true;
 		spawnBoss();
