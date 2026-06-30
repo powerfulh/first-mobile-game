@@ -10,6 +10,7 @@ import {
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawEnemySprite } from './ui/sprite.js';
+import { infoSettingsButton, drawGearButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -850,7 +851,6 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 
 // ============ Tower info panel / Promotion panel ============
 export const towerInfoPanel = { x: 16, y: 496, w: 328, h: 144 };
-export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
@@ -1006,37 +1006,6 @@ export function drawTowerInfoPanel(tower) {
 	}
 
 	drawGearButton(infoSettingsButton);
-}
-
-// 정보 카드 우상단 기어 버튼 (닫기 X를 대체) — 터치 시 타워 설정 카드 진입.
-function drawGearButton(btn) {
-	const cx = btn.x + btn.w / 2;
-	const cy = btn.y + btn.h / 2;
-	ctx.fillStyle = SLATE;
-	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
-	ctx.fill();
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-	ctx.lineWidth = 1;
-	ctx.stroke();
-	// 기어 아이콘 (이빨 + 링 + 중심)
-	ctx.strokeStyle = '#fff';
-	ctx.fillStyle = '#fff';
-	const r = 5;
-	ctx.lineWidth = 2;
-	ctx.beginPath();
-	for (let i = 0; i < 8; i++) {
-		const a = (Math.PI * 2 * i) / 8;
-		ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-		ctx.lineTo(cx + Math.cos(a) * (r + 2.5), cy + Math.sin(a) * (r + 2.5));
-	}
-	ctx.stroke();
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
-	ctx.fill();
 }
 
 // ---- 설정 카드 우선순위 컨트롤 ----

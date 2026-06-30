@@ -1,10 +1,13 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
-import { INFO_BLUE } from '../core/config.js';
-import { drawPanel } from '../core/helpers.js';
+import { INFO_BLUE, SLATE } from '../core/config.js';
+import { drawPanel, roundRect } from '../core/helpers.js';
 import { towerInfoPanel } from '../tower.js';
 import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
+
+// 타워 정보 카드 우상단 기어 버튼 — 터치 시 설정 카드 진입 (hit-test는 scenes).
+export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
 
@@ -74,4 +77,35 @@ export function drawEnemyInfoPanel(e, factor) {
 	if (e.kind === 'barrierSpawner') {
 		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(e.barrierHp) }), sx, rowY());
 	}
+}
+
+// 정보 카드 우상단 기어 버튼 (닫기 X를 대체) — 터치 시 타워 설정 카드 진입.
+export function drawGearButton(btn) {
+	const cx = btn.x + btn.w / 2;
+	const cy = btn.y + btn.h / 2;
+	ctx.fillStyle = SLATE;
+	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	// 기어 아이콘 (이빨 + 링 + 중심)
+	ctx.strokeStyle = '#fff';
+	ctx.fillStyle = '#fff';
+	const r = 5;
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	for (let i = 0; i < 8; i++) {
+		const a = (Math.PI * 2 * i) / 8;
+		ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+		ctx.lineTo(cx + Math.cos(a) * (r + 2.5), cy + Math.sin(a) * (r + 2.5));
+	}
+	ctx.stroke();
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+	ctx.fill();
 }
