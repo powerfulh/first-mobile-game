@@ -59,13 +59,15 @@ export function hasReadyTier4Candidate() {
 }
 
 // ============ Buff / range helpers ============
-export function getEffectiveRange(tower, visited) {
+// 버프 적용 사거리 계산 (비공개) — base는 인스턴스가 아니라 config(role)에서. 결과는 recomputeRanges가 tower.range에 캐시.
+function getEffectiveRange(tower, visited) {
+	const base = TOWER_ROLES[tower.role].range;
 	visited = visited || new Set();
-	if (visited.has(tower)) return tower.range;
+	if (visited.has(tower)) return base;
 	visited.add(tower);
 	try {
 		const buffRate = TOWER.buffRates[tower.tier];
-		if (buffRate === undefined) return tower.range;
+		if (buffRate === undefined) return base;
 		for (const other of game.entities.towers) {
 			if (other === tower) continue;
 			const otherCfg = TOWER_ROLES[other.role];
@@ -73,12 +75,19 @@ export function getEffectiveRange(tower, visited) {
 			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 			const otherRange = getEffectiveRange(other, visited);
 			if (d <= otherRange) {
-				return tower.range * (1 + buffRate);
+				return base * (1 + buffRate);
 			}
 		}
-		return tower.range;
+		return base;
 	} finally {
 		visited.delete(tower);
+	}
+}
+
+// 버프 적용 사거리를 모든 타워의 tower.range에 캐시. 타워 집합·tier·role이 바뀔 때만 호출.
+export function recomputeRanges() {
+	for (const tower of game.entities.towers) {
+		tower.range = getEffectiveRange(tower);
 	}
 }
 
@@ -90,7 +99,7 @@ export function getEffectiveDamage(tower) {
 		const otherCfg = TOWER_ROLES[other.role];
 		if (!otherCfg.buffsDamage) continue;
 		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
-		if (d <= getEffectiveRange(other)) {
+		if (d <= other.range) {
 			return tower.damage * (1 + buffRate);
 		}
 	}
@@ -103,7 +112,7 @@ export function getXpGainAtWaveEnd(tower) {
 		const otherCfg = TOWER_ROLES[other.role];
 		if (!otherCfg.boostsXp) continue;
 		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
-		if (d <= getEffectiveRange(other)) {
+		if (d <= other.range) {
 			return WAVE_END_XP_MULTIPLIER;
 		}
 	}
@@ -125,7 +134,7 @@ export function getEnemySpeedFactor(e) {
 	for (const tower of game.entities.towers) {
 		const cfg = TOWER_ROLES[tower.role];
 		if (!cfg.slowsEnemies) continue;
-		const range = getEffectiveRange(tower);
+		const range = tower.range;
 		const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 		if (d <= range) {
 			const slow = cfg.slowFactor !== undefined ? cfg.slowFactor : 0.5;
@@ -192,7 +201,6 @@ export function placeTower(x, y) {
 		x, y,
 		role: 'novice',
 		tier: 0,
-		range: cfg.range,
 		fireRate: cfg.fireRate,
 		damage: cfg.damage,
 		cooldown: 0,
@@ -204,6 +212,7 @@ export function placeTower(x, y) {
 	applyTowerPriorityDefaults(tw);
 	applyTierStats(tw);
 	game.entities.towers.push(tw);
+	recomputeRanges();
 	if (!game.sandbox) game.gold -= TOWER.cost;
 	return true;
 }
@@ -219,13 +228,13 @@ export function promoteTower(tower, role) {
 	const prevRole = tower.role;
 	tower.role = role;
 	tower.tier += 1;
-	tower.range = cfg.range;
 	tower.fireRate = cfg.fireRate;
 	tower.damage = cfg.damage;
 	tower.cooldown = 0;
 	tower.xp = 0;
 	applyTowerPriorityOnPromote(tower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 	applyTierStats(tower); // 새 tier 기준 목표 XP·전직 비용 재계산
+	recomputeRanges();
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
@@ -257,13 +266,13 @@ export function promoteToTier4(secondTower) {
 	const prevRole = secondTower.role;
 	secondTower.role = resultRole;
 	secondTower.tier = 4;
-	secondTower.range = cfg.range;
 	secondTower.fireRate = cfg.fireRate;
 	secondTower.damage = cfg.damage;
 	secondTower.cooldown = 0;
 	secondTower.xp = 0;
 	applyTowerPriorityOnPromote(secondTower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
 	applyTierStats(secondTower); // tier 4 기준 (목표 XP·전직 비용 0)
+	recomputeRanges();
 	return true;
 }
 
@@ -273,7 +282,7 @@ export function updateTower(tower, dt) {
 
 	const cfg = TOWER_ROLES[tower.role];
 	const allowed = allowedTypesOf(tower);
-	const range = getEffectiveRange(tower);
+	const range = tower.range;
 
 	// 영향권 진입 시 XP 부여 (데몬류 비공격 타워의 수급 수단)
 	if (cfg.gainsXpOnEnemyEnter) {
@@ -801,7 +810,7 @@ export function drawTower(tower) {
 
 export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	const cfg = TOWER_ROLES[tower.role];
-	const range = getEffectiveRange(tower);
+	const range = tower.range;
 	const minRange = cfg.minRange || 0;
 
 	ctx.globalAlpha = fillAlpha;
@@ -924,11 +933,12 @@ export function drawTowerInfoPanel(tower) {
 		ctx.fillText(t('발사속도: —'), sx, sy + 18);
 	}
 
-	const effRange = getEffectiveRange(tower);
-	const buffPct = effRange > tower.range ? Math.round((effRange / tower.range - 1) * 100) : 0;
+	const effRange = tower.range;
+	const baseRange = TOWER_ROLES[tower.role].range;
+	const buffPct = effRange > baseRange ? Math.round((effRange / baseRange - 1) * 100) : 0;
 	const rangeStr = buffPct > 0
 		? t('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
-		: t('사거리: {range}', { range: tower.range });
+		: t('사거리: {range}', { range: baseRange });
 	ctx.fillText(rangeStr, sx + 160, sy);
 	ctx.fillText(t('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
 	const wave = Math.round((tower.waveDamage || 0) * 10) / 10;

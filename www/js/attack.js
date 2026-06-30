@@ -3,7 +3,7 @@ import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED, GOLD,
 import { game } from './state.js';
 import { pointToSegmentDist } from './core/helpers.js';
 import {
-	canPromote, getEffectiveRange, allowedTypesOf,
+	canPromote, allowedTypesOf,
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
@@ -105,7 +105,7 @@ export function fireInstantBeam(tower, target, damage) {
 
 export function fireLineBeam(tower, target, damage) {
 	const cfg = TOWER_ROLES[tower.role];
-	const range = getEffectiveRange(tower);
+	const range = tower.range;
 	const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
 	// 사거리 외 마킹 적도 타깃이 될 수 있으니 빔은 target 위치까지 확장
 	const targetDist = Math.hypot(target.x - tower.x, target.y - tower.y);

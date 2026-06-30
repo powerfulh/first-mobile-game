@@ -19,7 +19,7 @@ import {
 	promoteTower, updateTower, drawTower, drawTowerRange,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
-	grantWaveEndXp, getEnemySpeedFactor,
+	grantWaveEndXp, getEnemySpeedFactor, recomputeRanges,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
@@ -436,6 +436,7 @@ scenes.playing = {
 			if (game.holdDelete.accumulated >= HOLD_DELETE_SECONDS) {
 				const dead = game.holdDelete.tower;
 				game.entities.towers = game.entities.towers.filter(x => x !== dead);
+				recomputeRanges();
 				if (game.selectedTower === dead) {
 					game.selectedTower = null;
 					game.towerPanel = TOWER_PANEL.INFO;
