@@ -18,7 +18,7 @@ import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
 	promoteTower, updateTower, drawTower, drawTowerRange,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
-	towerInfoPanel, infoPromotionButton,
+	infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor,
 	getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
@@ -38,7 +38,7 @@ import {
 	drawSettingsModal,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
-import { drawEnemyInfoPanel, infoSettingsButton } from './ui/panel.js';
+import { drawEnemyInfoPanel, infoSettingsButton, infoPanel } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
@@ -700,7 +700,7 @@ scenes.playing = {
 				playButton();
 				return;
 			}
-			if (hitButton(towerInfoPanel, p)) return; // 카드 내부 빈 영역 탭 소비
+			if (hitButton(infoPanel, p)) return; // 카드 내부 빈 영역 탭 소비
 			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 전체 닫기
 			return;
 		}
@@ -770,7 +770,7 @@ scenes.playing = {
 		if (selectTowerAt(p)) return;
 
 		// 정보 카드(타워/적 공용 위치) 내부 탭 → 소비 (그 아래 지나가는 적이 선택되지 않도록 적 검사보다 먼저)
-		if ((game.selectedTower || game.selectedEnemy) && hitButton(towerInfoPanel, p)) {
+		if ((game.selectedTower || game.selectedEnemy) && hitButton(infoPanel, p)) {
 			return;
 		}
 

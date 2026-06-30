@@ -2,11 +2,12 @@
 import { ctx } from '../core/canvas.js';
 import { INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect } from '../core/helpers.js';
-import { towerInfoPanel } from '../tower.js';
 import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
-// 타워 정보 카드 우상단 기어 버튼 — 터치 시 설정 카드 진입 (hit-test는 scenes).
+// 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
+export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
+// 정보 카드 우상단 기어 버튼 — 터치 시 설정 카드 진입 (hit-test는 scenes).
 export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
@@ -14,7 +15,7 @@ const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionD
 // 적 정보 카드 — 타워 정보 패널과 동일 위치/스타일. 선택된 적(e)을 참조로 직접 읽어 라이브 표시.
 // factor(둔화 계수)만 라이브 계산값이라 호출처(scenes)가 getEnemySpeedFactor로 구해 전달.
 export function drawEnemyInfoPanel(e, factor) {
-	const p = towerInfoPanel;
+	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: '#e74c3c', alpha: 0.9 });
 
 	ctx.textAlign = 'left';

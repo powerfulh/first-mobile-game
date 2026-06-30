@@ -10,7 +10,7 @@ import {
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawEnemySprite } from './ui/sprite.js';
-import { infoSettingsButton, drawGearButton } from './ui/panel.js';
+import { infoPanel, infoSettingsButton, drawGearButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -850,7 +850,6 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 }
 
 // ============ Tower info panel / Promotion panel ============
-export const towerInfoPanel = { x: 16, y: 496, w: 328, h: 144 };
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
@@ -925,18 +924,18 @@ function drawPromotionButton(tower) {
 
 export function drawTowerInfoPanel(tower) {
 	const cfg = TOWER_ROLES[tower.role];
-	drawPanel(towerInfoPanel.x, towerInfoPanel.y, towerInfoPanel.w, towerInfoPanel.h, { stroke: cfg.color, alpha: 0.9 });
+	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	const nameWidth = ctx.measureText(cfg.name).width;
-	ctx.fillText(cfg.name, towerInfoPanel.x + 14, towerInfoPanel.y + 22);
+	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
 
 	ctx.font = 'bold 11px sans-serif';
-	const tierX = towerInfoPanel.x + 14 + nameWidth + 8;
-	const tierY = towerInfoPanel.y + 22;
+	const tierX = infoPanel.x + 14 + nameWidth + 8;
+	const tierY = infoPanel.y + 22;
 	const tierStr = `Tier ${tower.tier}`;
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
 	ctx.lineWidth = 2.5;
@@ -948,8 +947,8 @@ export function drawTowerInfoPanel(tower) {
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
-	const sx = towerInfoPanel.x + 14;
-	const sy = towerInfoPanel.y + 50;
+	const sx = infoPanel.x + 14;
+	const sy = infoPanel.y + 50;
 	const total = Math.round((tower.totalDamage || 0) * 10) / 10;
 	const atkLabels = { ground: t('지상'), air: t('공중') };
 	const hasAttack = (cfg.attackTypes || []).length > 0;
@@ -1031,7 +1030,7 @@ function towerDualCapable(cfg) {
 // 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 공격 우선순위 설정.
 export function drawTowerSettingsCard(tower) {
 	const cfg = TOWER_ROLES[tower.role];
-	const p = towerInfoPanel;
+	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
