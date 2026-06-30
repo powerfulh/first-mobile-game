@@ -9,6 +9,8 @@ import { t } from '../core/i18n.js';
 export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
 // 정보 카드 우상단 기어 버튼 — 터치 시 설정 카드 진입 (hit-test는 scenes).
 export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
+// 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
+export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
 
@@ -109,4 +111,39 @@ export function drawGearButton(btn) {
 	ctx.beginPath();
 	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
 	ctx.fill();
+}
+
+// 전직 버튼 — state(tower.getPromotionState)로 라벨·활성 도출, 구운 tower 필드 사용.
+export function drawPromotionButton(tower, state) {
+	const active = state !== 'notReady' && state !== 'noGold';
+	const cost = tower.promotionCost.toLocaleString();
+	let label;
+	switch (state) {
+		case 'notReady': label = t('전직 (XP {xp} / {max})', { xp: tower.xp, max: tower.xpMax }); break;
+		case 'noGold': label = t('전직 ({cost}G · 골드 부족)', { cost }); break;
+		case 'setTarget': label = t('4티어 대상 지정'); break;
+		case 'cancelTarget': label = t('대상 취소'); break;
+		default: label = t('전직 ({cost}G)', { cost }); break; // openChoice
+	}
+
+	ctx.globalAlpha = active ? 1 : 0.55;
+	if (active) {
+		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
+		ctx.fillStyle = `rgba(241, 196, 15, ${0.85 + 0.15 * pulse})`;
+	} else {
+		ctx.fillStyle = '#3a3f48';
+	}
+	roundRect(infoPromotionButton.x, infoPromotionButton.y, infoPromotionButton.w, infoPromotionButton.h, 8);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+	ctx.strokeStyle = active ? '#fff' : '#555';
+	ctx.lineWidth = active ? 2 : 1;
+	ctx.stroke();
+
+	ctx.fillStyle = active ? '#1a1300' : '#888';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText(label, infoPromotionButton.x + infoPromotionButton.w / 2, infoPromotionButton.y + infoPromotionButton.h / 2);
+	ctx.textBaseline = 'alphabetic';
 }

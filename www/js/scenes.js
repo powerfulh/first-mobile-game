@@ -18,7 +18,6 @@ import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
 	promoteTower, updateTower, drawTower, drawTowerRange,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
-	infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
@@ -38,7 +37,7 @@ import {
 	drawSettingsModal,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
-import { drawEnemyInfoPanel, infoSettingsButton, infoPanel } from './ui/panel.js';
+import { drawEnemyInfoPanel, infoSettingsButton, infoPanel, infoPromotionButton } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';

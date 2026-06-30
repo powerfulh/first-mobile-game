@@ -11,7 +11,7 @@ import {
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawEnemySprite } from './ui/sprite.js';
-import { infoPanel, infoSettingsButton, drawGearButton } from './ui/panel.js';
+import { infoPanel, infoSettingsButton, drawGearButton, drawPromotionButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -844,7 +844,6 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 }
 
 // ============ Tower info panel / Promotion panel ============
-export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
 export const promotionCardSlots = [
@@ -888,45 +887,6 @@ export function handlePromotionButton(tower) {
 		default:
 			return false; // notReady, noGold
 	}
-}
-
-// 전직 상태 → 버튼 라벨 (cost/xp 동적값 포함). 드로잉 전용.
-function promotionLabel(state, tower) {
-	const cost = tower.promotionCost.toLocaleString();
-	switch (state) {
-		case 'notReady': return t('전직 (XP {xp} / {max})', { xp: tower.xp, max: tower.xpMax });
-		case 'noGold': return t('전직 ({cost}G · 골드 부족)', { cost });
-		case 'setTarget': return t('4티어 대상 지정');
-		case 'cancelTarget': return t('대상 취소');
-		default: return t('전직 ({cost}G)', { cost }); // openChoice
-	}
-}
-
-function drawPromotionButton(tower) {
-	const state = getPromotionState(tower);
-	const active = state !== 'notReady' && state !== 'noGold';
-	const label = promotionLabel(state, tower);
-
-	ctx.globalAlpha = active ? 1 : 0.55;
-	if (active) {
-		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
-		ctx.fillStyle = `rgba(241, 196, 15, ${0.85 + 0.15 * pulse})`;
-	} else {
-		ctx.fillStyle = '#3a3f48';
-	}
-	roundRect(infoPromotionButton.x, infoPromotionButton.y, infoPromotionButton.w, infoPromotionButton.h, 8);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = active ? '#fff' : '#555';
-	ctx.lineWidth = active ? 2 : 1;
-	ctx.stroke();
-
-	ctx.fillStyle = active ? '#1a1300' : '#888';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText(label, infoPromotionButton.x + infoPromotionButton.w / 2, infoPromotionButton.y + infoPromotionButton.h / 2);
-	ctx.textBaseline = 'alphabetic';
 }
 
 export function drawTowerInfoPanel(tower) {
@@ -1008,7 +968,7 @@ export function drawTowerInfoPanel(tower) {
 		ctx.font = '10px sans-serif';
 		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
 
-		drawPromotionButton(tower);
+		drawPromotionButton(tower, getPromotionState(tower));
 	}
 
 	drawGearButton(infoSettingsButton);
