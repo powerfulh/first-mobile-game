@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { INFO_BLUE } from '../core/config.js';
 import { drawPanel } from '../core/helpers.js';
-import { drawEnemySprite, enemyGA, enemySpriteType } from '../enemy.js';
+import { drawEnemySprite, enemyGA } from '../enemy.js';
 import { towerInfoPanel } from '../tower.js';
 import { t } from '../core/i18n.js';
 
@@ -18,7 +18,8 @@ export function drawEnemyInfoPanel(e, factor) {
 	ctx.textBaseline = 'alphabetic';
 
 	// 이름 + 스프라이트 아이콘 (스프라이트 종류는 kind에서 유도)
-	drawEnemySprite(enemySpriteType(e.kind), p.x + 24, p.y + 22, 9, { shielded: e.shielded });
+	const spriteType = e.kind === 'regen' ? 'regen' : e.kind === 'barrierSpawner' ? 'barrier' : enemyGA(e);
+	drawEnemySprite(spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	ctx.fillText(e.name, p.x + 42, p.y + 27);

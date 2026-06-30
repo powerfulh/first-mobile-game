@@ -488,13 +488,6 @@ export function enemyGA(e) {
 export function isBoss(e) {
 	return e.kind === 'groundBoss' || e.kind === 'airBoss';
 }
-// kind → drawEnemySprite에 넘길 스프라이트 종류.
-export function enemySpriteType(kind) {
-	if (kind === 'barrier' || kind === 'barrierSpawner') return 'barrier';
-	if (kind === 'regen') return 'regen';
-	return AIR_KINDS.has(kind) ? 'air' : 'ground';
-}
-
 // 적 종류 이름 — kind로 결정. 스폰 시 e.name으로 박아 둠.
 function enemyName(kind) {
 	switch (kind) {
@@ -674,7 +667,7 @@ export function drawEnemy(e) {
 	if (AIR_KINDS.has(e.kind)) {
 		const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
 		const cy = e.y + bobY - 3;
-		drawEnemySprite(enemySpriteType(e.kind), e.x, cy, e.radius, { shielded: e.shielded });
+		drawEnemySprite(e.kind === 'barrierSpawner' ? 'barrier' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
 		drawEnemyHpBar(e, cy);
 		if (e.marked) drawMarkRing(e, cy);
 	} else {
