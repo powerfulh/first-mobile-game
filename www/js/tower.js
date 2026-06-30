@@ -853,61 +853,65 @@ export const promotionCardSlots = [
 // 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
 export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
-// 정보 카드 전직 버튼의 현재 상태 (라벨 + 액션 종류). 활성 여부는 action !== null로 파생.
-// action: 'cancelTarget' | 'openTier4Choice' | 'setTarget' | 'openTier3Choice' | null
-function getPromotionButtonState(tower) {
+// 타워의 전직 관련 상태 — 단일 이넘. 드로잉(라벨·활성)·핸들링(액션)이 이것 하나로 도출.
+const PROMO_STATE = {
+	NOT_READY: 'notReady',         // XP 부족 (비활성)
+	NO_GOLD: 'noGold',             // 준비됐으나 골드 부족 (비활성)
+	OPEN_CHOICE: 'openChoice',     // 전직 선택 패널 열기 (3티어 미만 선택 / 4티어 합체)
+	SET_TARGET: 'setTarget',       // 4티어 대상 지정
+	CANCEL_TARGET: 'cancelTarget', // 4티어 대상 지정 취소
+};
+
+function getPromotionState(tower) {
 	const ready = isPromotionReady(tower);
-	const cost = promotionCostFor(tower);
-	const xpMax = xpMaxFor(tower);
-
 	if (tower.tier === 3) {
-		if (!ready) {
-			return { action: null, label: t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax }) };
-		}
-		if (tower === game.promotionTarget) {
-			return { action: 'cancelTarget', label: t('대상 취소') };
-		}
+		if (!ready) return PROMO_STATE.NOT_READY;
+		if (tower === game.promotionTarget) return PROMO_STATE.CANCEL_TARGET;
 		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
-			const afford = game.sandbox || game.gold >= cost;
-			return {
-				action: afford ? 'openTier4Choice' : null,
-				label: afford
-					? t('전직 ({cost}G)', { cost: cost.toLocaleString() })
-					: t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() }),
-			};
+			const afford = game.sandbox || game.gold >= promotionCostFor(tower);
+			return afford ? PROMO_STATE.OPEN_CHOICE : PROMO_STATE.NO_GOLD;
 		}
-		return { action: 'setTarget', label: t('4티어 대상 지정') };
+		return PROMO_STATE.SET_TARGET;
 	}
-
-	// tower.tier < 3 — 기존 로직
-	const afford = canAffordPromotion(tower);
-	const active = ready && afford;
-	let label;
-	if (!ready) label = t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax });
-	else if (!afford) label = t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
-	else label = t('전직 ({cost}G)', { cost: cost.toLocaleString() });
-	return { action: active ? 'openTier3Choice' : null, label };
+	if (!ready) return PROMO_STATE.NOT_READY;
+	return canAffordPromotion(tower) ? PROMO_STATE.OPEN_CHOICE : PROMO_STATE.NO_GOLD;
 }
 
-// 전직 버튼 탭 처리 — 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
+// 전직 버튼 탭 처리 — 전직 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
 // 소비 시 true (호출부에서 사운드). 버튼 존재·hit 판정은 호출부(scenes)가 담당.
 export function handlePromotionButton(tower) {
-	const { action } = getPromotionButtonState(tower);
-	if (!action) return false;
-	if (action === 'openTier3Choice' || action === 'openTier4Choice') {
-		game.towerPanel = TOWER_PANEL.PROMOTION;
-	} else if (action === 'setTarget') {
-		game.promotionTarget = tower;
-		game.selectedTower = null;
-	} else if (action === 'cancelTarget') {
-		game.promotionTarget = null;
+	switch (getPromotionState(tower)) {
+		case PROMO_STATE.OPEN_CHOICE:
+			game.towerPanel = TOWER_PANEL.PROMOTION;
+			return true;
+		case PROMO_STATE.SET_TARGET:
+			game.promotionTarget = tower;
+			game.selectedTower = null;
+			return true;
+		case PROMO_STATE.CANCEL_TARGET:
+			game.promotionTarget = null;
+			return true;
+		default:
+			return false; // NOT_READY, NO_GOLD
 	}
-	return true;
+}
+
+// 전직 상태 → 버튼 라벨 (cost/xp 동적값 포함). 드로잉 전용.
+function promotionLabel(state, tower) {
+	const cost = promotionCostFor(tower).toLocaleString();
+	switch (state) {
+		case PROMO_STATE.NOT_READY: return t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMaxFor(tower) });
+		case PROMO_STATE.NO_GOLD: return t('전직 ({cost}G · 골드 부족)', { cost });
+		case PROMO_STATE.SET_TARGET: return t('4티어 대상 지정');
+		case PROMO_STATE.CANCEL_TARGET: return t('대상 취소');
+		default: return t('전직 ({cost}G)', { cost }); // OPEN_CHOICE
+	}
 }
 
 function drawPromotionButton(tower) {
-	const { action, label } = getPromotionButtonState(tower);
-	const active = !!action;
+	const state = getPromotionState(tower);
+	const active = state !== PROMO_STATE.NOT_READY && state !== PROMO_STATE.NO_GOLD;
+	const label = promotionLabel(state, tower);
 
 	ctx.globalAlpha = active ? 1 : 0.55;
 	if (active) {
