@@ -853,8 +853,8 @@ export const promotionCardSlots = [
 // 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
 export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
-// 정보 카드 전직 버튼의 현재 상태 (라벨 + 활성/액션 종류)
-// action: 'cancelTarget' | 'fuseTier4' | 'setTarget' | 'openTier3Choice' | null
+// 정보 카드 전직 버튼의 현재 상태 (라벨 + 액션 종류). 활성 여부는 action !== null로 파생.
+// action: 'cancelTarget' | 'openTier4Choice' | 'setTarget' | 'openTier3Choice' | null
 function getPromotionButtonState(tower) {
 	const ready = isPromotionReady(tower);
 	const cost = promotionCostFor(tower);
@@ -862,22 +862,21 @@ function getPromotionButtonState(tower) {
 
 	if (tower.tier === 3) {
 		if (!ready) {
-			return { active: false, action: null, label: t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax }) };
+			return { action: null, label: t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax }) };
 		}
 		if (tower === game.promotionTarget) {
-			return { active: true, action: 'cancelTarget', label: t('대상 취소') };
+			return { action: 'cancelTarget', label: t('대상 취소') };
 		}
 		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
 			const afford = game.sandbox || game.gold >= cost;
 			return {
-				active: afford,
 				action: afford ? 'openTier4Choice' : null,
 				label: afford
 					? t('전직 ({cost}G)', { cost: cost.toLocaleString() })
 					: t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() }),
 			};
 		}
-		return { active: true, action: 'setTarget', label: t('4티어 대상 지정') };
+		return { action: 'setTarget', label: t('4티어 대상 지정') };
 	}
 
 	// tower.tier < 3 — 기존 로직
@@ -887,14 +886,14 @@ function getPromotionButtonState(tower) {
 	if (!ready) label = t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax });
 	else if (!afford) label = t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
 	else label = t('전직 ({cost}G)', { cost: cost.toLocaleString() });
-	return { active, action: active ? 'openTier3Choice' : null, label };
+	return { action: active ? 'openTier3Choice' : null, label };
 }
 
 // 전직 버튼 탭 처리 — 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
 // 소비 시 true (호출부에서 사운드). 버튼 존재·hit 판정은 호출부(scenes)가 담당.
 export function handlePromotionButton(tower) {
-	const { active, action } = getPromotionButtonState(tower);
-	if (!active || !action) return false;
+	const { action } = getPromotionButtonState(tower);
+	if (!action) return false;
 	if (action === 'openTier3Choice' || action === 'openTier4Choice') {
 		game.towerPanel = TOWER_PANEL.PROMOTION;
 	} else if (action === 'setTarget') {
@@ -907,7 +906,8 @@ export function handlePromotionButton(tower) {
 }
 
 function drawPromotionButton(tower) {
-	const { active, label } = getPromotionButtonState(tower);
+	const { action, label } = getPromotionButtonState(tower);
+	const active = !!action;
 
 	ctx.globalAlpha = active ? 1 : 0.55;
 	if (active) {
