@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss,
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
@@ -494,7 +494,7 @@ scenes.playing = {
 		let batchEnded = false;
 		if (game.waveState === 'spawning') {
 			if (game.bossActive) {
-				if (!game.entities.enemies.some(e => e.kind === 'boss')) {
+				if (!game.entities.enemies.some(e => isBoss(e))) {
 					game.bossActive = false;
 					game.entities.enemies = [];
 					game.waves = [];

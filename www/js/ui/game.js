@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { INFO_BLUE } from '../core/config.js';
 import { drawPanel } from '../core/helpers.js';
-import { drawEnemySprite } from '../enemy.js';
+import { drawEnemySprite, enemyGA, enemySpriteType } from '../enemy.js';
 import { towerInfoPanel } from '../tower.js';
 import { t } from '../core/i18n.js';
 
@@ -17,9 +17,8 @@ export function drawEnemyInfoPanel(e, factor) {
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
 
-	// 이름 + 스프라이트 아이콘 (스프라이트 종류는 kind/type에서 유도)
-	const spriteType = (e.kind === 'barrier' || e.kind === 'barrierSpawner') ? 'barrier' : e.kind === 'regen' ? 'regen' : e.type;
-	drawEnemySprite(spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
+	// 이름 + 스프라이트 아이콘 (스프라이트 종류는 kind에서 유도)
+	drawEnemySprite(enemySpriteType(e.kind), p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	ctx.fillText(e.name, p.x + 42, p.y + 27);
@@ -35,7 +34,7 @@ export function drawEnemyInfoPanel(e, factor) {
 	const rowY = () => p.y + 52 + (row++) * ROW;
 
 	// 타입
-	ctx.fillText(t('타입: {type}', { type: e.type === 'air' ? t('공중') : t('지상') }), sx, rowY());
+	ctx.fillText(t('타입: {type}', { type: enemyGA(e) === 'air' ? t('공중') : t('지상') }), sx, rowY());
 
 	// 체력 — 텍스트 + 오른쪽 같은 줄 HP 바
 	const yHp = rowY();

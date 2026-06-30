@@ -8,7 +8,7 @@ import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, d
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
-import { isBlockedByBarrier, drawEnemySprite } from './enemy.js';
+import { isBlockedByBarrier, drawEnemySprite, enemyGA } from './enemy.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -311,14 +311,15 @@ export function updateTower(tower, dt) {
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.kind === 'barrier') continue;
-			if (e.type === 'ground' ? !tower.canGround : !tower.canAir) continue;
+			if (enemyGA(e) === 'ground' ? !tower.canGround : !tower.canAir) continue;
 			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d < minRange) continue;
 			if (d > range && !(includeMarked && e.marked)) continue;
 			// 지상/공중 티어 (낮을수록 우선). 동등이면 모두 0.
 			let tier = 0;
-			if (tower.gaPriority === 'air') tier = (e.type === 'air') ? 0 : 1;
-			else if (tower.gaPriority === 'ground') tier = (e.type === 'ground') ? 0 : 1;
+			const ga = enemyGA(e);
+			if (tower.gaPriority === 'air') tier = (ga === 'air') ? 0 : 1;
+			else if (tower.gaPriority === 'ground') tier = (ga === 'ground') ? 0 : 1;
 			const val = useHp ? e.hp : d;
 			if (target === null || tier < bestTier
 				|| (tier === bestTier && (preferHigher ? val > bestVal : val < bestVal))) {
@@ -340,7 +341,7 @@ export function updateTower(tower, dt) {
 				const sweepBlocked = allowed.includes('air');
 				for (const e of game.entities.enemies) {
 					if (e.dead) continue;
-					if (!allowed.includes(e.type)) continue;
+					if (!allowed.includes(enemyGA(e))) continue;
 					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 					if (d > hitRange) continue;
 					if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
