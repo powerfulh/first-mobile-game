@@ -79,7 +79,7 @@ export function drawEnemyInfoPanel(e, factor) {
 	}
 }
 
-// 정보 카드 우상단 기어 버튼 (닫기 X를 대체) — 터치 시 타워 설정 카드 진입.
+// 정보 카드 우상단 기어 버튼
 export function drawGearButton(btn) {
 	const cx = btn.x + btn.w / 2;
 	const cy = btn.y + btn.h / 2;
