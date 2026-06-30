@@ -504,7 +504,6 @@ function enemyName(kind) {
 
 function drawRegenEnemy(e) {
 	drawEnemySprite('regen', e.x, e.y, e.radius, { shielded: e.shielded });
-	drawEnemyHpBar(e, e.y);
 	if (!e.regenDisabled) drawRegenAura(e.x, e.y, e.radius + 4);
 }
 
@@ -570,6 +569,16 @@ function drawBarrier(e) {
 	ctx.fill();
 }
 
+// 적 본체/HP바 중심 y — 공중 적(보스 제외)은 보빙 오프셋 포함.
+function enemyDrawY(e) {
+	if (!isBoss(e) && AIR_KINDS.has(e.kind)) {
+		return e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3;
+	}
+	return e.y;
+}
+
+// 본체만 그림. HP바는 drawEnemyHpBarOverlay에서 별도 패스로 본체 위에 올림
+// (뭉친 적끼리 나중 적 본체가 먼저 적 HP바를 가리는 문제 방지).
 export function drawEnemy(e) {
 	if (e.kind === 'barrier') {
 		drawBarrier(e);
@@ -590,17 +599,16 @@ export function drawEnemy(e) {
 		if (e.marked) drawMarkRing(e, e.y);
 		return;
 	}
-	if (AIR_KINDS.has(e.kind)) {
-		const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
-		const cy = e.y + bobY - 3;
-		drawEnemySprite(e.kind === 'barrierSpawner' ? 'barrierSpawner' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
-		drawEnemyHpBar(e, cy);
-		if (e.marked) drawMarkRing(e, cy);
-	} else {
-		drawEnemySprite('ground', e.x, e.y, e.radius, { shielded: e.shielded });
-		drawEnemyHpBar(e, e.y);
-		if (e.marked) drawMarkRing(e, e.y);
-	}
+	const cy = enemyDrawY(e);
+	const sprite = e.kind === 'barrierSpawner' ? 'barrierSpawner' : AIR_KINDS.has(e.kind) ? 'air' : 'ground';
+	drawEnemySprite(sprite, e.x, cy, e.radius, { shielded: e.shielded });
+	if (e.marked) drawMarkRing(e, cy);
+}
+
+// HP바를 본체 위에 겹쳐 그리는 별도 패스용. 보스(고정 UI)·장벽(자체 표현)은 HP바 없음.
+export function drawEnemyHpBarOverlay(e) {
+	if (e.kind === 'barrier' || isBoss(e)) return;
+	drawEnemyHpBar(e, enemyDrawY(e));
 }
 
 // ============ 장벽 차단 헬퍼 ============

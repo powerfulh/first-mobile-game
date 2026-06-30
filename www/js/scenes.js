@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
@@ -560,6 +560,8 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) drawTower(tower);
 		for (const e of game.entities.enemies) drawEnemy(e);
+		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지
+		for (const e of game.entities.enemies) drawEnemyHpBarOverlay(e);
 		if (game.selectedEnemy) {
 			const se = game.selectedEnemy;
 			ctx.strokeStyle = '#fff';
