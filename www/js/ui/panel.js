@@ -2,7 +2,6 @@
 import { ctx } from '../core/canvas.js';
 import { INFO_BLUE } from '../core/config.js';
 import { drawPanel } from '../core/helpers.js';
-import { enemyGA } from '../enemy.js';
 import { towerInfoPanel } from '../tower.js';
 import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
@@ -35,7 +34,7 @@ export function drawEnemyInfoPanel(e, factor) {
 	const rowY = () => p.y + 52 + (row++) * ROW;
 
 	// 타입
-	ctx.fillText(t('타입: {type}', { type: enemyGA(e) === 'air' ? t('공중') : t('지상') }), sx, rowY());
+	ctx.fillText(t('타입: {type}', { type: e.ga === 'air' ? t('공중') : t('지상') }), sx, rowY());
 
 	// 체력 — 텍스트 + 오른쪽 같은 줄 HP 바
 	const yHp = rowY();

@@ -7,7 +7,7 @@ import {
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
-	findBarrierBlockDist, projectileHitsBarrier, enemyGA, isBoss,
+	findBarrierBlockDist, projectileHitsBarrier, isBoss,
 } from './enemy.js';
 
 export function applyTowerHit(shooter, target, damage) {
@@ -55,7 +55,7 @@ export function applyTowerHit(shooter, target, damage) {
 export function applySplashHit(shooter, impactX, impactY, damage, radius, attackTypes) {
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
-		if (attackTypes && !attackTypes.includes(enemyGA(e))) continue;
+		if (attackTypes && !attackTypes.includes(e.ga)) continue;
 		const d = Math.hypot(e.x - impactX, e.y - impactY);
 		if (d <= radius) {
 			applyTowerHit(shooter, e, damage);
@@ -132,7 +132,7 @@ export function fireLineBeam(tower, target, damage) {
 	const dmg = damage !== undefined ? damage : tower.damage;
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
-		if (!attackTypes.includes(enemyGA(e))) continue;
+		if (!attackTypes.includes(e.ga)) continue;
 		const d = pointToSegmentDist(e.x, e.y, tower.x, tower.y, endX, endY);
 		if (d <= e.radius) {
 			applyTowerHit(tower, e, dmg);
@@ -187,7 +187,7 @@ export function updateProjectile(p, dt) {
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.kind === 'barrier') continue; // 장벽은 handleBarrierBlock에서 처리됨
-			if (p.attackTypes && !p.attackTypes.includes(enemyGA(e))) continue;
+			if (p.attackTypes && !p.attackTypes.includes(e.ga)) continue;
 			const d = Math.hypot(e.x - p.x, e.y - p.y);
 			if (d <= e.radius) {
 				if (p.splash > 0) {

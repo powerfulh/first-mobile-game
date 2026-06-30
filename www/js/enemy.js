@@ -146,12 +146,12 @@ export function spawnEnemy(spawner) {
 	const baseHp = computeBaseHpAt(wave);
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
-	let kind, spriteType;
-	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; }
-	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; }
-	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; }
-	else { kind = 'basic'; spriteType = 'ground'; }
-	const isAir = AIR_KINDS.has(kind);
+	let kind, spriteType, ga;
+	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
+	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
+	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
+	else { kind = 'basic'; spriteType = 'ground'; ga = 'ground'; }
+	const isAir = ga === 'air';
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
 	const hp = isAir ? Math.round(baseHp * getAirHpRatio(wave) * 10) / 10 : baseHp;
@@ -168,6 +168,7 @@ export function spawnEnemy(spawner) {
 		y: enemyPath[0].y,
 		kind,
 		spriteType,
+		ga,
 		name: enemyName(kind),
 		path: enemyPath,
 		speed,
@@ -210,6 +211,7 @@ export function spawnBarrier(x, y, wave) {
 		hpMax: hp,
 		hp: hp,
 		kind: 'barrier',
+		ga: 'air',
 		name: enemyName('barrier'),
 	});
 }
@@ -298,6 +300,7 @@ export function spawnBoss() {
 		bobPhase: Math.random() * Math.PI * 2,
 		kind,
 		spriteType: bossType,
+		ga: bossType,
 		name: enemyName(kind),
 		angle: Math.PI / 2,
 	});
@@ -484,11 +487,6 @@ function drawRegenAura(cx, cy, baseR) {
 }
 
 // ============ kind 헬퍼 — 적 식별은 kind 단일 기준 ============
-// 공중(air) GA에 해당하는 kind. 그 외는 지상. 타워 타게팅 비교·스폰에 사용.
-const AIR_KINDS = new Set(['air', 'barrierSpawner', 'barrier', 'airBoss']);
-export function enemyGA(e) {
-	return AIR_KINDS.has(e.kind) ? 'air' : 'ground';
-}
 export function isBoss(e) {
 	return e.kind === 'groundBoss' || e.kind === 'airBoss';
 }
@@ -574,7 +572,7 @@ function drawBarrier(e) {
 
 // 적 본체/HP바 중심 y — 공중 적(보스 제외)은 보빙 오프셋 포함.
 function enemyDrawY(e) {
-	if (!isBoss(e) && AIR_KINDS.has(e.kind)) {
+	if (!isBoss(e) && e.ga === 'air') {
 		return e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3;
 	}
 	return e.y;
