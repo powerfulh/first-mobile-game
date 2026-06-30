@@ -9,7 +9,7 @@ import {
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from '../core/config.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
-import { drawEnemySprite } from '../enemy.js';
+import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 표준 모달 레이아웃 (대부분 공유, tier4만 별도)
@@ -216,7 +216,7 @@ export const INTRO_MODALS = {
 
 	barrierIntro: makeIntro({
 		key: BARRIER_INTRO_KEY, accent: '#aab7c4',
-		drawIcon: (cx, cy) => drawEnemySprite('barrier', cx, cy, 14),
+		drawIcon: (cx, cy) => drawEnemySprite('barrierSpawner', cx, cy, 14),
 		title: '장벽 적 등장!',
 		lines: ['장벽 적이 등장합니다.', '처치한 자리에 장벽이 생성되어', '공중 공격을 차단합니다.'],
 	}),

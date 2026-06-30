@@ -12,16 +12,15 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, drawEnemyInfoPanel,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
 	promoteTower, updateTower, drawTower, drawTowerRange,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
-	towerInfoPanel, infoSettingsButton, infoPromotionButton,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
-	grantWaveEndXp,
-	getPromotionButtonState, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
+	grantWaveEndXp, getEnemySpeedFactor,
+	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
 import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
@@ -38,6 +37,7 @@ import {
 	drawSettingsModal,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
+import { drawEnemyInfoPanel, infoSettingsButton, infoPanel, infoPromotionButton } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
@@ -493,7 +493,7 @@ scenes.playing = {
 		let batchEnded = false;
 		if (game.waveState === 'spawning') {
 			if (game.bossActive) {
-				if (!game.entities.enemies.some(e => e.kind === 'boss')) {
+				if (!game.entities.enemies.some(e => isBoss(e))) {
 					game.bossActive = false;
 					game.entities.enemies = [];
 					game.waves = [];
@@ -559,6 +559,8 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) drawTower(tower);
 		for (const e of game.entities.enemies) drawEnemy(e);
+		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지
+		for (const e of game.entities.enemies) drawEnemyHpBarOverlay(e);
 		if (game.selectedEnemy) {
 			const se = game.selectedEnemy;
 			ctx.strokeStyle = '#fff';
@@ -606,7 +608,7 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower);
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(game.selectedEnemy);
+			drawEnemyInfoPanel(game.selectedEnemy, getEnemySpeedFactor(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
@@ -697,7 +699,7 @@ scenes.playing = {
 				playButton();
 				return;
 			}
-			if (hitButton(towerInfoPanel, p)) return; // 카드 내부 빈 영역 탭 소비
+			if (hitButton(infoPanel, p)) return; // 카드 내부 빈 영역 탭 소비
 			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 전체 닫기
 			return;
 		}
@@ -746,19 +748,7 @@ scenes.playing = {
 				return;
 			}
 			if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
-				const state = getPromotionButtonState(game.selectedTower);
-				if (!state.active || !state.action) return;
-				playButton();
-				if (state.action === 'openTier3Choice') {
-					game.towerPanel = TOWER_PANEL.PROMOTION;
-				} else if (state.action === 'setTarget') {
-					game.promotionTarget = game.selectedTower;
-					game.selectedTower = null;
-				} else if (state.action === 'cancelTarget') {
-					game.promotionTarget = null;
-				} else if (state.action === 'openTier4Choice') {
-					game.towerPanel = TOWER_PANEL.PROMOTION;
-				}
+				if (handlePromotionButton(game.selectedTower)) playButton();
 				return;
 			}
 		}
@@ -767,7 +757,7 @@ scenes.playing = {
 		if (selectTowerAt(p)) return;
 
 		// 정보 카드(타워/적 공용 위치) 내부 탭 → 소비 (그 아래 지나가는 적이 선택되지 않도록 적 검사보다 먼저)
-		if ((game.selectedTower || game.selectedEnemy) && hitButton(towerInfoPanel, p)) {
+		if ((game.selectedTower || game.selectedEnemy) && hitButton(infoPanel, p)) {
 			return;
 		}
 

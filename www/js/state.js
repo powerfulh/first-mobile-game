@@ -7,7 +7,7 @@ import {
 import { getActiveMap, setActiveMap, MAPS } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
-import { applyTowerPriorityDefaults } from './tower.js';
+import { applyTowerPriorityDefaults, applyTierStats } from './tower.js';
 
 export const game = {
 	...INITIAL, // hp (전역)
@@ -203,6 +203,7 @@ export function loadGame(data) {
 				waveDamage: 0,
 			};
 			applyTowerPriorityDefaults(tw); // 역할 기준 기본값 → 저장값으로 덮어쓰기
+			applyTierStats(tw); // tier 기준 목표 XP·전직 비용 굽기
 			if (td.canGround !== undefined) tw.canGround = td.canGround;
 			if (td.canAir !== undefined) tw.canAir = td.canAir;
 			if (td.gaPriority) tw.gaPriority = td.gaPriority;

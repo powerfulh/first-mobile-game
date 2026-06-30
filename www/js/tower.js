@@ -2,22 +2,23 @@ import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
+	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
-import { isBlockedByBarrier, drawEnemySprite } from './enemy.js';
+import { isBlockedByBarrier } from './enemy.js';
+import { drawEnemySprite } from './ui/sprite.js';
+import { infoPanel, infoSettingsButton, drawGearButton, drawPromotionButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
-export function xpMaxFor(tower) {
-	return TOWER.xpThresholds[tower.tier] || 0;
-}
-
-export function promotionCostFor(tower) {
-	return TOWER.promotionCosts[tower.tier] || 0;
+// tier 파생 스탯(목표 XP·전직 비용)을 인스턴스에 구움 — tier가 바뀌는 모든 지점에서 호출.
+export function applyTierStats(tower) {
+	tower.xpMax = TOWER.xpThresholds[tower.tier] || 0;
+	tower.promotionCost = TOWER.promotionCosts[tower.tier] || 0;
 }
 
 export function canPromote(tower) {
@@ -27,11 +28,11 @@ export function canPromote(tower) {
 }
 
 export function isPromotionReady(tower) {
-	return canPromote(tower) && (game.sandbox || tower.xp >= xpMaxFor(tower));
+	return canPromote(tower) && (game.sandbox || tower.xp >= tower.xpMax);
 }
 
 export function canAffordPromotion(tower) {
-	return game.sandbox || game.gold >= promotionCostFor(tower);
+	return game.sandbox || game.gold >= tower.promotionCost;
 }
 
 // ============ Tier 4 helpers ============
@@ -50,7 +51,7 @@ export function isCompatibleTier4Partner(target, candidate) {
 export function hasReadyTier4Candidate() {
 	// 게임 내에 XP 가득 찬 4티어 후보 3티어가 존재하는지
 	for (const tower of game.entities.towers) {
-		if (tower.tier === 3 && TIER4_RECIPES[tower.role] && tower.xp >= xpMaxFor(tower)) {
+		if (tower.tier === 3 && TIER4_RECIPES[tower.role] && tower.xp >= tower.xpMax) {
 			return true;
 		}
 	}
@@ -81,27 +82,19 @@ export function getEffectiveRange(tower, visited) {
 	}
 }
 
-export function getEffectiveDamage(tower, visited) {
-	visited = visited || new Set();
-	if (visited.has(tower)) return tower.damage;
-	visited.add(tower);
-	try {
-		const buffRate = TOWER.buffRates[tower.tier];
-		if (buffRate === undefined) return tower.damage;
-		for (const other of game.entities.towers) {
-			if (other === tower) continue;
-			const otherCfg = TOWER_ROLES[other.role];
-			if (!otherCfg.buffsDamage) continue;
-			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
-			const otherRange = getEffectiveRange(other);
-			if (d <= otherRange) {
-				return tower.damage * (1 + buffRate);
-			}
+export function getEffectiveDamage(tower) {
+	const buffRate = TOWER.buffRates[tower.tier];
+	if (buffRate === undefined) return tower.damage;
+	for (const other of game.entities.towers) {
+		if (other === tower) continue;
+		const otherCfg = TOWER_ROLES[other.role];
+		if (!otherCfg.buffsDamage) continue;
+		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
+		if (d <= getEffectiveRange(other)) {
+			return tower.damage * (1 + buffRate);
 		}
-		return tower.damage;
-	} finally {
-		visited.delete(tower);
 	}
+	return tower.damage;
 }
 
 export function getXpGainAtWaveEnd(tower) {
@@ -123,7 +116,7 @@ export function grantWaveEndXp() {
 	for (const tower of game.entities.towers) {
 		if (!canPromote(tower)) continue;
 		const gain = getXpGainAtWaveEnd(tower);
-		tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, xpMaxFor(tower));
+		tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, tower.xpMax);
 	}
 }
 
@@ -209,6 +202,7 @@ export function placeTower(x, y) {
 		waveDamage: 0,
 	};
 	applyTowerPriorityDefaults(tw);
+	applyTierStats(tw);
 	game.entities.towers.push(tw);
 	if (!game.sandbox) game.gold -= TOWER.cost;
 	return true;
@@ -221,7 +215,7 @@ export function promoteTower(tower, role) {
 	const cfg = TOWER_ROLES[role];
 	if (!cfg) return false;
 
-	if (!game.sandbox) game.gold -= promotionCostFor(tower);
+	if (!game.sandbox) game.gold -= tower.promotionCost;
 	const prevRole = tower.role;
 	tower.role = role;
 	tower.tier += 1;
@@ -231,6 +225,7 @@ export function promoteTower(tower, role) {
 	tower.cooldown = 0;
 	tower.xp = 0;
 	applyTowerPriorityOnPromote(tower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
+	applyTierStats(tower); // 새 tier 기준 목표 XP·전직 비용 재계산
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
@@ -244,7 +239,7 @@ export function promoteToTier4(secondTower) {
 	if (!target) return false;
 	if (!isCompatibleTier4Partner(target, secondTower)) return false;
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
-	const cost = promotionCostFor(secondTower);
+	const cost = secondTower.promotionCost;
 	if (!game.sandbox && game.gold < cost) return false;
 
 	const recipe = TIER4_RECIPES[secondTower.role];
@@ -268,6 +263,7 @@ export function promoteToTier4(secondTower) {
 	secondTower.cooldown = 0;
 	secondTower.xp = 0;
 	applyTowerPriorityOnPromote(secondTower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
+	applyTierStats(secondTower); // tier 4 기준 (목표 XP·전직 비용 0)
 	return true;
 }
 
@@ -289,7 +285,7 @@ export function updateTower(tower, dt) {
 			if (d > range) continue;
 			next.add(e);
 			if (!tower.inRangeEnemies.has(e) && canPromote(tower)) {
-				tower.xp = Math.min(xpMaxFor(tower), Math.round((tower.xp + 1) * 10) / 10);
+				tower.xp = Math.min(tower.xpMax, Math.round((tower.xp + 1) * 10) / 10);
 			}
 		}
 		tower.inRangeEnemies = next;
@@ -311,14 +307,14 @@ export function updateTower(tower, dt) {
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.kind === 'barrier') continue;
-			if (e.type === 'ground' ? !tower.canGround : !tower.canAir) continue;
+			if (e.ga === 'ground' ? !tower.canGround : !tower.canAir) continue;
 			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d < minRange) continue;
 			if (d > range && !(includeMarked && e.marked)) continue;
 			// 지상/공중 티어 (낮을수록 우선). 동등이면 모두 0.
 			let tier = 0;
-			if (tower.gaPriority === 'air') tier = (e.type === 'air') ? 0 : 1;
-			else if (tower.gaPriority === 'ground') tier = (e.type === 'ground') ? 0 : 1;
+			if (tower.gaPriority === 'air') tier = (e.ga === 'air') ? 0 : 1;
+			else if (tower.gaPriority === 'ground') tier = (e.ga === 'ground') ? 0 : 1;
 			const val = useHp ? e.hp : d;
 			if (target === null || tier < bestTier
 				|| (tier === bestTier && (preferHigher ? val > bestVal : val < bestVal))) {
@@ -340,7 +336,7 @@ export function updateTower(tower, dt) {
 				const sweepBlocked = allowed.includes('air');
 				for (const e of game.entities.enemies) {
 					if (e.dead) continue;
-					if (!allowed.includes(e.type)) continue;
+					if (!allowed.includes(e.ga)) continue;
 					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 					if (d > hitRange) continue;
 					if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
@@ -806,7 +802,7 @@ export function drawTower(tower) {
 	drawTowerBody(tower, cfg, selected);
 
 	if (canPromote(tower)) {
-		const xpMax = xpMaxFor(tower);
+		const xpMax = tower.xpMax;
 		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		const bw = 24, bh = 3;
 		const bx = tower.x - bw / 2;
@@ -848,9 +844,6 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 }
 
 // ============ Tower info panel / Promotion panel ============
-export const towerInfoPanel = { x: 16, y: 496, w: 328, h: 144 };
-export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
-export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
 export const promotionCardSlots = [
@@ -860,82 +853,56 @@ export const promotionCardSlots = [
 // 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
 export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
-// 정보 카드 전직 버튼의 현재 상태 (라벨 + 활성/액션 종류)
-// action: 'cancelTarget' | 'fuseTier4' | 'setTarget' | 'openTier3Choice' | null
-export function getPromotionButtonState(tower) {
+// 타워의 전직 관련 상태 — 단일 값(약속된 문자열). 드로잉(라벨·활성)·핸들링(액션)이 이것 하나로 도출.
+// 'notReady'(XP부족) | 'noGold'(골드부족) | 'openChoice'(전직 선택 패널) | 'setTarget'(4티어 대상 지정) | 'cancelTarget'(대상 취소)
+function getPromotionState(tower) {
 	const ready = isPromotionReady(tower);
-	const cost = promotionCostFor(tower);
-	const xpMax = xpMaxFor(tower);
-
 	if (tower.tier === 3) {
-		if (!ready) {
-			return { active: false, action: null, label: t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax }) };
-		}
-		if (tower === game.promotionTarget) {
-			return { active: true, action: 'cancelTarget', label: t('대상 취소') };
-		}
+		if (!ready) return 'notReady';
+		if (tower === game.promotionTarget) return 'cancelTarget';
 		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
-			const afford = game.sandbox || game.gold >= cost;
-			return {
-				active: afford,
-				action: afford ? 'openTier4Choice' : null,
-				label: afford
-					? t('전직 ({cost}G)', { cost: cost.toLocaleString() })
-					: t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() }),
-			};
+			const afford = game.sandbox || game.gold >= tower.promotionCost;
+			return afford ? 'openChoice' : 'noGold';
 		}
-		return { active: true, action: 'setTarget', label: t('4티어 대상 지정') };
+		return 'setTarget';
 	}
-
-	// tower.tier < 3 — 기존 로직
-	const afford = canAffordPromotion(tower);
-	const active = ready && afford;
-	let label;
-	if (!ready) label = t('전직 (XP {xp} / {max})', { xp: tower.xp, max: xpMax });
-	else if (!afford) label = t('전직 ({cost}G · 골드 부족)', { cost: cost.toLocaleString() });
-	else label = t('전직 ({cost}G)', { cost: cost.toLocaleString() });
-	return { active, action: active ? 'openTier3Choice' : null, label };
+	if (!ready) return 'notReady';
+	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 }
 
-function drawPromotionButton(tower) {
-	const { active, label } = getPromotionButtonState(tower);
-
-	ctx.globalAlpha = active ? 1 : 0.55;
-	if (active) {
-		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
-		ctx.fillStyle = `rgba(241, 196, 15, ${0.85 + 0.15 * pulse})`;
-	} else {
-		ctx.fillStyle = '#3a3f48';
+// 전직 버튼 탭 처리 — 전직 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
+// 소비 시 true (호출부에서 사운드). 버튼 존재·hit 판정은 호출부(scenes)가 담당.
+export function handlePromotionButton(tower) {
+	switch (getPromotionState(tower)) {
+		case 'openChoice':
+			game.towerPanel = TOWER_PANEL.PROMOTION;
+			return true;
+		case 'setTarget':
+			game.promotionTarget = tower;
+			game.selectedTower = null;
+			return true;
+		case 'cancelTarget':
+			game.promotionTarget = null;
+			return true;
+		default:
+			return false; // notReady, noGold
 	}
-	roundRect(infoPromotionButton.x, infoPromotionButton.y, infoPromotionButton.w, infoPromotionButton.h, 8);
-	ctx.fill();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = active ? '#fff' : '#555';
-	ctx.lineWidth = active ? 2 : 1;
-	ctx.stroke();
-
-	ctx.fillStyle = active ? '#1a1300' : '#888';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText(label, infoPromotionButton.x + infoPromotionButton.w / 2, infoPromotionButton.y + infoPromotionButton.h / 2);
-	ctx.textBaseline = 'alphabetic';
 }
 
 export function drawTowerInfoPanel(tower) {
 	const cfg = TOWER_ROLES[tower.role];
-	drawPanel(towerInfoPanel.x, towerInfoPanel.y, towerInfoPanel.w, towerInfoPanel.h, { stroke: cfg.color, alpha: 0.9 });
+	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	const nameWidth = ctx.measureText(cfg.name).width;
-	ctx.fillText(cfg.name, towerInfoPanel.x + 14, towerInfoPanel.y + 22);
+	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
 
 	ctx.font = 'bold 11px sans-serif';
-	const tierX = towerInfoPanel.x + 14 + nameWidth + 8;
-	const tierY = towerInfoPanel.y + 22;
+	const tierX = infoPanel.x + 14 + nameWidth + 8;
+	const tierY = infoPanel.y + 22;
 	const tierStr = `Tier ${tower.tier}`;
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
 	ctx.lineWidth = 2.5;
@@ -947,8 +914,8 @@ export function drawTowerInfoPanel(tower) {
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
-	const sx = towerInfoPanel.x + 14;
-	const sy = towerInfoPanel.y + 50;
+	const sx = infoPanel.x + 14;
+	const sy = infoPanel.y + 50;
 	const total = Math.round((tower.totalDamage || 0) * 10) / 10;
 	const atkLabels = { ground: t('지상'), air: t('공중') };
 	const hasAttack = (cfg.attackTypes || []).length > 0;
@@ -984,7 +951,7 @@ export function drawTowerInfoPanel(tower) {
 	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 
 	if (canPromote(tower)) {
-		const xpMax = xpMaxFor(tower);
+		const xpMax = tower.xpMax;
 		const bx = sx;
 		const by = sy + 44;
 		const bw = 240;
@@ -1001,41 +968,10 @@ export function drawTowerInfoPanel(tower) {
 		ctx.font = '10px sans-serif';
 		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
 
-		drawPromotionButton(tower);
+		drawPromotionButton(tower, getPromotionState(tower));
 	}
 
 	drawGearButton(infoSettingsButton);
-}
-
-// 정보 카드 우상단 기어 버튼 (닫기 X를 대체) — 터치 시 타워 설정 카드 진입.
-function drawGearButton(btn) {
-	const cx = btn.x + btn.w / 2;
-	const cy = btn.y + btn.h / 2;
-	ctx.fillStyle = SLATE;
-	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
-	ctx.fill();
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-	ctx.lineWidth = 1;
-	ctx.stroke();
-	// 기어 아이콘 (이빨 + 링 + 중심)
-	ctx.strokeStyle = '#fff';
-	ctx.fillStyle = '#fff';
-	const r = 5;
-	ctx.lineWidth = 2;
-	ctx.beginPath();
-	for (let i = 0; i < 8; i++) {
-		const a = (Math.PI * 2 * i) / 8;
-		ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-		ctx.lineTo(cx + Math.cos(a) * (r + 2.5), cy + Math.sin(a) * (r + 2.5));
-	}
-	ctx.stroke();
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
-	ctx.fill();
 }
 
 // ---- 설정 카드 우선순위 컨트롤 ----
@@ -1061,7 +997,7 @@ function towerDualCapable(cfg) {
 // 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 공격 우선순위 설정.
 export function drawTowerSettingsCard(tower) {
 	const cfg = TOWER_ROLES[tower.role];
-	const p = towerInfoPanel;
+	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
@@ -1294,7 +1230,7 @@ export function drawPromotionPanel(tower) {
 	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
 	const tier4 = isTier4ChoiceContext(tower);
-	const cost = promotionCostFor(tower);
+	const cost = tower.promotionCost;
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';

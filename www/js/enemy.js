@@ -5,8 +5,9 @@ import {
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
-import { roundRect, pointToSegmentDist, drawPanel } from './core/helpers.js';
-import { getEnemySpeedFactor, towerInfoPanel } from './tower.js';
+import { pointToSegmentDist } from './core/helpers.js';
+import { drawEnemySprite } from './ui/sprite.js';
+import { getEnemySpeedFactor } from './tower.js';
 import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
@@ -143,32 +144,32 @@ export function spawnEnemy(spawner) {
 	const wave = spawner.wave;
 	const map = getActiveMap();
 	const baseHp = computeBaseHpAt(wave);
-	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. GA 타입(type)은 kind에 종속.
-	//  barrierSpawner→공중, regen→지상, plain→공중 확률 굴림.
-	let kind, type;
-	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; type = 'air'; }
-	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; type = 'ground'; }
-	else { kind = 'plain'; type = Math.random() < getAirChance(wave) ? 'air' : 'ground'; }
+	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
+	//  barrierSpawner/air=공중, regen/basic=지상.
+	let kind, spriteType, ga;
+	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
+	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
+	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
+	else { kind = 'basic'; spriteType = 'ground'; ga = 'ground'; }
+	const isAir = ga === 'air';
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	// HP: 장벽 적은 전체 HP(공중 비율 미적용), 그 외 공중(plain-air)만 공중 비율 적용
-	let hp;
-	if (kind === 'barrierSpawner') hp = baseHp;
-	else if (type === 'air') hp = Math.round(baseHp * getAirHpRatio(wave) * 10) / 10;
-	else hp = baseHp;
+	const hp = isAir ? Math.round(baseHp * getAirHpRatio(wave) * 10) / 10 : baseHp;
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
 	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
 	let enemyPath = map.path;
-	if (type === 'air' && map.airShortcutPath) {
+	if (isAir && map.airShortcutPath) {
 		if (game.airShortcutNext) enemyPath = map.airShortcutPath;
 		game.airShortcutNext = !game.airShortcutNext;
 	}
 	game.entities.enemies.push({
 		x: enemyPath[0].x,
 		y: enemyPath[0].y,
-		type,
 		kind,
+		spriteType,
+		ga,
+		name: enemyName(kind),
 		path: enemyPath,
 		speed,
 		segment: 0,
@@ -179,12 +180,12 @@ export function spawnEnemy(spawner) {
 		shielded,
 		shieldReduction: shielded ? getShieldReduction(wave) : 0,
 		regenRate: kind === 'regen' ? getRegenHealRate(wave) : 0,
+		barrierHp: kind === 'barrierSpawner' ? hp * 2 : 0,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
-	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
-	const cat = kind === 'barrierSpawner' ? 'barrier' : kind === 'regen' ? 'regen' : type === 'air' ? 'air' : 'ground';
-	game.waveSpawnCounts[cat] = (game.waveSpawnCounts[cat] || 0) + 1;
-	if (kind === 'plain' && type === 'air' && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
+	// 출현 요약 카운트 — 분류 키 = 스프라이트 종류 (요약이 스프라이트로 표시)
+	game.waveSpawnCounts[spriteType] = (game.waveSpawnCounts[spriteType] || 0) + 1;
+	if (kind === 'air' && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
 		game.modal = { type: 'airIntro' };
 	}
 	if (shielded && !game.modal && !hasSeenIntro(SHIELD_INTRO_KEY)) {
@@ -204,13 +205,14 @@ export function spawnBarrier(x, y, wave) {
 	const hp = computeBaseHpAt(wave) * 2;
 	game.entities.enemies.push({
 		x, y,
-		type: 'air',
 		speed: 0,
 		segment: -1,
 		radius: BARRIER_RADIUS,
 		hpMax: hp,
 		hp: hp,
 		kind: 'barrier',
+		ga: 'air',
+		name: enemyName('barrier'),
 	});
 }
 
@@ -281,14 +283,14 @@ export function drawBarrierSpawnFx(fx) {
 }
 
 export function spawnBoss() {
-	const type = getBossType(game.wave);
+	const bossType = getBossType(game.wave); // 'ground' | 'air' (= 스프라이트 종류)
+	const kind = bossType === 'ground' ? 'groundBoss' : 'airBoss';
 	const bossHp = computeBossHp(game.wave);
 	const baseSpeed = getEnemyBaseSpeed(game.wave);
 	const path = getActiveMap().path;
 	game.entities.enemies.push({
 		x: path[0].x,
 		y: path[0].y,
-		type,
 		path, // 공중 보스도 무조건 정규 경로
 		speed: baseSpeed * 0.1,
 		segment: 0,
@@ -296,7 +298,10 @@ export function spawnBoss() {
 		hpMax: bossHp,
 		hp: bossHp,
 		bobPhase: Math.random() * Math.PI * 2,
-		kind: 'boss',
+		kind,
+		spriteType: bossType,
+		ga: bossType,
+		name: enemyName(kind),
 		angle: Math.PI / 2,
 	});
 	if (!game.modal && !hasSeenIntro(BOSS_INTRO_KEY)) {
@@ -323,7 +328,7 @@ export function updateEnemy(e, dt) {
 	const dx = target.x - e.x;
 	const dy = target.y - e.y;
 	const dist = Math.hypot(dx, dy);
-	if (e.kind === 'boss' && dist > 0) {
+	if (isBoss(e) && dist > 0) {
 		e.angle = Math.atan2(dy, dx);
 	}
 	const move = e.speed * getEnemySpeedFactor(e) * dt;
@@ -379,7 +384,7 @@ export function drawBossHpBar() {
 	if (!game.bossActive) return;
 	let boss = null;
 	for (const e of game.entities.enemies) {
-		if (e.kind === 'boss' && !e.dead) { boss = e; break; }
+		if (isBoss(e) && !e.dead) { boss = e; break; }
 	}
 	if (!boss) return;
 
@@ -392,7 +397,7 @@ export function drawBossHpBar() {
 	ctx.fillRect(bx, by, bw, bh);
 
 	const ratio = Math.max(0, boss.hp / boss.hpMax);
-	ctx.fillStyle = boss.type === 'air' ? AIR_COLOR : ACCENT_RED;
+	ctx.fillStyle = boss.kind === 'airBoss' ? AIR_COLOR : ACCENT_RED;
 	ctx.fillRect(bx, by, bw * ratio, bh);
 
 	ctx.strokeStyle = '#fff';
@@ -481,164 +486,25 @@ function drawRegenAura(cx, cy, baseR) {
 	ctx.globalAlpha = 1;
 }
 
-// 적 외형(본체 모양)만 그림 — HP바·마크링·재생 오라 등 게임 오버레이는 제외.
-// drawEnemy(게임)와 위키·인트로가 공유하는 단일 소스. (cx,cy) 중심·r 반지름.
-// 적 종류 이름 (플래그 우선순위로 유도 — 스폰 분류 순서와 동일).
-function getEnemyName(e) {
-	switch (e.kind) {
-		case 'boss': return t('보스');
+// ============ kind 헬퍼 — 적 식별은 kind 단일 기준 ============
+export function isBoss(e) {
+	return e.kind === 'groundBoss' || e.kind === 'airBoss';
+}
+// 적 종류 이름 — kind로 결정. 스폰 시 e.name으로 박아 둠.
+function enemyName(kind) {
+	switch (kind) {
+		case 'groundBoss':
+		case 'airBoss': return t('보스');
 		case 'barrier': return t('장벽');
 		case 'barrierSpawner': return t('장벽 적');
 		case 'regen': return t('재생 적');
-		default: return e.type === 'air' ? t('공중 적') : t('일반 적'); // plain
-	}
-}
-
-// 적 정보 카드 — 타워 정보 패널과 동일 위치/스타일. 선택된 적의 실시간 스탯 표시.
-export function drawEnemyInfoPanel(e) {
-	const p = towerInfoPanel;
-	drawPanel(p.x, p.y, p.w, p.h, { stroke: '#e74c3c', alpha: 0.9 });
-
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-
-	// 이름 + 스프라이트 아이콘
-	const spriteType = (e.kind === 'barrier' || e.kind === 'barrierSpawner') ? 'barrier' : e.kind === 'regen' ? 'regen' : e.type;
-	drawEnemySprite(spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(getEnemyName(e), p.x + 42, p.y + 27);
-
-	ctx.font = '12px sans-serif';
-	ctx.fillStyle = '#cdd';
-	const sx = p.x + 14;
-	const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
-
-	// 항목을 균일한 행 간격으로 순서대로 배치 — rowY()는 현재 행 y를 반환하고 다음 행으로 진행.
-	// 조건부 항목(방어력/회복/장벽)이 있어도 항상 같은 간격으로 규칙적으로 쌓임.
-	const ROW = 20;
-	let row = 0;
-	const rowY = () => p.y + 52 + (row++) * ROW;
-
-	// 타입
-	ctx.fillText(t('타입: {type}', { type: e.type === 'air' ? t('공중') : t('지상') }), sx, rowY());
-
-	// 체력 — 텍스트 + 오른쪽 같은 줄 HP 바
-	const yHp = rowY();
-	const hpLabel = t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) });
-	ctx.fillText(hpLabel, sx, yHp);
-	const bh = 8;
-	const bx = sx + ctx.measureText(hpLabel).width + 10;
-	const by = yHp - bh;
-	const bw = Math.max(0, (p.x + p.w - 14) - bx);
-	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
-	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-	ctx.fillRect(bx, by, bw, bh);
-	ctx.fillStyle = e.shielded ? INFO_BLUE : '#2ecc71';
-	ctx.fillRect(bx, by, bw * ratio, bh);
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-	ctx.lineWidth = 1;
-	ctx.strokeRect(bx, by, bw, bh);
-	ctx.fillStyle = '#cdd';
-
-	// 이동 속도 (둔화 시 표기)
-	const factor = getEnemySpeedFactor(e);
-	const eff = Math.round(e.speed * factor);
-	const slowPct = factor < 1 ? Math.round((1 - factor) * 100) : 0;
-	ctx.fillText(
-		slowPct > 0
-			? t('이동 속도: {spd} (둔화 {pct}%)', { spd: eff, pct: slowPct })
-			: t('이동 속도: {spd}', { spd: eff }),
-		sx, rowY(),
-	);
-
-	// 종류별 추가 항목 — 방어막(데미지 감소량) / 재생(초당 회복률) / 장벽(생성 장벽 체력)
-	if (e.shielded) {
-		ctx.fillText(t('방어력: {n}', { n: e.shieldReduction.toFixed(1) }), sx, rowY());
-	}
-	if (e.kind === 'regen') {
-		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(e.regenRate * 100) }), sx, rowY());
-	}
-	if (e.kind === 'barrierSpawner') {
-		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(computeBaseHpAt(e.waveNum) * 2) }), sx, rowY());
-	}
-}
-
-export function drawEnemySprite(type, cx, cy, r, opts = {}) {
-	const stroke = opts.shielded ? INFO_BLUE : '#000';
-	const strokeW = opts.shielded ? 2 : 1;
-
-	if (type === 'ground') {
-		ctx.fillStyle = ACCENT_RED;
-		ctx.beginPath();
-		ctx.arc(cx, cy, r, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-	} else if (type === 'air') {
-		ctx.fillStyle = AIR_COLOR;
-		ctx.beginPath();
-		ctx.moveTo(cx, cy - r);
-		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
-		ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
-		ctx.closePath();
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-	} else if (type === 'regen') {
-		const w = r * 1.8;
-		const x = cx - w / 2;
-		const y = cy - w / 2;
-		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
-		ctx.globalAlpha = 0.25 + 0.25 * pulse;
-		ctx.fillStyle = '#2ecc71';
-		roundRect(x - 3, y - 3, w + 6, w + 6, 5);
-		ctx.fill();
-		ctx.globalAlpha = 1;
-		ctx.fillStyle = '#1e8449';
-		roundRect(x, y, w, w, 3);
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-	} else if (type === 'barrier') {
-		ctx.fillStyle = AIR_COLOR;
-		ctx.beginPath();
-		ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
-		ctx.lineTo(cx + r * 0.9, cy - r * 0.6);
-		ctx.lineTo(cx, cy + r);
-		ctx.closePath();
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-
-		// 내부 장벽 미니어처 (반투명 디스크 + 십자)
-		const inY = cy - r * 0.15;
-		const inR = 5;
-		ctx.globalAlpha = 0.55;
-		ctx.fillStyle = '#aab7c4';
-		ctx.beginPath();
-		ctx.arc(cx, inY, inR, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.globalAlpha = 1;
-		ctx.strokeStyle = '#d5dbdb';
-		ctx.lineWidth = 1;
-		ctx.stroke();
-		ctx.beginPath();
-		ctx.moveTo(cx - inR, inY);
-		ctx.lineTo(cx + inR, inY);
-		ctx.moveTo(cx, inY - inR);
-		ctx.lineTo(cx, inY + inR);
-		ctx.stroke();
+		case 'air': return t('공중 적');
+		default: return t('일반 적'); // basic
 	}
 }
 
 function drawRegenEnemy(e) {
 	drawEnemySprite('regen', e.x, e.y, e.radius, { shielded: e.shielded });
-	drawEnemyHpBar(e, e.y);
 	if (!e.regenDisabled) drawRegenAura(e.x, e.y, e.radius + 4);
 }
 
@@ -704,33 +570,45 @@ function drawBarrier(e) {
 	ctx.fill();
 }
 
+// 적 본체/HP바 중심 y — 공중 적(보스 제외)은 보빙 오프셋 포함.
+function enemyDrawY(e) {
+	if (!isBoss(e) && e.ga === 'air') {
+		return e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3;
+	}
+	return e.y;
+}
+
+// 본체만 그림. HP바는 drawEnemyHpBarOverlay에서 별도 패스로 본체 위에 올림
+// (뭉친 적끼리 나중 적 본체가 먼저 적 HP바를 가리는 문제 방지).
 export function drawEnemy(e) {
 	if (e.kind === 'barrier') {
 		drawBarrier(e);
 		return;
 	}
-	if (e.kind === 'boss') {
-		if (e.type === 'ground') drawGroundBoss(e);
-		else if (e.type === 'air') drawAirBoss(e);
+	if (e.kind === 'groundBoss') {
+		drawGroundBoss(e);
 		if (e.marked) drawMarkRing(e, e.y);
 		return; // 보스 HP는 고정 UI에 표시
+	}
+	if (e.kind === 'airBoss') {
+		drawAirBoss(e);
+		if (e.marked) drawMarkRing(e, e.y);
+		return;
 	}
 	if (e.kind === 'regen') {
 		drawRegenEnemy(e);
 		if (e.marked) drawMarkRing(e, e.y);
 		return;
 	}
-	if (e.type === 'air') {
-		const bobY = Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2;
-		const cy = e.y + bobY - 3;
-		drawEnemySprite(e.kind === 'barrierSpawner' ? 'barrier' : 'air', e.x, cy, e.radius, { shielded: e.shielded });
-		drawEnemyHpBar(e, cy);
-		if (e.marked) drawMarkRing(e, cy);
-	} else {
-		drawEnemySprite('ground', e.x, e.y, e.radius, { shielded: e.shielded });
-		drawEnemyHpBar(e, e.y);
-		if (e.marked) drawMarkRing(e, e.y);
-	}
+	const cy = enemyDrawY(e);
+	drawEnemySprite(e.spriteType, e.x, cy, e.radius, { shielded: e.shielded });
+	if (e.marked) drawMarkRing(e, cy);
+}
+
+// HP바를 본체 위에 겹쳐 그리는 별도 패스용. 보스(고정 UI)·장벽(자체 표현)은 HP바 없음.
+export function drawEnemyHpBarOverlay(e) {
+	if (e.kind === 'barrier' || isBoss(e)) return;
+	drawEnemyHpBar(e, enemyDrawY(e));
 }
 
 // ============ 장벽 차단 헬퍼 ============

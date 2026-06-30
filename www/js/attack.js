@@ -3,11 +3,11 @@ import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED, GOLD,
 import { game } from './state.js';
 import { pointToSegmentDist } from './core/helpers.js';
 import {
-	canPromote, xpMaxFor, getEffectiveRange, allowedTypesOf,
+	canPromote, getEffectiveRange, allowedTypesOf,
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
-	findBarrierBlockDist, projectileHitsBarrier,
+	findBarrierBlockDist, projectileHitsBarrier, isBoss,
 } from './enemy.js';
 
 export function applyTowerHit(shooter, target, damage) {
@@ -23,7 +23,7 @@ export function applyTowerHit(shooter, target, damage) {
 		shooter.waveDamage = Math.round(((shooter.waveDamage || 0) + dealt) * 10) / 10;
 		if (canPromote(shooter)) {
 			const next = Math.round((shooter.xp + xpGain) * 10) / 10;
-			shooter.xp = Math.min(next, xpMaxFor(shooter));
+			shooter.xp = Math.min(next, shooter.xpMax);
 		}
 		const shooterCfg = TOWER_ROLES[shooter.role];
 		if (shooterCfg && !target.dead) {
@@ -38,7 +38,7 @@ export function applyTowerHit(shooter, target, damage) {
 	// 부동소수점 잔차로 정확히 0이 안 될 수 있어(예: 3.6 - 1.2×3 ≈ 4.4e-16 > 0) 미세 양수도 사망 처리.
 	if (target.hp <= 1e-6) {
 		target.dead = true;
-		if (target.kind === 'boss') {
+		if (isBoss(target)) {
 			game.gold += getBossReward(game.wave);
 		} else if (target.kind === 'barrier') {
 			// 장벽은 보상 없음
@@ -55,7 +55,7 @@ export function applyTowerHit(shooter, target, damage) {
 export function applySplashHit(shooter, impactX, impactY, damage, radius, attackTypes) {
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
-		if (attackTypes && !attackTypes.includes(e.type)) continue;
+		if (attackTypes && !attackTypes.includes(e.ga)) continue;
 		const d = Math.hypot(e.x - impactX, e.y - impactY);
 		if (d <= radius) {
 			applyTowerHit(shooter, e, damage);
@@ -132,7 +132,7 @@ export function fireLineBeam(tower, target, damage) {
 	const dmg = damage !== undefined ? damage : tower.damage;
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
-		if (!attackTypes.includes(e.type)) continue;
+		if (!attackTypes.includes(e.ga)) continue;
 		const d = pointToSegmentDist(e.x, e.y, tower.x, tower.y, endX, endY);
 		if (d <= e.radius) {
 			applyTowerHit(tower, e, dmg);
@@ -187,7 +187,7 @@ export function updateProjectile(p, dt) {
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.kind === 'barrier') continue; // 장벽은 handleBarrierBlock에서 처리됨
-			if (p.attackTypes && !p.attackTypes.includes(e.type)) continue;
+			if (p.attackTypes && !p.attackTypes.includes(e.ga)) continue;
 			const d = Math.hypot(e.x - p.x, e.y - p.y);
 			if (d <= e.radius) {
 				if (p.splash > 0) {
