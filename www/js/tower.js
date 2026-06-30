@@ -10,7 +10,7 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
-import { drawEnemySprite } from './ui/sprite.js';
+import { drawEnemySprite, drawTier4Halo } from './ui/sprite.js';
 import { infoPanel, infoSettingsButton, drawGearButton, drawPromotionButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
@@ -694,21 +694,6 @@ function drawSiloBody(tower, cfg, selected) {
 	ctx.fill();
 }
 
-function drawTier4Halo(cx, cy, haloR) {
-	// 4티어 공통 외관 — 회전하는 6개 점
-	const time = performance.now();
-	for (let i = 0; i < 6; i++) {
-		const angle = (Math.PI * 2 * i / 6) + time / 500;
-		const px = cx + Math.cos(angle) * haloR;
-		const py = cy + Math.sin(angle) * haloR;
-		const alpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(time / 280 + i * 1.1));
-		ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-		ctx.beginPath();
-		ctx.arc(px, py, 1.6, 0, Math.PI * 2);
-		ctx.fill();
-	}
-}
-
 function drawRadarAntenna(tower) {
 	// 회전 안테나(디시) — 본체 위에 별도 디시 + sweeping 빔
 	const sweep = (performance.now() / 600) % (Math.PI * 2);
@@ -740,7 +725,7 @@ function drawRadarAntenna(tower) {
 // 타워 외형(4티어 후광 + 본체 + 레이더 안테나)만 그림.
 // 게임 전용 요소(전직 펄스·XP 바)는 제외 → drawTower와 위키가 공유하는 단일 소스.
 function drawTowerBody(tower, cfg, selected) {
-	if (tower.tier === 4) drawTier4Halo(tower.x, tower.y, TOWER.radius + 8);
+	if (tower.tier === 4) drawTier4Halo(tower);
 
 	if (cfg.disablesModifiers) {
 		drawAssassinBody(tower, cfg, selected);

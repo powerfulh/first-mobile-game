@@ -1,7 +1,7 @@
 // 적 스프라이트 — 본체 모양만 그림 (HP바·마크링·재생 오라 등 게임 오버레이는 제외).
 // 게임/위키/인트로/정보패널/HUD 요약이 공유하는 순수 렌더 프리미티브. type 문자열로 모양 선택.
 import { ctx } from '../core/canvas.js';
-import { AIR_COLOR, ACCENT_RED, INFO_BLUE } from '../core/config.js';
+import { AIR_COLOR, ACCENT_RED, INFO_BLUE, TOWER } from '../core/config.js';
 import { roundRect } from '../core/helpers.js';
 
 export function drawEnemySprite(type, cx, cy, r, opts = {}) {
@@ -73,5 +73,24 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.moveTo(cx, inY - inR);
 		ctx.lineTo(cx, inY + inR);
 		ctx.stroke();
+	}
+}
+
+// 4티어 공통 후광 — 회전하는 6개 점. 타워 참조만 받아 본체 반지름 바깥에 그림.
+export function drawTier4Halo(tower) {
+	const HALO_MARGIN = 8;                   // 타워 본체 반지름보다 이만큼 바깥에 후광을 그림
+	const haloR = TOWER.radius + HALO_MARGIN;
+	const cx = tower.x;
+	const cy = tower.y;
+	const time = performance.now();
+	for (let i = 0; i < 6; i++) {
+		const angle = (Math.PI * 2 * i / 6) + time / 500;
+		const px = cx + Math.cos(angle) * haloR;
+		const py = cy + Math.sin(angle) * haloR;
+		const alpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(time / 280 + i * 1.1));
+		ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+		ctx.beginPath();
+		ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+		ctx.fill();
 	}
 }
