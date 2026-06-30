@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, HUD_RESERVED_TOP, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -15,7 +15,7 @@ import {
 	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
 } from './enemy.js';
 import {
-	placeTower, canPlaceTower, canPromote, drawTowerSprite,
+	placeTower, createGhostTower, moveGhostTower, canPlaceTower, canPromote, drawTowerSprite,
 	promoteTower, updateTower, drawTower,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
@@ -384,13 +384,8 @@ function ghostConfirmRect() {
 function drawGhostTower() {
 	const g = game.ghostTower;
 	const ok = canPlaceTower(g.x, g.y);
-	// 사거리 미리보기
-	ctx.globalAlpha = 0.12;
-	ctx.fillStyle = '#3498db';
-	ctx.beginPath();
-	ctx.arc(g.x, g.y, TOWER_ROLES.novice.range, 0, Math.PI * 2);
-	ctx.fill();
-	ctx.globalAlpha = 1;
+	// 사거리 미리보기 — drawTowerRange 재사용 (채움만, 테두리 0). g.range = 현재 위치 버프 반영 사거리.
+	drawTowerRange(g, 0.12, 0);
 	// 고스트 본체 (반투명) + 유효성 링
 	ctx.globalAlpha = 0.55;
 	drawTowerSprite('novice', g.x, g.y);
@@ -773,16 +768,13 @@ scenes.playing = {
 		if (getOneTouchPlace()) {
 			if (placeTower(p.x, p.y)) playTowerPlace();
 		} else {
-			game.ghostTower = { x: p.x, y: p.y, dragging: true }; // 2단계 배치 고스트
+			createGhostTower(p.x, p.y); // 2단계 배치 고스트
 			playButton();
 		}
 	},
 	pointerMove(p) {
 		if (game.settingsOpen) { volumePointerMove(p); return; }
-		if (game.ghostTower && game.ghostTower.dragging) {
-			game.ghostTower.x = Math.max(TOWER.radius, Math.min(LOGICAL_W - TOWER.radius, p.x));
-			game.ghostTower.y = Math.max(HUD_RESERVED_TOP + TOWER.radius, Math.min(LOGICAL_H - TOWER.radius, p.y));
-		}
+		moveGhostTower(p.x, p.y);
 	},
 	pointerUp() {
 		volumePointerUp();

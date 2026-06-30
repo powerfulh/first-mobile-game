@@ -216,6 +216,21 @@ export function placeTower(x, y) {
 	return true;
 }
 
+// 2단계 배치 고스트 — novice 미리보기. 사거리는 현재 위치 기준 버프 반영(getEffectiveRange)으로 즉시 갱신.
+export function createGhostTower(x, y) {
+	const ghost = { x, y, role: 'novice', tier: 0, dragging: true };
+	ghost.range = getEffectiveRange(ghost);
+	game.ghostTower = ghost;
+}
+
+export function moveGhostTower(x, y) {
+	const ghost = game.ghostTower;
+	if (!ghost || !ghost.dragging) return;
+	ghost.x = Math.max(TOWER.radius, Math.min(LOGICAL_W - TOWER.radius, x));
+	ghost.y = Math.max(HUD_RESERVED_TOP + TOWER.radius, Math.min(LOGICAL_H - TOWER.radius, y));
+	ghost.range = getEffectiveRange(ghost); // 위치가 바뀌면 버프 커버 여부도 바뀌므로 재계산
+}
+
 export function promoteTower(tower, role) {
 	if (!isPromotionReady(tower)) return false;
 	if (!canAffordPromotion(tower)) return false;
