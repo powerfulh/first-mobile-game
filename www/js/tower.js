@@ -83,27 +83,19 @@ export function getEffectiveRange(tower, visited) {
 	}
 }
 
-export function getEffectiveDamage(tower, visited) {
-	visited = visited || new Set();
-	if (visited.has(tower)) return tower.damage;
-	visited.add(tower);
-	try {
-		const buffRate = TOWER.buffRates[tower.tier];
-		if (buffRate === undefined) return tower.damage;
-		for (const other of game.entities.towers) {
-			if (other === tower) continue;
-			const otherCfg = TOWER_ROLES[other.role];
-			if (!otherCfg.buffsDamage) continue;
-			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
-			const otherRange = getEffectiveRange(other);
-			if (d <= otherRange) {
-				return tower.damage * (1 + buffRate);
-			}
+export function getEffectiveDamage(tower) {
+	const buffRate = TOWER.buffRates[tower.tier];
+	if (buffRate === undefined) return tower.damage;
+	for (const other of game.entities.towers) {
+		if (other === tower) continue;
+		const otherCfg = TOWER_ROLES[other.role];
+		if (!otherCfg.buffsDamage) continue;
+		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
+		if (d <= getEffectiveRange(other)) {
+			return tower.damage * (1 + buffRate);
 		}
-		return tower.damage;
-	} finally {
-		visited.delete(tower);
 	}
+	return tower.damage;
 }
 
 export function getXpGainAtWaveEnd(tower) {
