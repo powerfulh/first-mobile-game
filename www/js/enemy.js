@@ -146,10 +146,11 @@ export function spawnEnemy(spawner) {
 	const baseHp = computeBaseHpAt(wave);
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
-	let kind;
-	if (Math.random() < getBarrierSpawnerChance(wave)) kind = 'barrierSpawner';
-	else if (Math.random() < getRegenChance(wave)) kind = 'regen';
-	else kind = Math.random() < getAirChance(wave) ? 'air' : 'basic';
+	let kind, spriteType;
+	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; }
+	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; }
+	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; }
+	else { kind = 'basic'; spriteType = 'ground'; }
 	const isAir = AIR_KINDS.has(kind);
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
@@ -166,6 +167,7 @@ export function spawnEnemy(spawner) {
 		x: enemyPath[0].x,
 		y: enemyPath[0].y,
 		kind,
+		spriteType,
 		name: enemyName(kind),
 		path: enemyPath,
 		speed,
@@ -180,9 +182,8 @@ export function spawnEnemy(spawner) {
 		barrierHp: kind === 'barrierSpawner' ? hp * 2 : 0,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
-	// 출현 요약 카운트 (배타적 분류: 장벽 → 재생 → 공중 → 일반)
-	const cat = kind === 'barrierSpawner' ? 'barrierSpawner' : kind === 'regen' ? 'regen' : kind === 'air' ? 'air' : 'ground';
-	game.waveSpawnCounts[cat] = (game.waveSpawnCounts[cat] || 0) + 1;
+	// 출현 요약 카운트 — 분류 키 = 스프라이트 종류 (요약이 스프라이트로 표시)
+	game.waveSpawnCounts[spriteType] = (game.waveSpawnCounts[spriteType] || 0) + 1;
 	if (kind === 'air' && !game.modal && !hasSeenIntro(AIR_INTRO_KEY)) {
 		game.modal = { type: 'airIntro' };
 	}
@@ -280,7 +281,8 @@ export function drawBarrierSpawnFx(fx) {
 }
 
 export function spawnBoss() {
-	const kind = getBossType(game.wave) === 'ground' ? 'groundBoss' : 'airBoss';
+	const bossType = getBossType(game.wave); // 'ground' | 'air' (= 스프라이트 종류)
+	const kind = bossType === 'ground' ? 'groundBoss' : 'airBoss';
 	const bossHp = computeBossHp(game.wave);
 	const baseSpeed = getEnemyBaseSpeed(game.wave);
 	const path = getActiveMap().path;
@@ -295,6 +297,7 @@ export function spawnBoss() {
 		hp: bossHp,
 		bobPhase: Math.random() * Math.PI * 2,
 		kind,
+		spriteType: bossType,
 		name: enemyName(kind),
 		angle: Math.PI / 2,
 	});
@@ -600,8 +603,7 @@ export function drawEnemy(e) {
 		return;
 	}
 	const cy = enemyDrawY(e);
-	const sprite = e.kind === 'barrierSpawner' ? 'barrierSpawner' : AIR_KINDS.has(e.kind) ? 'air' : 'ground';
-	drawEnemySprite(sprite, e.x, cy, e.radius, { shielded: e.shielded });
+	drawEnemySprite(e.spriteType, e.x, cy, e.radius, { shielded: e.shielded });
 	if (e.marked) drawMarkRing(e, cy);
 }
 
