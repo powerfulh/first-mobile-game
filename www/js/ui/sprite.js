@@ -94,3 +94,31 @@ export function drawTier4Halo(tower) {
 		ctx.fill();
 	}
 }
+
+// 타워 사거리 표시 — 채움 원(+ minRange 도넛) + 테두리. minRange는 선택 인자(기본 0, 미지정 시 단일 원).
+export function drawTowerRange(tower, fillAlpha, strokeAlpha, minRange = 0) {
+	const range = tower.range;
+
+	ctx.globalAlpha = fillAlpha;
+	ctx.fillStyle = '#3498db';
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
+	if (minRange > 0) {
+		// 도넛 — 내경을 반대 방향으로 추가 후 evenodd로 가운데 비움
+		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2, true);
+	}
+	ctx.fill('evenodd');
+
+	ctx.globalAlpha = strokeAlpha;
+	ctx.strokeStyle = INFO_BLUE;
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
+	ctx.stroke();
+	if (minRange > 0) {
+		ctx.beginPath();
+		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2);
+		ctx.stroke();
+	}
+	ctx.globalAlpha = 1;
+}

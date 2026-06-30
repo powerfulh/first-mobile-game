@@ -802,35 +802,6 @@ export function drawTower(tower) {
 	}
 }
 
-export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
-	const cfg = TOWER_ROLES[tower.role];
-	const range = tower.range;
-	const minRange = cfg.minRange || 0;
-
-	ctx.globalAlpha = fillAlpha;
-	ctx.fillStyle = '#3498db';
-	ctx.beginPath();
-	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
-	if (minRange > 0) {
-		// 도넛 — 내경을 반대 방향으로 추가 후 evenodd로 가운데 비움
-		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2, true);
-	}
-	ctx.fill('evenodd');
-
-	ctx.globalAlpha = strokeAlpha;
-	ctx.strokeStyle = INFO_BLUE;
-	ctx.lineWidth = 1;
-	ctx.beginPath();
-	ctx.arc(tower.x, tower.y, range, 0, Math.PI * 2);
-	ctx.stroke();
-	if (minRange > 0) {
-		ctx.beginPath();
-		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2);
-		ctx.stroke();
-	}
-	ctx.globalAlpha = 1;
-}
-
 // ============ Tower info panel / Promotion panel ============
 export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
 export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };

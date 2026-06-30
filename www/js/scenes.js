@@ -16,12 +16,13 @@ import {
 } from './enemy.js';
 import {
 	placeTower, canPlaceTower, canPromote, drawTowerSprite,
-	promoteTower, updateTower, drawTower, drawTowerRange,
+	promoteTower, updateTower, drawTower,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
+import { drawTowerRange } from './ui/sprite.js';
 import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawSplash, drawZap,
@@ -552,10 +553,10 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) {
 			if (tower === game.selectedTower) continue;
-			drawTowerRange(tower, 0.05, 0.12);
+			drawTowerRange(tower, 0.05, 0.12, TOWER_ROLES[tower.role].minRange);
 		}
 		if (game.selectedTower) {
-			drawTowerRange(game.selectedTower, 0.18, 0.5);
+			drawTowerRange(game.selectedTower, 0.18, 0.5, TOWER_ROLES[game.selectedTower.role].minRange);
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
