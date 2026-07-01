@@ -830,9 +830,8 @@ export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 // 타워의 전직 관련 상태 — 단일 값(약속된 문자열). 드로잉(라벨·활성)·핸들링(액션)이 이것 하나로 도출.
 // 'notReady'(XP부족) | 'noGold'(골드부족) | 'openChoice'(전직 선택 패널) | 'setTarget'(4티어 대상 지정) | 'cancelTarget'(대상 취소)
 function getPromotionState(tower) {
-	const ready = isPromotionReady(tower);
+	if (isPromotionReady(tower) == false) return 'notReady';
 	if (tower.tier === 3) {
-		if (!ready) return 'notReady';
 		if (tower === game.promotionTarget) return 'cancelTarget';
 		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
 			const afford = game.sandbox || game.gold >= tower.promotionCost;
@@ -840,7 +839,6 @@ function getPromotionState(tower) {
 		}
 		return 'setTarget';
 	}
-	if (!ready) return 'notReady';
 	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 }
 
