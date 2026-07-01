@@ -9,7 +9,7 @@ import {
 	getIntermissionEnabled, getUnlockedMaps, clearEffects,
 } from './state.js';
 import { getActiveMap, MAPS } from './core/maps.js';
-import { roundRect, drawButton, hitButton, drawPath } from './core/helpers.js';
+import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
 	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
@@ -35,7 +35,7 @@ import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
 	drawToast,
-	drawSettingsModal,
+	drawSettingsModal, drawPath,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import { drawEnemyInfoPanel, drawTowerInfoPanel, infoSettingsButton, infoPanel, infoPromotionButton } from './ui/panel.js';
@@ -138,7 +138,7 @@ scenes.title = {
 	draw() {
 		ctx.fillStyle = '#1a2e1a';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-		drawPath(0.25);
+		drawPath(getActiveMap(), 0.25);
 
 		ctx.textAlign = 'center';
 
@@ -544,7 +544,7 @@ scenes.playing = {
 		updateHUD();
 		ctx.fillStyle = '#2d4a2b';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-		drawPath();
+		drawPath(getActiveMap());
 
 		for (const tower of game.entities.towers) {
 			if (tower === game.selectedTower) continue;
