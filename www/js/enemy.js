@@ -5,7 +5,7 @@ import {
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, round1 } from './core/helpers.js';
+import { pointToSegmentDist, round1, clamp } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
 import { getEnemySpeedFactor } from './tower.js';
 import { getNarrowRange } from './wave.js';
@@ -82,7 +82,7 @@ export function getShieldChance(wave, spawnInterval) {
 	const span = maxN - minN;
 	const currentNarrow = baseInterval > 0 ? spawnInterval / baseInterval : 1;
 	const ratio = span > 0
-		? Math.max(0, Math.min(1, (currentNarrow - minN) / span))
+		? clamp((currentNarrow - minN) / span, 0, 1)
 		: 1;
 	// 상한 누적: Wave 81~90 +2%/wave, 101~110 +1%/wave, 181~190 +3%/wave
 	const bonus = Math.min(0.2, Math.max(0, (wave - 80) * 0.02));

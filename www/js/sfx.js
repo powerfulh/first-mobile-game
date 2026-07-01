@@ -2,6 +2,7 @@
 // BGM(audio.js)과 별개이며, 효과음 볼륨도 배경음과 독립된 자체 마스터(SFX_VOLUME_KEY).
 // 새 효과음은 export function 하나씩 추가 (getCtx로 AudioContext 확보 후 합성).
 import { SFX_VOLUME_KEY } from './core/config.js';
+import { clamp } from './core/helpers.js';
 
 let ctx = null;
 let sfxVolume = loadSfxVolume();
@@ -9,7 +10,7 @@ let sfxVolume = loadSfxVolume();
 function loadSfxVolume() {
 	try {
 		const v = parseFloat(localStorage.getItem(SFX_VOLUME_KEY));
-		return isNaN(v) ? 0.5 : Math.min(1, Math.max(0, v));
+		return isNaN(v) ? 0.5 : clamp(v, 0, 1);
 	} catch (e) {
 		return 0.5;
 	}
@@ -18,7 +19,7 @@ function loadSfxVolume() {
 export function getSfxVolume() { return sfxVolume; }
 
 export function setSfxVolume(v) {
-	sfxVolume = Math.min(1, Math.max(0, v));
+	sfxVolume = clamp(v, 0, 1);
 	try { localStorage.setItem(SFX_VOLUME_KEY, String(sfxVolume)); } catch (e) {}
 }
 

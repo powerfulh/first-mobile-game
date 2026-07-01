@@ -1,7 +1,7 @@
 // 설정 모달 — 모델(볼륨/설정 게터·세터) + 레이아웃 + 입력 처리.
 // 그리기는 ui.js의 drawSettingsModal이 settingsView()로 받아 렌더.
 import { LOGICAL_H } from './core/config.js';
-import { hitButton } from './core/helpers.js';
+import { hitButton, clamp } from './core/helpers.js';
 import { getBgmVolume, setBgmVolume } from './audio.js';
 import { getSfxVolume, setSfxVolume, playButton } from './sfx.js';
 import {
@@ -60,7 +60,7 @@ let activeSlider = -1; // 드래그 중인 슬라이더 인덱스 (-1 = 없음)
 
 function sliderValueFromX(px) {
 	const s = SLIDER_TRACK;
-	return Math.min(1, Math.max(0, (px - s.x) / s.w));
+	return clamp((px - s.x) / s.w, 0, 1);
 }
 
 // 포인터가 어느 슬라이더 트랙 위인지 반환 (없으면 -1)

@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED, INFO_BLUE, SLATE } from './core/config.js';
-import { roundRect, hitButton } from './core/helpers.js';
+import { roundRect, hitButton, clamp } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawTowerSprite } from './tower.js';
 import { drawEnemySprite } from './ui/sprite.js';
@@ -198,7 +198,7 @@ export const wiki = {
 
 function clampScroll(v) {
 	const max = Math.max(0, wiki.contentMax - CONTENT_H);
-	return Math.max(0, Math.min(max, v));
+	return clamp(v, 0, max);
 }
 
 // ============ 헤더 ============

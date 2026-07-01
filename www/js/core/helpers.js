@@ -7,6 +7,8 @@ import { getActiveMap } from './maps.js';
 export const hasItems = (arr) => !!arr && arr.length > 0;
 // 소수 1자리 반올림 (게임 수치 표시·누적 공통).
 export const round1 = (x) => Math.round(x * 10) / 10;
+// v를 [lo, hi] 범위로 클램프.
+export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 // ============ Geometry helpers ============
 export function pointToSegmentDist(px, py, ax, ay, bx, by) {
@@ -14,7 +16,7 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 	const dy = by - ay;
 	const lenSq = dx * dx + dy * dy;
 	let t = lenSq === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / lenSq;
-	t = Math.max(0, Math.min(1, t));
+	t = clamp(t, 0, 1);
 	const cx = ax + t * dx;
 	const cy = ay + t * dy;
 	return Math.hypot(px - cx, py - cy);

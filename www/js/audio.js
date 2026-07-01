@@ -4,6 +4,7 @@
 // 볼륨은 GainNode.gain (0~1, 0이면 무음이지만 루프는 계속). 설정 모달 슬라이더가 setBgmVolume으로 조절.
 // 곡 전환: 보스로/에서·최초 재생은 즉시, 그 외 곡 변경은 기존 곡 정지 → 0.4초 무음 → 새 곡.
 import { BGM_VOLUME_KEY } from './core/config.js';
+import { clamp } from './core/helpers.js';
 
 const SRC = {
 	normal: 'assets/audio/bgm.mp3',
@@ -24,7 +25,7 @@ const TRACK_SWAP_GAP_MS = 400;
 function loadVolume() {
 	try {
 		const v = parseFloat(localStorage.getItem(BGM_VOLUME_KEY));
-		return isNaN(v) ? 0.5 : Math.min(1, Math.max(0, v));
+		return isNaN(v) ? 0.5 : clamp(v, 0, 1);
 	} catch (e) {
 		return 0.5;
 	}
@@ -125,7 +126,7 @@ export function syncBattleMusic(bossActive, mapBgm = 'normal') {
 export function getBgmVolume() { return volume; }
 
 export function setBgmVolume(v) {
-	volume = Math.min(1, Math.max(0, v));
+	volume = clamp(v, 0, 1);
 	try { localStorage.setItem(BGM_VOLUME_KEY, String(volume)); } catch (e) {}
 	if (gain) gain.gain.value = volume;
 }
