@@ -11,7 +11,7 @@ import {
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawEnemySprite, drawTier4Halo } from './ui/sprite.js';
-import { infoPanel, infoSettingsButton, drawGearButton, drawPromotionButton } from './ui/panel.js';
+import { infoPanel } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -834,7 +834,7 @@ export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
 
 // 타워의 전직 관련 상태 — 단일 값(약속된 문자열). 드로잉(라벨·활성)·핸들링(액션)이 이것 하나로 도출.
 // 'notReady'(XP부족) | 'noGold'(골드부족) | 'openChoice'(전직 선택 패널) | 'setTarget'(4티어 대상 지정) | 'cancelTarget'(대상 취소)
-function getPromotionState(tower) {
+export function getPromotionState(tower) {
 	if (isPromotionReady(tower) == false) return 'notReady';
 	if (tower.tier === 3) {
 		if (tower === game.promotionTarget) return 'cancelTarget';
@@ -864,93 +864,6 @@ export function handlePromotionButton(tower) {
 		default:
 			return false; // notReady, noGold
 	}
-}
-
-export function drawTowerInfoPanel(tower) {
-	const cfg = tower.cfg;
-	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
-
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	const nameWidth = ctx.measureText(cfg.name).width;
-	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
-
-	ctx.font = 'bold 11px sans-serif';
-	const tierX = infoPanel.x + 14 + nameWidth + 8;
-	const tierY = infoPanel.y + 22;
-	const tierStr = `Tier ${tower.tier}`;
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-	ctx.lineWidth = 2.5;
-	ctx.lineJoin = 'round';
-	ctx.strokeText(tierStr, tierX, tierY);
-	ctx.fillStyle = cfg.color;
-	ctx.fillText(tierStr, tierX, tierY);
-	ctx.lineWidth = 1;
-
-	ctx.font = '12px sans-serif';
-	ctx.fillStyle = '#cdd';
-	const sx = infoPanel.x + 14;
-	const sy = infoPanel.y + 50;
-	const total = Math.round((tower.totalDamage || 0) * 10) / 10;
-	const atkLabels = { ground: t('지상'), air: t('공중') };
-	const hasAttack = (cfg.attackTypes || []).length > 0;
-	const activeTypes = [];
-	if (tower.canGround) activeTypes.push('ground');
-	if (tower.canAir) activeTypes.push('air');
-	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('없음');
-
-	if (hasAttack) {
-		const effDmg = tower.damage;
-		const baseDmg = cfg.damage;
-		const dmgBuffPct = effDmg > baseDmg ? Math.round((effDmg / baseDmg - 1) * 100) : 0;
-		const dpsValue = Math.round(effDmg * cfg.fireRate * 10) / 10;
-		const dmgValue = Math.round(effDmg * 10) / 10;
-		const dmgStr = dmgBuffPct > 0
-			? t('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
-			: t('데미지: {dmg} ({dps}/초)', { dmg: baseDmg, dps: dpsValue });
-		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(t('발사속도: {rate}/초', { rate: cfg.fireRate.toFixed(1) }), sx, sy + 18);
-	} else {
-		ctx.fillText(t('데미지: —'), sx, sy);
-		ctx.fillText(t('발사속도: —'), sx, sy + 18);
-	}
-
-	const effRange = tower.range;
-	const baseRange = tower.cfg.range;
-	const buffPct = effRange > baseRange ? Math.round((effRange / baseRange - 1) * 100) : 0;
-	const rangeStr = buffPct > 0
-		? t('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
-		: t('사거리: {range}', { range: baseRange });
-	ctx.fillText(rangeStr, sx + 160, sy);
-	ctx.fillText(t('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
-	const wave = Math.round((tower.waveDamage || 0) * 10) / 10;
-	ctx.fillText(t('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
-	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
-
-	if (tower.canPromote) {
-		const xpMax = tower.xpMax;
-		const bx = sx;
-		const by = sy + 44;
-		const bw = 240;
-		const bh = 8;
-		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-		ctx.fillRect(bx, by, bw, bh);
-		ctx.fillStyle = tower.xp >= xpMax ? GOLD : INFO_BLUE;
-		ctx.fillRect(bx, by, bw * ratio, bh);
-		ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-		ctx.lineWidth = 1;
-		ctx.strokeRect(bx, by, bw, bh);
-		ctx.fillStyle = '#fff';
-		ctx.font = '10px sans-serif';
-		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
-
-		drawPromotionButton(tower, getPromotionState(tower));
-	}
-
-	drawGearButton(infoSettingsButton);
 }
 
 // ---- 설정 카드 우선순위 컨트롤 ----
