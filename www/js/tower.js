@@ -22,11 +22,10 @@ export function applyTierStats(tower) {
 	tower.canPromote = computeCanPromote(tower); // tier·role 파생 — 여기서 함께 구움
 }
 
-// tier·role만으로 정해지는 전직 가능 여부 (비공개). 소비처는 tower.canPromote 필드를 읽음.
+// 전직 가능 여부 (비공개). 전직 트리가 완결(모든 tier<4 역할이 다음 단계 보유)이라 현재는 tier만으로 충분.
+// 소비처는 tower.canPromote 필드. 향후 5티어 등 역할별 조건이 다시 필요하면 이 함수에서 확장.
 function computeCanPromote(tower) {
-	if (tower.tier >= TOWER.maxTier) return false;
-	if (tower.tier === 3) return !!TIER4_RECIPES[tower.role]; // 4티어는 레시피 등록된 3티어만
-	return TOWER_ROLES[tower.role].promotions.length > 0;
+	return tower.tier < TOWER.maxTier;
 }
 
 export function isPromotionReady(tower) {
