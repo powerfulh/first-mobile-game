@@ -117,7 +117,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.fillStyle = '#cdd';
 	const sx = infoPanel.x + 14;
 	const sy = infoPanel.y + 50;
-	const total = round1(tower.totalDamage || 0);
+	const total = round1(tower.totalDamage);
 	const atkLabels = { ground: t('지상'), air: t('공중') };
 	const activeTypes = [];
 	if (tower.canGround) activeTypes.push('ground');
@@ -148,7 +148,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		: t('사거리: {range}', { range: baseRange });
 	ctx.fillText(rangeStr, sx + 160, sy);
 	ctx.fillText(t('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
-	const wave = round1(tower.waveDamage || 0);
+	const wave = round1(tower.waveDamage);
 	ctx.fillText(t('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
 	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 

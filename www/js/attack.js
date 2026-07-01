@@ -19,8 +19,8 @@ export function applyTowerHit(shooter, target, damage) {
 	const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시
 	target.hp -= effective;
 	if (shooter) {
-		shooter.totalDamage = round1((shooter.totalDamage || 0) + dealt);
-		shooter.waveDamage = round1((shooter.waveDamage || 0) + dealt);
+		shooter.totalDamage = round1(shooter.totalDamage + dealt);
+		shooter.waveDamage = round1(shooter.waveDamage + dealt);
 		if (shooter.canPromote) {
 			const next = round1(shooter.xp + xpGain);
 			shooter.xp = Math.min(next, shooter.xpMax);
