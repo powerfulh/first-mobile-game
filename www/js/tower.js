@@ -19,16 +19,18 @@ import { t } from './core/i18n.js';
 export function applyTierStats(tower) {
 	tower.xpMax = TOWER.xpThresholds[tower.tier] || 0;
 	tower.promotionCost = TOWER.promotionCosts[tower.tier] || 0;
+	tower.canPromote = computeCanPromote(tower); // tier·role 파생 — 여기서 함께 구움
 }
 
-export function canPromote(tower) {
+// tier·role만으로 정해지는 전직 가능 여부 (비공개). 소비처는 tower.canPromote 필드를 읽음.
+function computeCanPromote(tower) {
 	if (tower.tier >= TOWER.maxTier) return false;
 	if (tower.tier === 3) return !!TIER4_RECIPES[tower.role]; // 4티어는 레시피 등록된 3티어만
 	return TOWER_ROLES[tower.role].promotions.length > 0;
 }
 
 export function isPromotionReady(tower) {
-	return canPromote(tower) && (game.sandbox || tower.xp >= tower.xpMax);
+	return tower.canPromote && (game.sandbox || tower.xp >= tower.xpMax);
 }
 
 export function canAffordPromotion(tower) {
@@ -125,7 +127,7 @@ export function getXpGainAtWaveEnd(tower) {
 // 일반 배치 종료 시점과 병렬 웨이브 추가 호출 시점에서 공통 사용.
 export function grantWaveEndXp() {
 	for (const tower of game.entities.towers) {
-		if (!canPromote(tower)) continue;
+		if (!tower.canPromote) continue;
 		const gain = getXpGainAtWaveEnd(tower);
 		tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, tower.xpMax);
 	}
@@ -303,7 +305,7 @@ export function updateTower(tower, dt) {
 			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d > range) continue;
 			next.add(e);
-			if (!tower.inRangeEnemies.has(e) && canPromote(tower)) {
+			if (!tower.inRangeEnemies.has(e) && tower.canPromote) {
 				tower.xp = Math.min(tower.xpMax, Math.round((tower.xp + 1) * 10) / 10);
 			}
 		}
@@ -804,7 +806,7 @@ export function drawTower(tower) {
 
 	drawTowerBody(tower, cfg, selected);
 
-	if (canPromote(tower)) {
+	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
 		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		const bw = 24, bh = 3;
@@ -924,7 +926,7 @@ export function drawTowerInfoPanel(tower) {
 	ctx.fillText(t('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
 	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 
-	if (canPromote(tower)) {
+	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
 		const bx = sx;
 		const by = sy + 44;

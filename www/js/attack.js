@@ -3,7 +3,7 @@ import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED, GOLD,
 import { game } from './state.js';
 import { pointToSegmentDist } from './core/helpers.js';
 import {
-	canPromote, allowedTypesOf,
+	allowedTypesOf,
 } from './tower.js';
 import {
 	getBossReward, startBarrierSpawn,
@@ -21,7 +21,7 @@ export function applyTowerHit(shooter, target, damage) {
 	if (shooter) {
 		shooter.totalDamage = Math.round(((shooter.totalDamage || 0) + dealt) * 10) / 10;
 		shooter.waveDamage = Math.round(((shooter.waveDamage || 0) + dealt) * 10) / 10;
-		if (canPromote(shooter)) {
+		if (shooter.canPromote) {
 			const next = Math.round((shooter.xp + xpGain) * 10) / 10;
 			shooter.xp = Math.min(next, shooter.xpMax);
 		}

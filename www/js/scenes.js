@@ -15,7 +15,7 @@ import {
 	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
 } from './enemy.js';
 import {
-	placeTower, createGhostTower, moveGhostTower, canPlaceTower, canPromote, drawTowerSprite,
+	placeTower, createGhostTower, moveGhostTower, canPlaceTower, drawTowerSprite,
 	promoteTower, updateTower, drawTower,
 	drawTowerInfoPanel, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
@@ -744,7 +744,7 @@ scenes.playing = {
 				game.towerPanel = TOWER_PANEL.SETTINGS;
 				return;
 			}
-			if (canPromote(game.selectedTower) && hitButton(infoPromotionButton, p)) {
+			if (game.selectedTower.canPromote && hitButton(infoPromotionButton, p)) {
 				if (handlePromotionButton(game.selectedTower)) playButton();
 				return;
 			}
