@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -548,10 +548,10 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) {
 			if (tower === game.selectedTower) continue;
-			drawTowerRange(tower, 0.05, 0.12, TOWER_ROLES[tower.role].minRange);
+			drawTowerRange(tower, 0.05, 0.12, tower.cfg.minRange);
 		}
 		if (game.selectedTower) {
-			drawTowerRange(game.selectedTower, 0.18, 0.5, TOWER_ROLES[game.selectedTower.role].minRange);
+			drawTowerRange(game.selectedTower, 0.18, 0.5, game.selectedTower.cfg.minRange);
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
@@ -721,7 +721,7 @@ scenes.playing = {
 				return;
 			}
 
-			const promotions = TOWER_ROLES[game.selectedTower.role].promotions;
+			const promotions = game.selectedTower.cfg.promotions;
 			for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
 				if (hitButton(promotionCardSlots[i], p)) {
 					if (promoteTower(game.selectedTower, promotions[i])) {

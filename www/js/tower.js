@@ -16,16 +16,28 @@ import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
 // tier 파생 스탯(목표 XP·전직 비용)을 인스턴스에 구움 — tier가 바뀌는 모든 지점에서 호출.
-export function applyTierStats(tower) {
+// tier·role 파생값을 인스턴스에 굽는다 (비공개 — setTowerTier 경유). cfg는 config 객체 참조 캐시.
+function applyTierStats(tower) {
+	tower.cfg = TOWER_ROLES[tower.role];
 	tower.xpMax = TOWER.xpThresholds[tower.tier] || 0;
 	tower.promotionCost = TOWER.promotionCosts[tower.tier] || 0;
-	tower.canPromote = computeCanPromote(tower); // tier·role 파생 — 여기서 함께 구움
+	tower.canPromote = computeCanPromote(tower);
 }
 
 // 전직 가능 여부 (비공개). 전직 트리가 완결(모든 tier<4 역할이 다음 단계 보유)이라 현재는 tier만으로 충분.
 // 소비처는 tower.canPromote 필드. 향후 5티어 등 역할별 조건이 다시 필요하면 이 함수에서 확장.
 function computeCanPromote(tower) {
 	return tower.tier < TOWER.maxTier;
+}
+
+// role/tier 변경 단일 진입점 — 파생 스탯(cfg 포함)을 먼저 굽고 우선순위를 초기화(순서 보장).
+// prevRole 있으면 전직(능력 동일 시 설정 유지), 없으면 신규/로드/고스트 기본값.
+export function setTowerTier(tower, role, tier, prevRole) {
+	tower.role = role;
+	tower.tier = tier;
+	applyTierStats(tower);
+	if (prevRole === undefined) applyTowerPriorityDefaults(tower);
+	else applyTowerPriorityOnPromote(tower, prevRole);
 }
 
 export function isPromotionReady(tower) {
@@ -62,7 +74,7 @@ export function hasReadyTier4Candidate() {
 // ============ Buff / range helpers ============
 // 버프 적용 사거리 계산 (비공개) — base는 인스턴스가 아니라 config(role)에서. 결과는 recomputeStats가 tower.range에 캐시.
 function getEffectiveRange(tower, visited) {
-	const base = TOWER_ROLES[tower.role].range;
+	const base = tower.cfg.range;
 	visited = visited || new Set();
 	if (visited.has(tower)) return base;
 	visited.add(tower);
@@ -71,7 +83,7 @@ function getEffectiveRange(tower, visited) {
 		if (buffRate === undefined) return base;
 		for (const other of game.entities.towers) {
 			if (other === tower) continue;
-			const otherCfg = TOWER_ROLES[other.role];
+			const otherCfg = other.cfg;
 			if (!otherCfg.buffsRange) continue;
 			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 			const otherRange = getEffectiveRange(other, visited);
@@ -94,12 +106,12 @@ export function recomputeStats() {
 
 // 버프 적용 데미지 계산 (비공개) — base는 config(role)에서. 결과는 recomputeStats가 tower.damage에 캐시.
 function getEffectiveDamage(tower) {
-	const base = TOWER_ROLES[tower.role].damage;
+	const base = tower.cfg.damage;
 	const buffRate = TOWER.buffRates[tower.tier];
 	if (buffRate === undefined) return base;
 	for (const other of game.entities.towers) {
 		if (other === tower) continue;
-		const otherCfg = TOWER_ROLES[other.role];
+		const otherCfg = other.cfg;
 		if (!otherCfg.buffsDamage) continue;
 		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 		if (d <= other.range) {
@@ -112,7 +124,7 @@ function getEffectiveDamage(tower) {
 export function getXpGainAtWaveEnd(tower) {
 	for (const other of game.entities.towers) {
 		if (other === tower) continue;
-		const otherCfg = TOWER_ROLES[other.role];
+		const otherCfg = other.cfg;
 		if (!otherCfg.boostsXp) continue;
 		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
 		if (d <= other.range) {
@@ -135,7 +147,7 @@ export function grantWaveEndXp() {
 export function getEnemySpeedFactor(e) {
 	let factor = 1;
 	for (const tower of game.entities.towers) {
-		const cfg = TOWER_ROLES[tower.role];
+		const cfg = tower.cfg;
 		if (!cfg.slowsEnemies) continue;
 		const range = tower.range;
 		const d = Math.hypot(e.x - tower.x, e.y - tower.y);
@@ -152,8 +164,8 @@ export function getEnemySpeedFactor(e) {
 //  - canGround/canAir: 공격 가능 타입 (cfg.attackTypes 기반)
 //  - gaPriority: 지상/공중 우선 ('ground'|'air'|'equal'). 둘 다 가능하면 기본 공중 우선.
 //  - targetPriority: 공통 표적 우선순위. cfg.targetMode==='highestHp'면 가장 강함, 아니면 가장 가까움.
-export function applyTowerPriorityDefaults(tower) {
-	const cfg = TOWER_ROLES[tower.role];
+function applyTowerPriorityDefaults(tower) {
+	const cfg = tower.cfg;
 	const types = cfg.attackTypes || [];
 	tower.canGround = types.includes('ground');
 	tower.canAir = types.includes('air');
@@ -176,7 +188,7 @@ function gaCapsOf(cfg) {
 // 전직 시: 지상/공중 가능 여부가 그대로이고 새 역할에 지정 기본값(targetMode)이 없으면
 // 기존 우선순위 설정 유지, 아니면 새 역할 기준 기본값으로 리셋.
 function applyTowerPriorityOnPromote(tower, oldRole) {
-	const newCfg = TOWER_ROLES[tower.role];
+	const newCfg = tower.cfg;
 	const sameCaps = gaCapsOf(TOWER_ROLES[oldRole]) === gaCapsOf(newCfg);
 	if (sameCaps && !newCfg.targetMode) return;
 	applyTowerPriorityDefaults(tower);
@@ -201,16 +213,13 @@ export function placeTower(x, y) {
 	if (!canPlaceTower(x, y)) return false;
 	const tw = {
 		x, y,
-		role: 'novice',
-		tier: 0,
 		cooldown: 0,
 		angle: 0,
 		xp: 0,
 		totalDamage: 0,
 		waveDamage: 0,
 	};
-	applyTowerPriorityDefaults(tw);
-	applyTierStats(tw);
+	setTowerTier(tw, 'novice', 0);
 	game.entities.towers.push(tw);
 	recomputeStats();
 	if (!game.sandbox) game.gold -= TOWER.cost;
@@ -219,7 +228,8 @@ export function placeTower(x, y) {
 
 // 2단계 배치 고스트 — novice 미리보기. 사거리는 현재 위치 기준 버프 반영(getEffectiveRange)으로 즉시 갱신.
 export function createGhostTower(x, y) {
-	const ghost = { x, y, role: 'novice', tier: 0, dragging: true };
+	const ghost = { x, y, dragging: true };
+	setTowerTier(ghost, 'novice', 0); // cfg·파생값 세팅 → getEffectiveRange가 ghost.cfg 사용
 	ghost.range = getEffectiveRange(ghost);
 	game.ghostTower = ghost;
 }
@@ -235,18 +245,15 @@ export function moveGhostTower(x, y) {
 export function promoteTower(tower, role) {
 	if (!isPromotionReady(tower)) return false;
 	if (!canAffordPromotion(tower)) return false;
-	if (!TOWER_ROLES[tower.role].promotions.includes(role)) return false;
+	if (!tower.cfg.promotions.includes(role)) return false;
 	const cfg = TOWER_ROLES[role];
 	if (!cfg) return false;
 
 	if (!game.sandbox) game.gold -= tower.promotionCost;
 	const prevRole = tower.role;
-	tower.role = role;
-	tower.tier += 1;
 	tower.cooldown = 0;
 	tower.xp = 0;
-	applyTowerPriorityOnPromote(tower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
-	applyTierStats(tower); // 새 tier 기준 목표 XP·전직 비용 재계산
+	setTowerTier(tower, role, tower.tier + 1, prevRole);
 	recomputeStats();
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
@@ -277,12 +284,9 @@ export function promoteToTier4(secondTower) {
 
 	// 두 번째 타워 자리에 4티어로 변환
 	const prevRole = secondTower.role;
-	secondTower.role = resultRole;
-	secondTower.tier = 4;
 	secondTower.cooldown = 0;
 	secondTower.xp = 0;
-	applyTowerPriorityOnPromote(secondTower, prevRole); // 능력 동일·기본값 미지정이면 설정 유지
-	applyTierStats(secondTower); // tier 4 기준 (목표 XP·전직 비용 0)
+	setTowerTier(secondTower, resultRole, 4, prevRole);
 	recomputeStats();
 	return true;
 }
@@ -291,7 +295,7 @@ export function promoteToTier4(secondTower) {
 export function updateTower(tower, dt) {
 	tower.cooldown = Math.max(0, tower.cooldown - dt);
 
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	const allowed = allowedTypesOf(tower);
 	const range = tower.range;
 
@@ -788,7 +792,7 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
 }
 
 export function drawTower(tower) {
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	const selected = (tower === game.selectedTower);
 	const isTarget = (tower === game.promotionTarget);
 
@@ -863,7 +867,7 @@ export function handlePromotionButton(tower) {
 }
 
 export function drawTowerInfoPanel(tower) {
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
 	ctx.textAlign = 'left';
@@ -914,7 +918,7 @@ export function drawTowerInfoPanel(tower) {
 	}
 
 	const effRange = tower.range;
-	const baseRange = TOWER_ROLES[tower.role].range;
+	const baseRange = tower.cfg.range;
 	const buffPct = effRange > baseRange ? Math.round((effRange / baseRange - 1) * 100) : 0;
 	const rangeStr = buffPct > 0
 		? t('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
@@ -971,7 +975,7 @@ function towerDualCapable(cfg) {
 
 // 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 공격 우선순위 설정.
 export function drawTowerSettingsCard(tower) {
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
@@ -1072,7 +1076,7 @@ function drawProhibition(cx, cy, r) {
 
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
 export function handleTowerSettingsTap(tower, p) {
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	if (!towerAttacks(cfg)) return false;
 	if (!cfg.areaSweep && hitButton(SETTINGS_PRIORITY_BTN, p)) {
 		const i = PRIORITY_CYCLE.indexOf(tower.targetPriority);
@@ -1211,7 +1215,7 @@ export function drawPromotionPanel(tower) {
 	ctx.font = '12px sans-serif';
 	if (tier4) {
 		const recipe = getTier4Recipe(tower);
-		const fromCfg = TOWER_ROLES[tower.role];
+		const fromCfg = tower.cfg;
 		const toCfg = TOWER_ROLES[recipe.result];
 		ctx.fillText(
 			t('{from} 타워가 {to} 타워로 전직됩니다', { from: fromCfg.name, to: toCfg.name }),
@@ -1221,7 +1225,7 @@ export function drawPromotionPanel(tower) {
 		drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost);
 	} else {
 		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
-		const promotions = TOWER_ROLES[tower.role].promotions;
+		const promotions = tower.cfg.promotions;
 		for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
 			drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
 		}

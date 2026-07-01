@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, ENEMY_KILL_REWARD, ACCENT_RED, GOLD, SLATE } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, ENEMY_KILL_REWARD, ACCENT_RED, GOLD, SLATE } from './core/config.js';
 import { game } from './state.js';
 import { pointToSegmentDist } from './core/helpers.js';
 import {
@@ -25,7 +25,7 @@ export function applyTowerHit(shooter, target, damage) {
 			const next = Math.round((shooter.xp + xpGain) * 10) / 10;
 			shooter.xp = Math.min(next, shooter.xpMax);
 		}
-		const shooterCfg = TOWER_ROLES[shooter.role];
+		const shooterCfg = shooter.cfg;
 		if (shooterCfg && !target.dead) {
 			if (shooterCfg.marksEnemies) {
 				target.marked = true;
@@ -75,7 +75,7 @@ function explodeAt(x, y, p) {
 }
 
 export function fireInstantBeam(tower, target, damage) {
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	const dmg = damage !== undefined ? damage : tower.damage;
 	const attackTypes = allowedTypesOf(tower); // 인스턴스 토글(canGround/canAir) 반영
 	// 공중 공격일 때만 장벽 차단. 지상 전용 빔은 통과.
@@ -104,7 +104,7 @@ export function fireInstantBeam(tower, target, damage) {
 }
 
 export function fireLineBeam(tower, target, damage) {
-	const cfg = TOWER_ROLES[tower.role];
+	const cfg = tower.cfg;
 	const range = tower.range;
 	const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
 	// 사거리 외 마킹 적도 타깃이 될 수 있으니 빔은 target 위치까지 확장

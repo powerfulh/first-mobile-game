@@ -7,7 +7,7 @@ import {
 import { getActiveMap, setActiveMap, MAPS } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
 import { isBossWave, createSpawner, restoreBaseSpawner } from './wave.js';
-import { applyTowerPriorityDefaults, applyTierStats, recomputeStats } from './tower.js';
+import { setTowerTier, recomputeStats } from './tower.js';
 
 export const game = {
 	...INITIAL, // hp (전역)
@@ -195,13 +195,12 @@ export function loadGame(data) {
 		.filter(td => TOWER_ROLES[td.role])
 		.map(td => {
 			const tw = {
-				x: td.x, y: td.y, role: td.role, tier: td.tier,
+				x: td.x, y: td.y,
 				cooldown: 0, angle: 0, xp: td.xp || 0,
 				totalDamage: td.totalDamage || 0,
 				waveDamage: 0,
 			};
-			applyTowerPriorityDefaults(tw); // 역할 기준 기본값 → 저장값으로 덮어쓰기
-			applyTierStats(tw); // tier 기준 목표 XP·전직 비용 굽기
+			setTowerTier(tw, td.role, td.tier); // role/tier + cfg·파생값 + 우선순위 기본값
 			if (td.canGround !== undefined) tw.canGround = td.canGround;
 			if (td.canAir !== undefined) tw.canAir = td.canAir;
 			if (td.gaPriority) tw.gaPriority = td.gaPriority;
