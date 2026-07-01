@@ -12,6 +12,17 @@ export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
+// 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
+function drawBar(x, y, w, h, ratio, fillColor) {
+	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+	ctx.fillRect(x, y, w, h);
+	ctx.fillStyle = fillColor;
+	ctx.fillRect(x, y, w * ratio, h);
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+	ctx.lineWidth = 1;
+	ctx.strokeRect(x, y, w, h);
+}
+
 // 정보 카드 우상단 기어 버튼
 function drawGearButton(btn) {
 	const cx = btn.x + btn.w / 2;
@@ -149,13 +160,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		const bw = 240;
 		const bh = 8;
 		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-		ctx.fillRect(bx, by, bw, bh);
-		ctx.fillStyle = tower.xp >= xpMax ? GOLD : INFO_BLUE;
-		ctx.fillRect(bx, by, bw * ratio, bh);
-		ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-		ctx.lineWidth = 1;
-		ctx.strokeRect(bx, by, bw, bh);
+		drawBar(bx, by, bw, bh, ratio, tower.xp >= xpMax ? GOLD : INFO_BLUE);
 		ctx.fillStyle = '#fff';
 		ctx.font = '10px sans-serif';
 		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
@@ -202,13 +207,7 @@ export function drawEnemyInfoPanel(e, factor) {
 	const by = yHp - bh;
 	const bw = Math.max(0, (p.x + p.w - 14) - bx);
 	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
-	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-	ctx.fillRect(bx, by, bw, bh);
-	ctx.fillStyle = e.shielded ? INFO_BLUE : '#2ecc71';
-	ctx.fillRect(bx, by, bw * ratio, bh);
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-	ctx.lineWidth = 1;
-	ctx.strokeRect(bx, by, bw, bh);
+	drawBar(bx, by, bw, bh, ratio, e.shielded ? INFO_BLUE : '#2ecc71');
 	ctx.fillStyle = '#cdd';
 
 	// 이동 속도 (둔화 시 표기)
