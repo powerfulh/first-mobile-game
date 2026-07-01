@@ -1,7 +1,7 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
 import { GOLD, INFO_BLUE, SLATE } from '../core/config.js';
-import { drawPanel, roundRect } from '../core/helpers.js';
+import { drawPanel, roundRect, hasItems } from '../core/helpers.js';
 import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
@@ -119,13 +119,12 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const sy = infoPanel.y + 50;
 	const total = Math.round((tower.totalDamage || 0) * 10) / 10;
 	const atkLabels = { ground: t('지상'), air: t('공중') };
-	const hasAttack = (cfg.attackTypes || []).length > 0;
 	const activeTypes = [];
 	if (tower.canGround) activeTypes.push('ground');
 	if (tower.canAir) activeTypes.push('air');
 	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('없음');
 
-	if (hasAttack) {
+	if (hasItems(cfg.attackTypes)) {
 		const effDmg = tower.damage;
 		const baseDmg = cfg.damage;
 		const dmgBuffPct = effDmg > baseDmg ? Math.round((effDmg / baseDmg - 1) * 100) : 0;

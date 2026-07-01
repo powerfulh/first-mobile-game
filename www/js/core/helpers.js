@@ -2,6 +2,10 @@ import { ctx } from './canvas.js';
 import { PATH_WIDTH, AIR_COLOR, ACCENT_RED } from './config.js';
 import { getActiveMap } from './maps.js';
 
+// ============ 일반 유틸 ============
+// 배열이 비어있지 않은지 (null/undefined 안전).
+export const hasItems = (arr) => !!arr && arr.length > 0;
+
 // ============ Geometry helpers ============
 export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 	const dx = bx - ax;

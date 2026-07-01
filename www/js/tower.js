@@ -5,7 +5,7 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel } from './core/helpers.js';
+import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel, hasItems } from './core/helpers.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
@@ -541,7 +541,7 @@ function drawSupportBody(tower, selected) {
 	ctx.stroke();
 
 	// 배럴 (공격 가능 시)
-	if ((cfg.attackTypes || []).length > 0) {
+	if (hasItems(cfg.attackTypes)) {
 		ctx.save();
 		ctx.translate(tower.x, tower.y);
 		ctx.rotate(tower.angle);
@@ -885,9 +885,6 @@ const SETTINGS_GA = {
 };
 const SETTINGS_PRIORITY_BTN = { x: 38, y: 596, w: 284, h: 24 };
 
-function towerAttacks(cfg) {
-	return (cfg.attackTypes || []).length > 0;
-}
 function towerDualCapable(cfg) {
 	const types = cfg.attackTypes || [];
 	return types.includes('ground') && types.includes('air');
@@ -919,7 +916,7 @@ export function drawTowerSettingsCard(tower) {
 	roundRect(ax, ay, aw, ah, 6);
 	ctx.stroke();
 
-	if (!towerAttacks(cfg)) {
+	if (!hasItems(cfg.attackTypes)) {
 		ctx.fillStyle = '#7a8a99';
 		ctx.font = '12px sans-serif';
 		ctx.textAlign = 'center';
@@ -997,7 +994,7 @@ function drawProhibition(cx, cy, r) {
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
 export function handleTowerSettingsTap(tower, p) {
 	const cfg = tower.cfg;
-	if (!towerAttacks(cfg)) return false;
+	if (!hasItems(cfg.attackTypes)) return false;
 	if (!cfg.areaSweep && hitButton(SETTINGS_PRIORITY_BTN, p)) {
 		const i = PRIORITY_CYCLE.indexOf(tower.targetPriority);
 		tower.targetPriority = PRIORITY_CYCLE[(i + 1) % PRIORITY_CYCLE.length];
