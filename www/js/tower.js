@@ -458,7 +458,8 @@ function applyBodyStrokeStyle(selected, color) {
 	ctx.lineWidth = selected ? 3 : 2;
 }
 
-function drawCannonBody(tower, cfg, selected) {
+function drawCannonBody(tower, selected) {
+	const cfg = tower.cfg;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
 	ctx.arc(tower.x, tower.y, TOWER.radius, 0, Math.PI * 2);
@@ -474,7 +475,8 @@ function drawCannonBody(tower, cfg, selected) {
 	ctx.restore();
 }
 
-function drawBeamEmitterBody(tower, cfg, selected) {
+function drawBeamEmitterBody(tower, selected) {
+	const cfg = tower.cfg;
 	const r = TOWER.radius;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
@@ -499,7 +501,8 @@ function drawBeamEmitterBody(tower, cfg, selected) {
 	ctx.globalAlpha = 1;
 }
 
-function drawAreaSweepBody(tower, cfg, selected) {
+function drawAreaSweepBody(tower, selected) {
+	const cfg = tower.cfg;
 	const r = TOWER.radius;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
@@ -520,7 +523,8 @@ function drawAreaSweepBody(tower, cfg, selected) {
 	ctx.globalAlpha = 1;
 }
 
-function drawSupportBody(tower, cfg, selected) {
+function drawSupportBody(tower, selected) {
+	const cfg = tower.cfg;
 	const r = TOWER.radius;
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
@@ -569,7 +573,8 @@ function drawSupportBody(tower, cfg, selected) {
 	ctx.globalAlpha = 1;
 }
 
-function drawGatlingBody(tower, cfg, selected) {
+function drawGatlingBody(tower, selected) {
+	const cfg = tower.cfg;
 	const r = TOWER.radius;
 
 	// 본체 원
@@ -612,7 +617,8 @@ function drawGatlingBody(tower, cfg, selected) {
 	ctx.fill();
 }
 
-function drawAssassinBody(tower, cfg, selected) {
+function drawAssassinBody(tower, selected) {
+	const cfg = tower.cfg;
 	const r = TOWER.radius;
 	const time = performance.now();
 
@@ -648,7 +654,8 @@ function drawAssassinBody(tower, cfg, selected) {
 	ctx.restore();
 }
 
-function drawSiloBody(tower, cfg, selected) {
+function drawSiloBody(tower, selected) {
+	const cfg = tower.cfg;
 	const r = TOWER.radius;
 	const x = tower.x - r;
 	const y = tower.y - r;
@@ -748,23 +755,24 @@ function drawRadarAntenna(tower) {
 
 // 타워 외형(4티어 후광 + 본체 + 레이더 안테나)만 그림.
 // 게임 전용 요소(전직 펄스·XP 바)는 제외 → drawTower와 위키가 공유하는 단일 소스.
-function drawTowerBody(tower, cfg, selected) {
+function drawTowerBody(tower, selected) {
+	const cfg = tower.cfg;
 	if (tower.tier === 4) drawTier4Halo(tower);
 
 	if (cfg.disablesModifiers) {
-		drawAssassinBody(tower, cfg, selected);
+		drawAssassinBody(tower, selected);
 	} else if (cfg.scatterDeg) {
-		drawGatlingBody(tower, cfg, selected);
+		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {
-		drawBeamEmitterBody(tower, cfg, selected);
+		drawBeamEmitterBody(tower, selected);
 	} else if (cfg.buffsRange) {
-		drawSupportBody(tower, cfg, selected);
+		drawSupportBody(tower, selected);
 	} else if (cfg.areaSweep) {
-		drawAreaSweepBody(tower, cfg, selected);
+		drawAreaSweepBody(tower, selected);
 	} else if (cfg.ballistic) {
-		drawSiloBody(tower, cfg, selected);
+		drawSiloBody(tower, selected);
 	} else {
-		drawCannonBody(tower, cfg, selected);
+		drawCannonBody(tower, selected);
 	}
 
 	if (cfg.marksEnemies) drawRadarAntenna(tower);
@@ -777,7 +785,7 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
 	if (!cfg) return;
 	const isTier4 = Object.values(TIER4_RECIPES).some(r => r.result === role);
 	const tower = {
-		x: 0, y: 0, role, // 원점에 그린 뒤 translate/scale로 배치
+		x: 0, y: 0, role, cfg, // 원점에 그린 뒤 translate/scale로 배치
 		tier: isTier4 ? 4 : 1,
 		angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
 		cooldown: 0,
@@ -787,12 +795,11 @@ export function drawTowerSprite(role, cx, cy, opts = {}) {
 	ctx.save();
 	ctx.translate(cx, cy);
 	if (scale !== 1) ctx.scale(scale, scale);
-	drawTowerBody(tower, cfg, false);
+	drawTowerBody(tower, false);
 	ctx.restore();
 }
 
 export function drawTower(tower) {
-	const cfg = tower.cfg;
 	const selected = (tower === game.selectedTower);
 	const isTarget = (tower === game.promotionTarget);
 
@@ -807,7 +814,7 @@ export function drawTower(tower) {
 		ctx.globalAlpha = 1;
 	}
 
-	drawTowerBody(tower, cfg, selected);
+	drawTowerBody(tower, selected);
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
