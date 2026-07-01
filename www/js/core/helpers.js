@@ -1,6 +1,5 @@
 import { ctx } from './canvas.js';
 import { ACCENT_RED } from './config.js';
-import { getActiveMap } from './maps.js';
 
 // ============ 일반 유틸 ============
 // 배열이 비어있지 않은지 (null/undefined 안전).
@@ -20,28 +19,6 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 	const cx = ax + t * dx;
 	const cy = ay + t * dy;
 	return Math.hypot(px - cx, py - cy);
-}
-
-export function distanceToPath(x, y) {
-	const path = getActiveMap().path;
-	let min = Infinity;
-	for (let i = 0; i < path.length - 1; i++) {
-		const d = pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
-		if (d < min) min = d;
-	}
-	return min;
-}
-
-// 지름길(airShortcutCut)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화(tower.js).
-export function distanceToShortcut(x, y) {
-	const cut = getActiveMap().airShortcutCut;
-	if (!cut) return Infinity;
-	let min = Infinity;
-	for (let i = 0; i < cut.length - 1; i++) {
-		const d = pointToSegmentDist(x, y, cut[i].x, cut[i].y, cut[i + 1].x, cut[i + 1].y);
-		if (d < min) min = d;
-	}
-	return min;
 }
 
 // ============ Drawing helpers ============

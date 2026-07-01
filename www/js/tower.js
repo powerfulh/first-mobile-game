@@ -5,7 +5,8 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
+import { pointToSegmentDist, roundRect, drawCloseX, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
+import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
@@ -195,6 +196,20 @@ function applyTowerPriorityOnPromote(tower, oldRole) {
 }
 
 // ============ Placement ============
+// 점→폴리라인 최단거리 (poly 없으면 Infinity). 배치 겹침 판정용.
+function distanceToPolyline(x, y, poly) {
+	if (!poly) return Infinity;
+	let min = Infinity;
+	for (let i = 0; i < poly.length - 1; i++) {
+		const d = pointToSegmentDist(x, y, poly[i].x, poly[i].y, poly[i + 1].x, poly[i + 1].y);
+		if (d < min) min = d;
+	}
+	return min;
+}
+const distanceToPath = (x, y) => distanceToPolyline(x, y, getActiveMap().path);
+// 지름길(airShortcutCut)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화.
+const distanceToShortcut = (x, y) => distanceToPolyline(x, y, getActiveMap().airShortcutCut);
+
 export function canPlaceTower(x, y) {
 	if (!game.sandbox && game.gold < TOWER.cost) return false;
 	if (y < HUD_RESERVED_TOP + TOWER.radius) return false;
