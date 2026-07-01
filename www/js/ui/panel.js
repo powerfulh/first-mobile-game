@@ -1,7 +1,7 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
 import { GOLD, INFO_BLUE, SLATE } from '../core/config.js';
-import { drawPanel, roundRect, hasItems } from '../core/helpers.js';
+import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
 import { drawEnemySprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
@@ -117,7 +117,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.fillStyle = '#cdd';
 	const sx = infoPanel.x + 14;
 	const sy = infoPanel.y + 50;
-	const total = Math.round((tower.totalDamage || 0) * 10) / 10;
+	const total = round1(tower.totalDamage || 0);
 	const atkLabels = { ground: t('지상'), air: t('공중') };
 	const activeTypes = [];
 	if (tower.canGround) activeTypes.push('ground');
@@ -128,8 +128,8 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		const effDmg = tower.damage;
 		const baseDmg = cfg.damage;
 		const dmgBuffPct = effDmg > baseDmg ? Math.round((effDmg / baseDmg - 1) * 100) : 0;
-		const dpsValue = Math.round(effDmg * cfg.fireRate * 10) / 10;
-		const dmgValue = Math.round(effDmg * 10) / 10;
+		const dpsValue = round1(effDmg * cfg.fireRate);
+		const dmgValue = round1(effDmg);
 		const dmgStr = dmgBuffPct > 0
 			? t('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
 			: t('데미지: {dmg} ({dps}/초)', { dmg: baseDmg, dps: dpsValue });
@@ -148,7 +148,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		: t('사거리: {range}', { range: baseRange });
 	ctx.fillText(rangeStr, sx + 160, sy);
 	ctx.fillText(t('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
-	const wave = Math.round((tower.waveDamage || 0) * 10) / 10;
+	const wave = round1(tower.waveDamage || 0);
 	ctx.fillText(t('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
 	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 

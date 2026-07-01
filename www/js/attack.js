@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, ENEMY_KILL_REWARD, ACCENT_RED, GOLD, SLATE } from './core/config.js';
 import { game } from './state.js';
-import { pointToSegmentDist } from './core/helpers.js';
+import { pointToSegmentDist, round1 } from './core/helpers.js';
 import {
 	allowedTypesOf,
 } from './tower.js';
@@ -19,10 +19,10 @@ export function applyTowerHit(shooter, target, damage) {
 	const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시
 	target.hp -= effective;
 	if (shooter) {
-		shooter.totalDamage = Math.round(((shooter.totalDamage || 0) + dealt) * 10) / 10;
-		shooter.waveDamage = Math.round(((shooter.waveDamage || 0) + dealt) * 10) / 10;
+		shooter.totalDamage = round1((shooter.totalDamage || 0) + dealt);
+		shooter.waveDamage = round1((shooter.waveDamage || 0) + dealt);
 		if (shooter.canPromote) {
-			const next = Math.round((shooter.xp + xpGain) * 10) / 10;
+			const next = round1(shooter.xp + xpGain);
 			shooter.xp = Math.min(next, shooter.xpMax);
 		}
 		const shooterCfg = shooter.cfg;

@@ -5,6 +5,8 @@ import { getActiveMap } from './maps.js';
 // ============ 일반 유틸 ============
 // 배열이 비어있지 않은지 (null/undefined 안전).
 export const hasItems = (arr) => !!arr && arr.length > 0;
+// 소수 1자리 반올림 (게임 수치 표시·누적 공통).
+export const round1 = (x) => Math.round(x * 10) / 10;
 
 // ============ Geometry helpers ============
 export function pointToSegmentDist(px, py, ax, ay, bx, by) {

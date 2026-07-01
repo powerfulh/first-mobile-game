@@ -5,7 +5,7 @@ import {
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist } from './core/helpers.js';
+import { pointToSegmentDist, round1 } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
 import { getEnemySpeedFactor } from './tower.js';
 import { getNarrowRange } from './wave.js';
@@ -33,7 +33,7 @@ export function computeBaseHpAt(wave) {
 	// 1~10웨이브는 완만하게(+0.4/wave), 11웨이브부터 기존 +0.6/wave (10웨이브 값에서 연속). 모든 맵 공통.
 	const earlyGain = Math.min(wave - 1, 9) * 0.4; // wave 1→10 증가분 (최대 9회)
 	const lateGain = Math.max(0, wave - 10) * 0.6; // wave 10 이후 증가분
-	return Math.round((2 + earlyGain + lateGain + hpExtra) * 10) / 10;
+	return round1(2 + earlyGain + lateGain + hpExtra);
 }
 
 export function getAirChance(wave) {
@@ -154,7 +154,7 @@ export function spawnEnemy(spawner) {
 	const isAir = ga === 'air';
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	const hp = isAir ? Math.round(baseHp * getAirHpRatio(wave) * 10) / 10 : baseHp;
+	const hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
 	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)

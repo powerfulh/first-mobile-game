@@ -5,7 +5,7 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel, hasItems } from './core/helpers.js';
+import { distanceToPath, distanceToShortcut, roundRect, drawCloseX, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
@@ -140,7 +140,7 @@ export function grantWaveEndXp() {
 	for (const tower of game.entities.towers) {
 		if (!tower.canPromote) continue;
 		const gain = getXpGainAtWaveEnd(tower);
-		tower.xp = Math.min(Math.round((tower.xp + gain) * 10) / 10, tower.xpMax);
+		tower.xp = Math.min(round1(tower.xp + gain), tower.xpMax);
 	}
 }
 
@@ -309,7 +309,7 @@ export function updateTower(tower, dt) {
 			if (d > range) continue;
 			next.add(e);
 			if (!tower.inRangeEnemies.has(e) && tower.canPromote) {
-				tower.xp = Math.min(tower.xpMax, Math.round((tower.xp + 1) * 10) / 10);
+				tower.xp = Math.min(tower.xpMax, round1(tower.xp + 1));
 			}
 		}
 		tower.inRangeEnemies = next;
