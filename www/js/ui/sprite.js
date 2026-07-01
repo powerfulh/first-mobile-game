@@ -95,9 +95,10 @@ export function drawTier4Halo(tower) {
 	}
 }
 
-// 타워 사거리 표시 — 채움 원(+ minRange 도넛) + 테두리. minRange는 선택 인자(기본 0, 미지정 시 단일 원).
-export function drawTowerRange(tower, fillAlpha, strokeAlpha, minRange = 0) {
+// 타워 사거리 표시 — 채움 원(+ minRange 도넛) + 테두리. range·minRange 모두 tower가 들고 있는 값.
+export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	const range = tower.range;
+	const minRange = tower.cfg.minRange || 0;
 
 	ctx.globalAlpha = fillAlpha;
 	ctx.fillStyle = '#3498db';

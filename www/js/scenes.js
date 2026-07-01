@@ -548,10 +548,10 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) {
 			if (tower === game.selectedTower) continue;
-			drawTowerRange(tower, 0.05, 0.12, tower.cfg.minRange);
+			drawTowerRange(tower, 0.05, 0.12);
 		}
 		if (game.selectedTower) {
-			drawTowerRange(game.selectedTower, 0.18, 0.5, game.selectedTower.cfg.minRange);
+			drawTowerRange(game.selectedTower, 0.18, 0.5);
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
