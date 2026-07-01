@@ -13,7 +13,7 @@ export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
 // 정보 카드 우상단 기어 버튼
-export function drawGearButton(btn) {
+function drawGearButton(btn) {
 	const cx = btn.x + btn.w / 2;
 	const cy = btn.y + btn.h / 2;
 	ctx.fillStyle = SLATE;
@@ -44,7 +44,7 @@ export function drawGearButton(btn) {
 }
 
 // 전직 버튼 — state(tower.getPromotionState)로 라벨·활성 도출, 구운 tower 필드 사용.
-export function drawPromotionButton(tower, state) {
+function drawPromotionButton(tower, state) {
 	const active = state !== 'notReady' && state !== 'noGold';
 	const cost = tower.promotionCost.toLocaleString();
 	let label;
@@ -87,13 +87,13 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	const nameWidth = ctx.measureText(cfg.name).width;
 	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
+	const nameWidth = ctx.measureText(cfg.name).width;
 
-	ctx.font = 'bold 11px sans-serif';
 	const tierX = infoPanel.x + 14 + nameWidth + 8;
 	const tierY = infoPanel.y + 22;
 	const tierStr = `Tier ${tower.tier}`;
+	ctx.font = 'bold 11px sans-serif';
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
 	ctx.lineWidth = 2.5;
 	ctx.lineJoin = 'round';
@@ -172,11 +172,10 @@ export function drawEnemyInfoPanel(e, factor) {
 	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: '#e74c3c', alpha: 0.9 });
 
+	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
+	
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
-
-	// 이름 + 스프라이트 아이콘 (스프라이트 종류는 스폰 시 박은 e.spriteType)
-	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	ctx.fillText(e.name, p.x + 42, p.y + 27);
