@@ -64,17 +64,3 @@ export function hitButton(btn, p) {
 	return p.x >= btn.x && p.x <= btn.x + btn.w && p.y >= btn.y && p.y <= btn.y + btn.h;
 }
 
-export function drawCloseX(btn) {
-	ctx.fillStyle = ACCENT_RED;
-	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 1;
-	ctx.stroke();
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 18px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText('×', btn.x + btn.w / 2, btn.y + btn.h / 2);
-	ctx.textBaseline = 'alphabetic';
-}

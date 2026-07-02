@@ -1,6 +1,6 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
-import { GOLD, INFO_BLUE, SLATE } from '../core/config.js';
+import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
 import { drawEnemySprite, drawProhibition } from './sprite.js';
 import { t } from '../core/i18n.js';
@@ -11,6 +11,22 @@ export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
 export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
+
+// 닫기(×) 버튼 — 빨간 배경 사각 버튼 (hit-test는 호출부).
+export function drawCloseX(btn) {
+	ctx.fillStyle = ACCENT_RED;
+	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 18px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('×', btn.x + btn.w / 2, btn.y + btn.h / 2);
+	ctx.textBaseline = 'alphabetic';
+}
 
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
 function drawBar(x, y, w, h, ratio, fillColor) {

@@ -5,14 +5,14 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, drawCloseX, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
+import { pointToSegmentDist, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawTier4Halo } from './ui/sprite.js';
-import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
+import { SETTINGS_GA, SETTINGS_PRIORITY_BTN, drawCloseX } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
