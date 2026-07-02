@@ -5,14 +5,14 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, roundRect, drawCloseX, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
+import { pointToSegmentDist, drawCloseX, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawTier4Halo } from './ui/sprite.js';
-import { infoPanel, drawCellButton, drawGaCell } from './ui/panel.js';
+import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -889,93 +889,12 @@ export function handlePromotionButton(tower) {
 }
 
 // ---- 설정 카드 우선순위 컨트롤 ----
-const PRIORITY_LABELS = { closest: t('가장 가까움'), farthest: t('가장 멈'), strongest: t('가장 강함'), weakest: t('가장 약함') };
 const PRIORITY_CYCLE = ['closest', 'farthest', 'strongest', 'weakest'];
-// 그리는 순서 = 타게팅 계산 순서: 지상/공중(1순위) 위, 공통 우선순위(2순위) 아래.
-// 지상/공중 행: [지상 스프라이트] [부등호] [공중 스프라이트] — 각 셀이 버튼.
-const SETTINGS_GA = {
-	ground: { x: 96, y: 556, w: 48, h: 32 },
-	sign: { x: 156, y: 556, w: 48, h: 32 },
-	air: { x: 216, y: 556, w: 48, h: 32 },
-};
-const SETTINGS_PRIORITY_BTN = { x: 38, y: 596, w: 284, h: 24 };
 
 export function towerDualCapable(cfg) {
 	const types = cfg.attackTypes || [];
 	return types.includes('ground') && types.includes('air');
 }
-
-// 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 공격 우선순위 설정.
-// dualCapable: 지상/공중 우선 행 표시 여부 (호출부가 towerDualCapable로 도출해 전달).
-export function drawTowerSettingsCard(tower, dualCapable) {
-	const cfg = tower.cfg;
-	const p = infoPanel;
-	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
-
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(t('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
-
-	// 우선순위 영역
-	ctx.fillStyle = '#9ab';
-	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText(t('우선순위'), p.x + 14, p.y + 46);
-
-	const ax = p.x + 14;
-	const ay = p.y + 54;
-	const aw = p.w - 28;
-	const ah = p.y + p.h - 14 - ay;
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-	ctx.lineWidth = 1;
-	roundRect(ax, ay, aw, ah, 6);
-	ctx.stroke();
-
-	if (!hasItems(cfg.attackTypes)) {
-		ctx.fillStyle = '#7a8a99';
-		ctx.font = '12px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.fillText(t('공격하지 않는 타워'), p.x + p.w / 2, ay + ah / 2 + 4);
-		ctx.textAlign = 'left';
-		return;
-	}
-
-	// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
-	if (dualCapable) {
-		drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
-		drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
-		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
-		const s = SETTINGS_GA.sign;
-		const sweep = cfg.areaSweep;
-		const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
-		ctx.globalAlpha = sweep ? 0.45 : 1;
-		drawCellButton(s);
-		ctx.fillStyle = GOLD;
-		ctx.font = 'bold 20px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
-		ctx.textBaseline = 'alphabetic';
-		ctx.textAlign = 'left';
-		ctx.globalAlpha = 1;
-	}
-
-	// 2순위 — 공통 표적 우선순위 (토글 버튼).
-	// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
-	if (!cfg.areaSweep) {
-		const b = SETTINGS_PRIORITY_BTN;
-		drawCellButton(b);
-		ctx.fillStyle = '#fff';
-		ctx.font = 'bold 13px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(t('표적: {p}', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
-		ctx.textBaseline = 'alphabetic';
-		ctx.textAlign = 'left';
-	}
-}
-
 
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
 export function handleTowerSettingsTap(tower, p) {
