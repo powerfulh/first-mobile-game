@@ -187,6 +187,8 @@ export function loadGame(data) {
 	game.modal = null;
 	game.paused = false;
 	game.holdDelete = null;
+	game.sandbox = false; // 샌드박스 갔다가 이어하기 시 플래그 잔류 방지
+	game.sandboxShieldsEnabled = true;
 	game.waveSpawnCounts = {};
 	game.airShortcutNext = false;
 	game.ghostTower = null;

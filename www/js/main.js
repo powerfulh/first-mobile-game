@@ -1,4 +1,5 @@
 import { canvas, getLogicalPoint } from './core/canvas.js';
+import { TOWER } from './core/config.js';
 import { game } from './state.js';
 import { changeScene, getCurrentScene } from './scenes.js';
 
