@@ -123,3 +123,17 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	}
 	ctx.globalAlpha = 1;
 }
+
+// 금지 기호 (원 + 대각선) — 비활성 표시 오버레이.
+export function drawProhibition(cx, cy, r) {
+	ctx.strokeStyle = '#e74c3c';
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.stroke();
+	const d = r * Math.SQRT1_2;
+	ctx.beginPath();
+	ctx.moveTo(cx - d, cy + d);
+	ctx.lineTo(cx + d, cy - d);
+	ctx.stroke();
+}

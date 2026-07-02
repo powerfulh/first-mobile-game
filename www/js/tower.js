@@ -11,7 +11,7 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
-import { drawEnemySprite, drawTier4Halo } from './ui/sprite.js';
+import { drawEnemySprite, drawTier4Halo, drawProhibition } from './ui/sprite.js';
 import { infoPanel, drawCellButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
@@ -981,19 +981,6 @@ function drawGaCell(cell, type, enabled) {
 	const cy = cell.y + cell.h / 2;
 	drawEnemySprite(type, cx, cy, 9);
 	if (!enabled) drawProhibition(cx, cy, 12); // 금지 기호 덮어씌움
-}
-
-function drawProhibition(cx, cy, r) {
-	ctx.strokeStyle = '#e74c3c';
-	ctx.lineWidth = 2;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.stroke();
-	const d = r * Math.SQRT1_2;
-	ctx.beginPath();
-	ctx.moveTo(cx - d, cy + d);
-	ctx.lineTo(cx + d, cy - d);
-	ctx.stroke();
 }
 
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
