@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED, GOLD, INFO_BLUE, SLATE,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, ACCENT_RED, GOLD, INFO_BLUE,
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
@@ -12,7 +12,7 @@ import {
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawEnemySprite, drawTier4Halo } from './ui/sprite.js';
-import { infoPanel } from './ui/panel.js';
+import { infoPanel, drawCellButton } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -973,16 +973,6 @@ export function drawTowerSettingsCard(tower) {
 		ctx.textBaseline = 'alphabetic';
 		ctx.textAlign = 'left';
 	}
-}
-
-// 버튼 배경 (셀 공통) — 눌러서 토글됨이 보이도록.
-function drawCellButton(cell) {
-	ctx.fillStyle = SLATE;
-	roundRect(cell.x, cell.y, cell.w, cell.h, 6);
-	ctx.fill();
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-	ctx.lineWidth = 1;
-	ctx.stroke();
 }
 
 function drawGaCell(cell, type, enabled) {

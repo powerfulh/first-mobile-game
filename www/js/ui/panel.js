@@ -12,6 +12,16 @@ export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
+// 버튼 배경 (셀 공통) — 눌러서 토글됨이 보이도록.
+export function drawCellButton(cell) {
+	ctx.fillStyle = SLATE;
+	roundRect(cell.x, cell.y, cell.w, cell.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+}
+
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
 function drawBar(x, y, w, h, ratio, fillColor) {
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
