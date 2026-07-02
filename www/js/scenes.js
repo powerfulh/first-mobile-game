@@ -541,7 +541,8 @@ scenes.playing = {
 		}
 	},
 	draw() {
-		updateHUD();
+		updateHUD(); // dom 이라 제일 먼저
+		// 배경 잔디
 		ctx.fillStyle = '#2d4a2b';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 		drawPath(getActiveMap());
