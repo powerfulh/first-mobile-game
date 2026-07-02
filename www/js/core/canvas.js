@@ -14,6 +14,10 @@ export function setHud({ hp, gold, wave }) {
 	waveEl.textContent = wave;
 }
 
+// DOM HUD가 캔버스 상단을 침범한 높이(논리좌표). 세로 레터박스가 HUD보다 깊으면 0.
+// getBoundingClientRect가 비싸서 매 프레임 재지 않고 resize 때만 갱신.
+export let hudOverlapLogical = 0;
+
 function resize() {
 	const dpr = window.devicePixelRatio || 1;
 	const scale = Math.min(window.innerWidth / LOGICAL_W, window.innerHeight / LOGICAL_H);
@@ -22,6 +26,7 @@ function resize() {
 	canvas.width = Math.floor(LOGICAL_W * scale * dpr);
 	canvas.height = Math.floor(LOGICAL_H * scale * dpr);
 	ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+	hudOverlapLogical = Math.max(0, (hudEl.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top) / scale);
 }
 window.addEventListener('resize', resize);
 resize();

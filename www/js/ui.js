@@ -1,4 +1,4 @@
-import { ctx } from './core/canvas.js';
+import { ctx, hudOverlapLogical } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, GOLD, INFO_BLUE, SLATE } from './core/config.js';
 import { roundRect, drawButton, drawPanel } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
@@ -52,7 +52,7 @@ export function drawWaveSpawnSummary(counts = {}) {
 	const iconR = 7;
 	const gap = 3;      // 스프라이트 ↔ 숫자 간격
 	const sep = '  |  ';
-	const cy = 34;      // HUD 텍스트(상단)·경로와 겹치지 않는 높이
+	const cy = Math.max(8, hudOverlapLogical) + iconR; // HUD 겹침 바로 아래, 상단 여백 하한 8
 
 	ctx.font = '11px sans-serif';
 	ctx.textBaseline = 'middle';
