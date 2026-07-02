@@ -25,21 +25,23 @@ const DETAIL_BOTTOM_PAD = 14;
 
 const TAP_THRESHOLD_PX = 8;
 
-// 타워 트리 그룹 (사용자 결정: 전직 트리별)
+// 타워 트리 그룹 (사용자 결정: 전직 트리별) — TOWER_ROLES에서 파생.
+// 루트(기본) / 루트의 전직 후보별 계열(전직 트리 DFS 전위 = 티어 진행 순) / 4티어 합체(recipe 보유 역할).
+const TREE_ROOT = 'novice';
+
+function collectTree(role) {
+	const roles = [role];
+	for (const child of TOWER_ROLES[role].promotions || []) roles.push(...collectTree(child));
+	return roles;
+}
+
 const TOWER_GROUPS = [
-	{ label: '기본', roles: ['novice'] },
-	{
-		label: '벙커 계열',
-		roles: ['bunker', 'tank', 'whale', 'trap', 'base', 'beacon', 'demon'],
-	},
-	{
-		label: '스카웃 계열',
-		roles: ['scout', 'eagle', 'skydoom', 'interceptor', 'filder', 'master', 'dealman'],
-	},
-	{
-		label: '4티어 합체',
-		roles: ['radar', 'assassin', 'silo', 'gatling'],
-	},
+	{ label: TOWER_ROLES[TREE_ROOT].name, roles: [TREE_ROOT] },
+	...TOWER_ROLES[TREE_ROOT].promotions.map(root => ({
+		label: t('{name} 계열', { name: TOWER_ROLES[root].name }),
+		roles: collectTree(root),
+	})),
+	{ label: t('4티어 합체'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe) },
 ];
 
 // 적 명단 (사용자 결정: 일반/공중/재생 3종, 방어막·보스 제외)
@@ -89,8 +91,7 @@ const ENEMY_ENTRIES = [
 	},
 ];
 
-// 위키 표시 텍스트 다국어화 — 정의 직후 1회 변환. (타워명/태그라인/설명은 config.js에서 변환됨)
-for (const g of TOWER_GROUPS) g.label = t(g.label);
+// 위키 표시 텍스트 다국어화 — 정의 직후 1회 변환. (타워명/태그라인/설명은 config.js에서, 그룹 라벨은 파생 시 변환됨)
 for (const e of ENEMY_ENTRIES) {
 	e.name = t(e.name);
 	if (e.tagline) e.tagline = t(e.tagline);

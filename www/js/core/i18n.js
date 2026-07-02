@@ -162,7 +162,7 @@ const EN = {
 
 	// ---- 위키 (wiki.js) ----
 	'타워': 'Towers', '적': 'Enemies', '적 명단': 'Enemy List',
-	'벙커 계열': 'Bunker line', '스카웃 계열': 'Scout line', '4티어 합체': 'Tier-4 fusion',
+	'{name} 계열': '{name} line', '4티어 합체': 'Tier-4 fusion',
 	'사거리 {range}': 'Range {range}',
 	'  (최소 {min})': '  (min {min})',
 	'데미지 {dmg}  ·  공속 {rate}/s': 'DMG {dmg}  ·  Rate {rate}/s',
