@@ -17,7 +17,7 @@ import {
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower, drawTowerSprite,
 	promoteTower, updateTower, drawTower,
-	getPromotionState, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
+	getPromotionState, towerDualCapable, handleTowerSettingsTap, drawPromotionPanel,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
@@ -38,7 +38,7 @@ import {
 	drawSettingsModal, drawPath,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
-import { drawEnemyInfoPanel, drawTowerInfoPanel, infoSettingsButton, infoPanel, infoPromotionButton } from './ui/panel.js';
+import { drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoPanel, infoPromotionButton } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
@@ -600,7 +600,7 @@ scenes.playing = {
 			if (game.towerPanel === TOWER_PANEL.PROMOTION) {
 				drawPromotionPanel(game.selectedTower);
 			} else if (game.towerPanel === TOWER_PANEL.SETTINGS) {
-				drawTowerSettingsCard(game.selectedTower);
+				drawTowerSettingsCard(game.selectedTower, towerDualCapable(game.selectedTower.cfg));
 			} else {
 				drawTowerInfoPanel(game.selectedTower, getPromotionState(game.selectedTower));
 			}

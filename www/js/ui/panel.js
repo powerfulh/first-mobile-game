@@ -1,8 +1,8 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
-import { GOLD, INFO_BLUE, SLATE } from '../core/config.js';
+import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite } from './sprite.js';
+import { drawEnemySprite, drawProhibition } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
@@ -11,6 +11,22 @@ export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
 export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
+
+// 닫기(×) 버튼 — 빨간 배경 사각 버튼 (hit-test는 호출부).
+export function drawCloseX(btn) {
+	ctx.fillStyle = ACCENT_RED;
+	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 18px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('×', btn.x + btn.w / 2, btn.y + btn.h / 2);
+	ctx.textBaseline = 'alphabetic';
+}
 
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
 function drawBar(x, y, w, h, ratio, fillColor) {
@@ -170,6 +186,101 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	drawGearButton(infoSettingsButton);
 }
 
+export const SETTINGS_GA = {
+	ground: { x: 96, y: 556, w: 48, h: 32 },
+	sign: { x: 156, y: 556, w: 48, h: 32 },
+	air: { x: 216, y: 556, w: 48, h: 32 },
+};
+export const SETTINGS_PRIORITY_BTN = { x: 38, y: 596, w: 284, h: 24 };
+const PRIORITY_LABELS = { closest: t('가장 가까움'), farthest: t('가장 멈'), strongest: t('가장 강함'), weakest: t('가장 약함') };
+
+function drawCellButton(cell) {
+	ctx.fillStyle = SLATE;
+	roundRect(cell.x, cell.y, cell.w, cell.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+}
+
+function drawGaCell(cell, type, enabled) {
+	drawCellButton(cell);
+	const cx = cell.x + cell.w / 2;
+	const cy = cell.y + cell.h / 2;
+	drawEnemySprite(type, cx, cy, 9);
+	if (!enabled) drawProhibition(cx, cy, 12);
+}
+
+// dualCapable: 지상/공중 우선 행 표시 여부 (호출부가 towerDualCapable로 도출해 전달).
+export function drawTowerSettingsCard(tower, dualCapable) {
+	const cfg = tower.cfg;
+	const p = infoPanel;
+	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
+
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.fillText(t('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
+
+	// 우선순위 영역
+	ctx.fillStyle = '#9ab';
+	ctx.font = 'bold 11px sans-serif';
+	ctx.fillText(t('우선순위'), p.x + 14, p.y + 46);
+
+	const ax = p.x + 14;
+	const ay = p.y + 54;
+	const aw = p.w - 28;
+	const ah = p.y + p.h - 14 - ay;
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+	ctx.lineWidth = 1;
+	roundRect(ax, ay, aw, ah, 6);
+	ctx.stroke();
+
+	if (!hasItems(cfg.attackTypes)) {
+		ctx.fillStyle = '#7a8a99';
+		ctx.font = '12px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.fillText(t('공격하지 않는 타워'), p.x + p.w / 2, ay + ah / 2 + 4);
+		ctx.textAlign = 'left';
+		return;
+	}
+
+	// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
+	if (dualCapable) {
+		drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
+		drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
+		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
+		const s = SETTINGS_GA.sign;
+		const sweep = cfg.areaSweep;
+		const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
+		ctx.globalAlpha = sweep ? 0.45 : 1;
+		drawCellButton(s);
+		ctx.fillStyle = GOLD;
+		ctx.font = 'bold 20px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
+		ctx.textBaseline = 'alphabetic';
+		ctx.textAlign = 'left';
+		ctx.globalAlpha = 1;
+	}
+
+	// 2순위 — 공통 표적 우선순위 (토글 버튼).
+	// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
+	if (!cfg.areaSweep) {
+		const b = SETTINGS_PRIORITY_BTN;
+		drawCellButton(b);
+		ctx.fillStyle = '#fff';
+		ctx.font = 'bold 13px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(t('표적: {p}', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
+		ctx.textBaseline = 'alphabetic';
+		ctx.textAlign = 'left';
+	}
+}
+
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
 // e: enemy inst, factor: slow factor
 export function drawEnemyInfoPanel(e, factor) {
@@ -230,3 +341,4 @@ export function drawEnemyInfoPanel(e, factor) {
 		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(e.barrierHp) }), sx, rowY());
 	}
 }
+
