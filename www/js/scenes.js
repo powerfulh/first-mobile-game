@@ -17,7 +17,7 @@ import {
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower, drawTowerSprite,
 	promoteTower, updateTower, drawTower,
-	getPromotionState, drawTowerSettingsCard, handleTowerSettingsTap, drawPromotionPanel,
+	getPromotionState, drawTowerSettingsCard, towerDualCapable, handleTowerSettingsTap, drawPromotionPanel,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
@@ -600,7 +600,7 @@ scenes.playing = {
 			if (game.towerPanel === TOWER_PANEL.PROMOTION) {
 				drawPromotionPanel(game.selectedTower);
 			} else if (game.towerPanel === TOWER_PANEL.SETTINGS) {
-				drawTowerSettingsCard(game.selectedTower);
+				drawTowerSettingsCard(game.selectedTower, towerDualCapable(game.selectedTower.cfg));
 			} else {
 				drawTowerInfoPanel(game.selectedTower, getPromotionState(game.selectedTower));
 			}

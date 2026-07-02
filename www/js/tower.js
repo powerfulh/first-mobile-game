@@ -900,13 +900,14 @@ const SETTINGS_GA = {
 };
 const SETTINGS_PRIORITY_BTN = { x: 38, y: 596, w: 284, h: 24 };
 
-function towerDualCapable(cfg) {
+export function towerDualCapable(cfg) {
 	const types = cfg.attackTypes || [];
 	return types.includes('ground') && types.includes('air');
 }
 
 // 타워 설정 카드 — 정보 카드의 기어 버튼으로 진입. 공격 우선순위 설정.
-export function drawTowerSettingsCard(tower) {
+// dualCapable: 지상/공중 우선 행 표시 여부 (호출부가 towerDualCapable로 도출해 전달).
+export function drawTowerSettingsCard(tower, dualCapable) {
 	const cfg = tower.cfg;
 	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
@@ -941,7 +942,7 @@ export function drawTowerSettingsCard(tower) {
 	}
 
 	// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
-	if (towerDualCapable(cfg)) {
+	if (dualCapable) {
 		drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
 		drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
 		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
