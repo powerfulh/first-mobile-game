@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite } from './sprite.js';
+import { drawEnemySprite, drawProhibition } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
@@ -20,6 +20,15 @@ export function drawCellButton(cell) {
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
+}
+
+// 지상/공중 셀 — 버튼 배경 + 적 스프라이트, 비활성이면 금지 기호 덮어씌움.
+export function drawGaCell(cell, type, enabled) {
+	drawCellButton(cell);
+	const cx = cell.x + cell.w / 2;
+	const cy = cell.y + cell.h / 2;
+	drawEnemySprite(type, cx, cy, 9);
+	if (!enabled) drawProhibition(cx, cy, 12);
 }
 
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.

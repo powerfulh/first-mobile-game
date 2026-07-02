@@ -11,8 +11,8 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
-import { drawEnemySprite, drawTier4Halo, drawProhibition } from './ui/sprite.js';
-import { infoPanel, drawCellButton } from './ui/panel.js';
+import { drawTier4Halo } from './ui/sprite.js';
+import { infoPanel, drawCellButton, drawGaCell } from './ui/panel.js';
 import { t } from './core/i18n.js';
 
 // ============ Promotion / XP helpers ============
@@ -975,13 +975,6 @@ export function drawTowerSettingsCard(tower) {
 	}
 }
 
-function drawGaCell(cell, type, enabled) {
-	drawCellButton(cell);
-	const cx = cell.x + cell.w / 2;
-	const cy = cell.y + cell.h / 2;
-	drawEnemySprite(type, cx, cy, 9);
-	if (!enabled) drawProhibition(cx, cy, 12); // 금지 기호 덮어씌움
-}
 
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
 export function handleTowerSettingsTap(tower, p) {
