@@ -798,7 +798,7 @@ function drawTowerBody(tower, selected) {
 export function drawTowerSprite(role, cx, cy, opts = {}) {
 	const cfg = TOWER_ROLES[role];
 	if (!cfg) return;
-	const isTier4 = Object.values(TIER4_RECIPES).some(r => r.result === role);
+	const isTier4 = !!cfg.recipe;
 	const tower = {
 		x: 0, y: 0, role, cfg, // 원점에 그린 뒤 translate/scale로 배치
 		tier: isTier4 ? 4 : 1,

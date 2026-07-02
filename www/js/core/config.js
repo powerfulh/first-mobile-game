@@ -16,18 +16,6 @@ export const TOWER = {
 	maxTier: 4,
 };
 
-// 4티어 레시피 (1:1 양방향). 두 3티어 역할 쌍 → 4티어 역할.
-export const TIER4_RECIPES = {
-	beacon:      { partner: 'trap',        result: 'radar' },
-	trap:        { partner: 'beacon',      result: 'radar' },
-	dealman:     { partner: 'demon',       result: 'assassin' },
-	demon:       { partner: 'dealman',     result: 'assassin' },
-	whale:       { partner: 'skydoom',     result: 'silo' },
-	skydoom:     { partner: 'whale',       result: 'silo' },
-	master:      { partner: 'interceptor', result: 'gatling' },
-	interceptor: { partner: 'master',      result: 'gatling' },
-};
-
 export const TOWER_ROLES = {
 	novice: {
 		name: '기본', tagline: '균형형 · 지상 단일',
@@ -169,6 +157,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 		areaSweep: true,
 		marksEnemies: true,
+		recipe: ['beacon', 'trap'],
 		description: [
 			'적을 감지하여 사거리와 상관없이 공격할 수 있게 합니다',
 			'비콘의 버프 능력을 잃습니다',
@@ -184,6 +173,7 @@ export const TOWER_ROLES = {
 		pierces: true,
 		targetMode: 'highestHp',
 		disablesModifiers: true,
+		recipe: ['dealman', 'demon'],
 		description: [
 			'피해를 입은 적의 방어막을 영구 무력화합니다',
 			'데몬의 버프 능력을 잃습니다',
@@ -197,6 +187,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 		ballistic: true,
 		projectileSpeed: 196, // TOWER.projectileSpeed(280)의 70%
+		recipe: ['whale', 'skydoom'],
 		description: [
 			'유도 없이 발사 시점의 착탄 지점에 광역 폭격',
 			'최소 사거리 존재',
@@ -211,6 +202,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 		scatterDeg: 12, // ±6° 흩어짐
 		projectileCount: 2, // 매 발사마다 2발
+		recipe: ['master', 'interceptor'],
 		description: [
 			'약간 부정확하지만 폭발적인 공세를 퍼붓습니다',
 			'지상 공격 능력을 잃습니다',
@@ -224,6 +216,17 @@ for (const role in TOWER_ROLES) {
 	r.name = t(r.name);
 	if (r.tagline) r.tagline = t(r.tagline);
 	if (r.description) r.description = r.description.map(line => t(line));
+}
+
+// 4티어 레시피 역방향 맵 (3티어 역할 → { partner, result }) — 각 4티어 역할의 recipe에서 파생.
+// 정의는 recipe 한 곳뿐 (양방향 중복 기술·비대칭 오타 방지).
+export const TIER4_RECIPES = {};
+for (const result in TOWER_ROLES) {
+	const recipe = TOWER_ROLES[result].recipe;
+	if (!recipe) continue;
+	const [a, b] = recipe;
+	TIER4_RECIPES[a] = { partner: b, result };
+	TIER4_RECIPES[b] = { partner: a, result };
 }
 
 // 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.

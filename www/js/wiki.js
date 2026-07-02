@@ -457,12 +457,11 @@ function describeLineage(role) {
 		if ((cfg.promotions || []).includes(role)) parents.push(parentRole);
 	}
 	const tier4Recipe = TIER4_RECIPES[role];
-	const tier4ResultFor = Object.entries(TIER4_RECIPES).find(([r, info]) => info.result === role);
+	const recipe = TOWER_ROLES[role]?.recipe;
 
-	if (tier4ResultFor) {
+	if (recipe) {
 		// role이 4티어 결과인 경우 (= role이 합체 결과)
-		const [parentA, info] = tier4ResultFor;
-		const parentB = info.partner;
+		const [parentA, parentB] = recipe;
 		const nameA = TOWER_ROLES[parentA]?.name || parentA;
 		const nameB = TOWER_ROLES[parentB]?.name || parentB;
 		return [t('합체 레시피: {a} + {b}', { a: nameA, b: nameB })];
