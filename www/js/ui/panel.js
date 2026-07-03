@@ -7,8 +7,11 @@ import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
 export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
-// 정보 카드 우상단 기어 버튼 — 터치 시 설정 카드 진입 (hit-test는 scenes).
-export const infoSettingsButton = { x: 308, y: 504, w: 28, h: 28 };
+const infoTopBtn = {
+	y: 504, w: 28, h: 28
+}
+export const infoWikiButton = { x: 308, ...infoTopBtn };
+export const infoSettingsButton = { x: 308, ...infoTopBtn };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
@@ -183,6 +186,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		drawPromotionButton(tower, promotionState);
 	}
 
+	// drawGearButton(infoSettingsButton);
 	drawGearButton(infoSettingsButton);
 }
 
