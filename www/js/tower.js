@@ -928,9 +928,7 @@ function drawPromotionCard(slot, role, cost, canAfford) {
 	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
 }
 
-function drawTier4ResultCard(slot, role, cost, canAfford) {
-	const cfg = TOWER_ROLES[role];
-
+function drawTier4ResultCard(slot, cfg, cost, canAfford) {
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
 		fill: canAfford ? '#222d40' : '#1a1f28',
 		stroke: canAfford ? cfg.color : '#444',
@@ -985,8 +983,8 @@ function drawTier4ResultCard(slot, role, cost, canAfford) {
 }
 
 // canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
-// tier4Result: 4티어 합체 분기면 결과 역할, 아니면 undefined (호출부가 isTier4ChoiceContext로 도출해 전달).
-export function drawPromotionPanel(tower, canAfford, tier4Result) {
+// tier4Cfg: 4티어 합체 분기면 결과 역할의 cfg, 아니면 undefined (호출부가 isTier4ChoiceContext로 도출해 전달).
+export function drawPromotionPanel(tower, canAfford, tier4Cfg) {
 	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
 		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
 	});
@@ -1001,13 +999,13 @@ export function drawPromotionPanel(tower, canAfford, tier4Result) {
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
-	if (tier4Result) {
+	if (tier4Cfg) {
 		ctx.fillText(
-			t('{from} 타워가 {to} 타워로 전직됩니다', { from: tower.cfg.name, to: TOWER_ROLES[tier4Result].name }),
+			t('{from} 타워가 {to} 타워로 전직됩니다', { from: tower.cfg.name, to: tier4Cfg.name }),
 			promotionPanel.x + promotionPanel.w / 2,
 			promotionPanel.y + 48,
 		);
-		drawTier4ResultCard(tier4ResultCardSlot, tier4Result, cost, canAfford);
+		drawTier4ResultCard(tier4ResultCardSlot, tier4Cfg, cost, canAfford);
 	} else {
 		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
 		const promotions = tower.cfg.promotions;

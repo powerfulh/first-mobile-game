@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TIER4_RECIPES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -600,7 +600,7 @@ scenes.playing = {
 		if (game.selectedTower) {
 			if (game.towerPanel === TOWER_PANEL.PROMOTION) {
 				const sel = game.selectedTower;
-				drawPromotionPanel(sel, canAffordPromotion(sel), isTier4ChoiceContext(sel) ? TIER4_RECIPES[sel.role].result : undefined);
+				drawPromotionPanel(sel, canAffordPromotion(sel), isTier4ChoiceContext(sel) ? TOWER_ROLES[TIER4_RECIPES[sel.role].result] : undefined);
 			} else if (game.towerPanel === TOWER_PANEL.SETTINGS) {
 				drawTowerSettingsCard(game.selectedTower, towerDualCapable(game.selectedTower.cfg));
 			} else {
