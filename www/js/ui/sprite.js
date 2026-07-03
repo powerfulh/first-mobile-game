@@ -470,3 +470,47 @@ export function drawProhibition(cx, cy, r) {
 	ctx.lineTo(cx + d, cy - d);
 	ctx.stroke();
 }
+
+// ============ 버튼 아이콘 ============
+// 흰색 고정, 중심 좌표만 받는 순수 아이콘 — 버튼 배경은 호출부(ui/panel) 담당.
+
+// 기어 아이콘 (이빨 + 링 + 중심)
+export function drawGearIcon(cx, cy) {
+	ctx.strokeStyle = '#fff';
+	ctx.fillStyle = '#fff';
+	const r = 5;
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	for (let i = 0; i < 8; i++) {
+		const a = (Math.PI * 2 * i) / 8;
+		ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+		ctx.lineTo(cx + Math.cos(a) * (r + 2.5), cy + Math.sin(a) * (r + 2.5));
+	}
+	ctx.stroke();
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+	ctx.fill();
+}
+
+// 펼친 책 아이콘 — 등뼈 기준 좌우 페이지 외곽 + 등뼈
+export function drawBookIcon(cx, cy) {
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.moveTo(cx, cy - 4);
+	ctx.quadraticCurveTo(cx - 4, cy - 7, cx - 8, cy - 5);
+	ctx.lineTo(cx - 8, cy + 4);
+	ctx.quadraticCurveTo(cx - 4, cy + 2, cx, cy + 5);
+	ctx.quadraticCurveTo(cx + 4, cy + 2, cx + 8, cy + 4);
+	ctx.lineTo(cx + 8, cy - 5);
+	ctx.quadraticCurveTo(cx + 4, cy - 7, cx, cy - 4);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(cx, cy - 4);
+	ctx.lineTo(cx, cy + 5);
+	ctx.stroke();
+}

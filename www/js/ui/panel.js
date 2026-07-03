@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition, drawTowerSprite } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawTowerSprite, drawGearIcon, drawBookIcon } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
@@ -42,63 +42,15 @@ function drawBar(x, y, w, h, ratio, fillColor) {
 	ctx.strokeRect(x, y, w, h);
 }
 
-// 정보 카드 우상단 기어 버튼
-function drawGearButton(btn) {
-	const cx = btn.x + btn.w / 2;
-	const cy = btn.y + btn.h / 2;
+// 정보 카드 우상단 아이콘 버튼 (위키·설정 공용) — 공통 셀 배경 + 아이콘(ui/sprite)만 다름.
+function drawTopIconButton(btn, drawIcon) {
 	ctx.fillStyle = SLATE;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
 	ctx.fill();
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
-	// 기어 아이콘 (이빨 + 링 + 중심)
-	ctx.strokeStyle = '#fff';
-	ctx.fillStyle = '#fff';
-	const r = 5;
-	ctx.lineWidth = 2;
-	ctx.beginPath();
-	for (let i = 0; i < 8; i++) {
-		const a = (Math.PI * 2 * i) / 8;
-		ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-		ctx.lineTo(cx + Math.cos(a) * (r + 2.5), cy + Math.sin(a) * (r + 2.5));
-	}
-	ctx.stroke();
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
-	ctx.fill();
-}
-
-// 정보 카드 우상단 위키 버튼 — 기어 버튼과 같은 셀 스타일에 펼친 책 아이콘.
-function drawWikiButton(btn) {
-	const cx = btn.x + btn.w / 2;
-	const cy = btn.y + btn.h / 2;
-	ctx.fillStyle = SLATE;
-	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
-	ctx.fill();
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-	ctx.lineWidth = 1;
-	ctx.stroke();
-	// 펼친 책 — 등뼈 기준 좌우 페이지 외곽 + 등뼈
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	ctx.moveTo(cx, cy - 4);
-	ctx.quadraticCurveTo(cx - 4, cy - 7, cx - 8, cy - 5);
-	ctx.lineTo(cx - 8, cy + 4);
-	ctx.quadraticCurveTo(cx - 4, cy + 2, cx, cy + 5);
-	ctx.quadraticCurveTo(cx + 4, cy + 2, cx + 8, cy + 4);
-	ctx.lineTo(cx + 8, cy - 5);
-	ctx.quadraticCurveTo(cx + 4, cy - 7, cx, cy - 4);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.moveTo(cx, cy - 4);
-	ctx.lineTo(cx, cy + 5);
-	ctx.stroke();
+	drawIcon(btn.x + btn.w / 2, btn.y + btn.h / 2);
 }
 
 // 전직 버튼 — state(tower.getPromotionState)로 라벨·활성 도출, 구운 tower 필드 사용.
@@ -214,8 +166,8 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		drawPromotionButton(tower, promotionState);
 	}
 
-	drawWikiButton(infoWikiButton);
-	drawGearButton(infoSettingsButton);
+	drawTopIconButton(infoWikiButton, drawBookIcon);
+	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
 
 export const SETTINGS_GA = {
