@@ -259,7 +259,6 @@ export function promoteTower(tower, role) {
 	if (!canAffordPromotion(tower)) return false;
 	if (!tower.cfg.promotions.includes(role)) return false;
 	const cfg = TOWER_ROLES[role];
-	if (!cfg) return false;
 
 	game.gold -= tower.promotionCost;
 	const prevRole = tower.role;
@@ -279,15 +278,11 @@ export function promoteToTier4(secondTower) {
 	const target = game.promotionTarget;
 	if (!isTier4ChoiceContext(secondTower)) return false;
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
-	const cost = secondTower.promotionCost;
-	if (game.gold < cost) return false;
+	if (!canAffordPromotion(secondTower)) return false;
 
-	const recipe = TIER4_RECIPES[secondTower.role];
-	const resultRole = recipe.result;
-	const cfg = TOWER_ROLES[resultRole];
-	if (!cfg) return false;
+	const resultRole = TIER4_RECIPES[secondTower.role].result;
 
-	game.gold -= cost;
+	game.gold -= secondTower.promotionCost;
 
 	// 대상 타워 제거
 	game.entities.towers = game.entities.towers.filter(x => x !== target);
