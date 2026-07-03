@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -17,8 +17,7 @@ import {
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
 	promoteTower, updateTower, drawTower,
-	getPromotionState, towerDualCapable, handleTowerSettingsTap, drawPromotionPanel, canAffordPromotion,
-	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
+	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
@@ -38,7 +37,10 @@ import {
 	drawSettingsModal, drawPath,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
-import { drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoPanel, infoPromotionButton } from './ui/panel.js';
+import {
+	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoPanel, infoPromotionButton,
+	drawPromotionPanel, promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
+} from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
 import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromote } from './sfx.js';
@@ -600,7 +602,7 @@ scenes.playing = {
 		if (game.selectedTower) {
 			if (game.towerPanel === TOWER_PANEL.PROMOTION) {
 				const sel = game.selectedTower;
-				drawPromotionPanel(sel, canAffordPromotion(sel), isTier4ChoiceContext(sel) ? TOWER_ROLES[TIER4_RECIPES[sel.role].result] : undefined);
+				drawPromotionPanel(sel, canAffordPromotion(sel), getPromotionChoices(sel));
 			} else if (game.towerPanel === TOWER_PANEL.SETTINGS) {
 				drawTowerSettingsCard(game.selectedTower, towerDualCapable(game.selectedTower.cfg));
 			} else {

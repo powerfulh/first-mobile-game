@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawTowerSprite } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
@@ -342,3 +342,130 @@ export function drawEnemyInfoPanel(e, factor) {
 	}
 }
 
+// ============ 전직 패널 ============
+// 좌표 상수는 scenes의 hit-test와 공유.
+export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
+export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
+export const promotionCardSlots = [
+	{ x: 24, y: 432, w: 312, h: 84 },
+	{ x: 24, y: 526, w: 312, h: 84 },
+];
+// 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
+export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
+
+function drawPromotionCard(slot, cfg, cost, canAfford) {
+	drawPanel(slot.x, slot.y, slot.w, slot.h, {
+		fill: canAfford ? '#222d40' : '#1a1f28',
+		stroke: canAfford ? cfg.color : '#444',
+		alpha: 0.95,
+	});
+
+	drawTowerSprite(cfg, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
+
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 18px sans-serif';
+	ctx.fillText(cfg.name, slot.x + 68, slot.y + 32);
+
+	ctx.fillStyle = '#bcd';
+	ctx.font = '12px sans-serif';
+	ctx.fillText(t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
+
+	ctx.fillStyle = '#8aa';
+	ctx.font = '11px sans-serif';
+	ctx.fillText(cfg.tagline || '', slot.x + 68, slot.y + 74);
+
+	ctx.textAlign = 'right';
+	ctx.fillStyle = canAfford ? GOLD : '#666';
+	ctx.font = 'bold 16px sans-serif';
+	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
+}
+
+function drawTier4ResultCard(slot, cfg, cost, canAfford) {
+	drawPanel(slot.x, slot.y, slot.w, slot.h, {
+		fill: canAfford ? '#222d40' : '#1a1f28',
+		stroke: canAfford ? cfg.color : '#444',
+		alpha: 0.95,
+	});
+
+	// 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
+	drawTowerSprite(cfg, slot.x + 42, slot.y + 42, { radius: 22 });
+
+	// 이름 + 비용
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 20px sans-serif';
+	ctx.fillText(cfg.name, slot.x + 80, slot.y + 32);
+
+	ctx.textAlign = 'right';
+	ctx.fillStyle = canAfford ? GOLD : '#666';
+	ctx.font = 'bold 16px sans-serif';
+	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
+
+	// 스탯
+	ctx.textAlign = 'left';
+	ctx.fillStyle = '#bcd';
+	ctx.font = '12px sans-serif';
+	ctx.fillText(
+		t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
+		slot.x + 80, slot.y + 54,
+	);
+
+	ctx.fillStyle = '#8aa';
+	ctx.font = '11px sans-serif';
+	ctx.fillText(cfg.tagline || '', slot.x + 80, slot.y + 72);
+
+	// 구분선
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.moveTo(slot.x + 14, slot.y + 92);
+	ctx.lineTo(slot.x + slot.w - 14, slot.y + 92);
+	ctx.stroke();
+
+	// 상세 설명
+	const lines = cfg.description || [];
+	ctx.fillStyle = '#dde';
+	ctx.font = '12px sans-serif';
+	const lineH = 18;
+	const baseY = slot.y + 112;
+	for (let i = 0; i < lines.length; i++) {
+		ctx.fillText('• ' + lines[i], slot.x + 16, baseY + i * lineH);
+	}
+}
+
+// canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
+// choices: 표시할 선택지 뷰모델 (tower.getPromotionChoices) — tier4Cfg(합체 결과) 또는 cfgs(역할별 cfg 목록).
+export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
+	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
+		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
+	});
+
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = GOLD;
+	ctx.font = 'bold 18px sans-serif';
+	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
+
+	const cost = tower.promotionCost;
+
+	ctx.fillStyle = '#bcd';
+	ctx.font = '12px sans-serif';
+	if (tier4Cfg) {
+		ctx.fillText(
+			t('{from} 타워가 {to} 타워로 전직됩니다', { from: tower.cfg.name, to: tier4Cfg.name }),
+			promotionPanel.x + promotionPanel.w / 2,
+			promotionPanel.y + 48,
+		);
+		drawTier4ResultCard(tier4ResultCardSlot, tier4Cfg, cost, canAfford);
+	} else {
+		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+		for (let i = 0; i < cfgs.length && i < promotionCardSlots.length; i++) {
+			drawPromotionCard(promotionCardSlots[i], cfgs[i], cost, canAfford);
+		}
+	}
+
+	drawCloseX(promotionCloseButton);
+}

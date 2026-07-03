@@ -5,15 +5,14 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, hitButton, drawPanel, hasItems, round1 } from './core/helpers.js';
+import { pointToSegmentDist, hitButton, hasItems, round1 } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
 import { drawTier4Halo, drawTowerSprite } from './ui/sprite.js';
-import { SETTINGS_GA, SETTINGS_PRIORITY_BTN, drawCloseX } from './ui/panel.js';
-import { t } from './core/i18n.js';
+import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
 // ============ Promotion / XP helpers ============
 // tier 파생 스탯(목표 XP·전직 비용)을 인스턴스에 구움 — tier가 바뀌는 모든 지점에서 호출.
@@ -489,15 +488,6 @@ export function drawTower(tower) {
 }
 
 // ============ Tower info panel / Promotion panel ============
-export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
-export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
-export const promotionCardSlots = [
-	{ x: 24, y: 432, w: 312, h: 84 },
-	{ x: 24, y: 526, w: 312, h: 84 },
-];
-// 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
-export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
-
 // 타워의 전직 관련 상태 — 단일 값(약속된 문자열). 드로잉(라벨·활성)·핸들링(액션)이 이것 하나로 도출.
 // 'notReady'(XP부족) | 'noGold'(골드부족) | 'openChoice'(전직 선택 패널) | 'setTarget'(4티어 대상 지정) | 'cancelTarget'(대상 취소)
 export function getPromotionState(tower) {
@@ -507,6 +497,15 @@ export function getPromotionState(tower) {
 		if (!isTier4ChoiceContext(tower)) return 'setTarget';
 	}
 	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
+}
+
+// 전직 패널에 표시할 선택지 뷰모델 — 4티어 합체면 결과 cfg 하나(tier4Cfg), 아니면 역할별 cfg 목록(cfgs).
+// 역할 키 → cfg 해석을 도메인에 묶어 ui가 TOWER_ROLES를 모르게 함.
+export function getPromotionChoices(tower) {
+	if (isTier4ChoiceContext(tower)) {
+		return { tier4Cfg: TOWER_ROLES[TIER4_RECIPES[tower.role].result] };
+	}
+	return { cfgs: tower.cfg.promotions.map(r => TOWER_ROLES[r]) };
 }
 
 // 전직 버튼 탭 처리 — 전직 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
@@ -562,124 +561,4 @@ export function handleTowerSettingsTap(tower, p) {
 		}
 	}
 	return false;
-}
-
-function drawPromotionCard(slot, role, cost, canAfford) {
-	const cfg = TOWER_ROLES[role];
-
-	drawPanel(slot.x, slot.y, slot.w, slot.h, {
-		fill: canAfford ? '#222d40' : '#1a1f28',
-		stroke: canAfford ? cfg.color : '#444',
-		alpha: 0.95,
-	});
-
-	drawTowerSprite(cfg, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
-
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(cfg.name, slot.x + 68, slot.y + 32);
-
-	ctx.fillStyle = '#bcd';
-	ctx.font = '12px sans-serif';
-	ctx.fillText(t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
-
-	ctx.fillStyle = '#8aa';
-	ctx.font = '11px sans-serif';
-	ctx.fillText(cfg.tagline || '', slot.x + 68, slot.y + 74);
-
-	ctx.textAlign = 'right';
-	ctx.fillStyle = canAfford ? GOLD : '#666';
-	ctx.font = 'bold 16px sans-serif';
-	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
-}
-
-function drawTier4ResultCard(slot, cfg, cost, canAfford) {
-	drawPanel(slot.x, slot.y, slot.w, slot.h, {
-		fill: canAfford ? '#222d40' : '#1a1f28',
-		stroke: canAfford ? cfg.color : '#444',
-		alpha: 0.95,
-	});
-
-	// 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
-	drawTowerSprite(cfg, slot.x + 42, slot.y + 42, { radius: 22 });
-
-	// 이름 + 비용
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 20px sans-serif';
-	ctx.fillText(cfg.name, slot.x + 80, slot.y + 32);
-
-	ctx.textAlign = 'right';
-	ctx.fillStyle = canAfford ? GOLD : '#666';
-	ctx.font = 'bold 16px sans-serif';
-	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
-
-	// 스탯
-	ctx.textAlign = 'left';
-	ctx.fillStyle = '#bcd';
-	ctx.font = '12px sans-serif';
-	ctx.fillText(
-		t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
-		slot.x + 80, slot.y + 54,
-	);
-
-	ctx.fillStyle = '#8aa';
-	ctx.font = '11px sans-serif';
-	ctx.fillText(cfg.tagline || '', slot.x + 80, slot.y + 72);
-
-	// 구분선
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-	ctx.lineWidth = 1;
-	ctx.beginPath();
-	ctx.moveTo(slot.x + 14, slot.y + 92);
-	ctx.lineTo(slot.x + slot.w - 14, slot.y + 92);
-	ctx.stroke();
-
-	// 상세 설명
-	const lines = cfg.description || [];
-	ctx.fillStyle = '#dde';
-	ctx.font = '12px sans-serif';
-	const lineH = 18;
-	const baseY = slot.y + 112;
-	for (let i = 0; i < lines.length; i++) {
-		ctx.fillText('• ' + lines[i], slot.x + 16, baseY + i * lineH);
-	}
-}
-
-// canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
-// tier4Cfg: 4티어 합체 분기면 결과 역할의 cfg, 아니면 undefined (호출부가 isTier4ChoiceContext로 도출해 전달).
-export function drawPromotionPanel(tower, canAfford, tier4Cfg) {
-	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
-		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
-	});
-
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = GOLD;
-	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
-
-	const cost = tower.promotionCost;
-
-	ctx.fillStyle = '#bcd';
-	ctx.font = '12px sans-serif';
-	if (tier4Cfg) {
-		ctx.fillText(
-			t('{from} 타워가 {to} 타워로 전직됩니다', { from: tower.cfg.name, to: tier4Cfg.name }),
-			promotionPanel.x + promotionPanel.w / 2,
-			promotionPanel.y + 48,
-		);
-		drawTier4ResultCard(tier4ResultCardSlot, tier4Cfg, cost, canAfford);
-	} else {
-		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
-		const promotions = tower.cfg.promotions;
-		for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
-			drawPromotionCard(promotionCardSlots[i], promotions[i], cost, canAfford);
-		}
-	}
-
-	drawCloseX(promotionCloseButton);
 }
