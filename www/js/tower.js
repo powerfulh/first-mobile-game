@@ -45,7 +45,7 @@ function isPromotionReady(tower) {
 	return tower.canPromote && (game.sandbox || tower.xp >= tower.xpMax);
 }
 
-function canAffordPromotion(tower) {
+export function canAffordPromotion(tower) {
 	return game.gold >= tower.promotionCost;
 }
 
@@ -998,8 +998,9 @@ function drawTier4ResultCard(slot, role, cost, canAfford) {
 	}
 }
 
+// canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
 // tier4Result: 4티어 합체 분기면 결과 역할, 아니면 undefined (호출부가 isTier4ChoiceContext로 도출해 전달).
-export function drawPromotionPanel(tower, tier4Result) {
+export function drawPromotionPanel(tower, canAfford, tier4Result) {
 	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
 		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
 	});
@@ -1011,7 +1012,6 @@ export function drawPromotionPanel(tower, tier4Result) {
 	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
 	const cost = tower.promotionCost;
-	const canAfford = canAffordPromotion(tower); // 카드 시각 상태와 탭 시 실제 판정의 단일 기준
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
