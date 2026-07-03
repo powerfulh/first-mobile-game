@@ -42,7 +42,7 @@ export function setTowerTier(tower, role, tier, prevRole) {
 }
 
 function isPromotionReady(tower) {
-	return tower.canPromote && (game.sandbox || tower.xp >= tower.xpMax);
+	return tower.canPromote && tower.xp >= tower.xpMax;
 }
 
 function canAffordPromotion(tower) {
@@ -211,7 +211,7 @@ const distanceToPath = (x, y) => distanceToPolyline(x, y, getActiveMap().path);
 const distanceToShortcut = (x, y) => distanceToPolyline(x, y, getActiveMap().airShortcutCut);
 
 export function canPlaceTower(x, y) {
-	if (!game.sandbox && game.gold < TOWER.cost) return false;
+	if (game.gold < TOWER.cost) return false;
 	if (y < HUD_RESERVED_TOP + TOWER.radius) return false;
 	if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
 	if (y > LOGICAL_H - TOWER.radius) return false;
@@ -237,7 +237,7 @@ export function placeTower(x, y) {
 	setTowerTier(tw, 'novice', 0);
 	game.entities.towers.push(tw);
 	recomputeStats();
-	if (!game.sandbox) game.gold -= TOWER.cost;
+	game.gold -= TOWER.cost;
 	return true;
 }
 
@@ -264,7 +264,7 @@ export function promoteTower(tower, role) {
 	const cfg = TOWER_ROLES[role];
 	if (!cfg) return false;
 
-	if (!game.sandbox) game.gold -= tower.promotionCost;
+	game.gold -= tower.promotionCost;
 	const prevRole = tower.role;
 	tower.cooldown = 0;
 	tower.xp = 0;
@@ -284,14 +284,14 @@ export function promoteToTier4(secondTower) {
 	if (!isCompatibleTier4Partner(target, secondTower)) return false;
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
 	const cost = secondTower.promotionCost;
-	if (!game.sandbox && game.gold < cost) return false;
+	if (game.gold < cost) return false;
 
 	const recipe = TIER4_RECIPES[secondTower.role];
 	const resultRole = recipe.result;
 	const cfg = TOWER_ROLES[resultRole];
 	if (!cfg) return false;
 
-	if (!game.sandbox) game.gold -= cost;
+	game.gold -= cost;
 
 	// 대상 타워 제거
 	game.entities.towers = game.entities.towers.filter(x => x !== target);
@@ -861,8 +861,7 @@ export function getPromotionState(tower) {
 	if (tower.tier === 3) {
 		if (tower === game.promotionTarget) return 'cancelTarget';
 		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
-			const afford = game.sandbox || game.gold >= tower.promotionCost;
-			return afford ? 'openChoice' : 'noGold';
+			return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 		}
 		return 'setTarget';
 	}
