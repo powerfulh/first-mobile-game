@@ -320,7 +320,7 @@ export function updateEnemy(e, dt) {
 	}
 	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
-		if (!game.sandbox) game.hp -= 1;
+		game.hp -= 1;
 		e.dead = true;
 		return;
 	}

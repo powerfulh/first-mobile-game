@@ -41,25 +41,22 @@ export function setTowerTier(tower, role, tier, prevRole) {
 	else applyTowerPriorityOnPromote(tower, prevRole);
 }
 
-export function isPromotionReady(tower) {
+function isPromotionReady(tower) {
 	return tower.canPromote && (game.sandbox || tower.xp >= tower.xpMax);
 }
 
 export function canAffordPromotion(tower) {
-	return game.sandbox || game.gold >= tower.promotionCost;
+	return game.gold >= tower.promotionCost;
 }
 
 // ============ Tier 4 helpers ============
-export function getTier4Recipe(tower) {
-	return TIER4_RECIPES[tower.role] || null;
-}
-
-export function isCompatibleTier4Partner(target, candidate) {
-	// 두 3티어 타워가 서로의 레시피 파트너인지
-	if (!target || !candidate || target === candidate) return false;
-	if (target.tier !== 3 || candidate.tier !== 3) return false;
+// 현재 선택 타워가 4티어 합체 전직 분기인지 — 지정된 합체 대상(game.promotionTarget)과 서로 레시피 파트너인 3티어 타워.
+export function isTier4ChoiceContext(tower) {
+	const target = game.promotionTarget;
+	if (!target || !tower || target === tower) return false;
+	if (target.tier !== 3 || tower.tier !== 3) return false;
 	const recipe = TIER4_RECIPES[target.role];
-	return !!recipe && recipe.partner === candidate.role;
+	return !!recipe && recipe.partner === tower.role;
 }
 
 export function hasReadyTier4Candidate() {
@@ -122,7 +119,7 @@ function getEffectiveDamage(tower) {
 	return base;
 }
 
-export function getXpGainAtWaveEnd(tower) {
+function getXpGainAtWaveEnd(tower) {
 	for (const other of game.entities.towers) {
 		if (other === tower) continue;
 		const otherCfg = other.cfg;
@@ -211,7 +208,7 @@ const distanceToPath = (x, y) => distanceToPolyline(x, y, getActiveMap().path);
 const distanceToShortcut = (x, y) => distanceToPolyline(x, y, getActiveMap().airShortcutCut);
 
 export function canPlaceTower(x, y) {
-	if (!game.sandbox && game.gold < TOWER.cost) return false;
+	if (game.gold < TOWER.cost) return false;
 	if (y < HUD_RESERVED_TOP + TOWER.radius) return false;
 	if (x < TOWER.radius || x > LOGICAL_W - TOWER.radius) return false;
 	if (y > LOGICAL_H - TOWER.radius) return false;
@@ -237,7 +234,7 @@ export function placeTower(x, y) {
 	setTowerTier(tw, 'novice', 0);
 	game.entities.towers.push(tw);
 	recomputeStats();
-	if (!game.sandbox) game.gold -= TOWER.cost;
+	game.gold -= TOWER.cost;
 	return true;
 }
 
@@ -262,9 +259,8 @@ export function promoteTower(tower, role) {
 	if (!canAffordPromotion(tower)) return false;
 	if (!tower.cfg.promotions.includes(role)) return false;
 	const cfg = TOWER_ROLES[role];
-	if (!cfg) return false;
 
-	if (!game.sandbox) game.gold -= tower.promotionCost;
+	game.gold -= tower.promotionCost;
 	const prevRole = tower.role;
 	tower.cooldown = 0;
 	tower.xp = 0;
@@ -280,18 +276,13 @@ export function promoteTower(tower, role) {
 export function promoteToTier4(secondTower) {
 	// 대상(첫 타워)이 사라지고 secondTower 자리에 4티어 타워 생성
 	const target = game.promotionTarget;
-	if (!target) return false;
-	if (!isCompatibleTier4Partner(target, secondTower)) return false;
+	if (!isTier4ChoiceContext(secondTower)) return false;
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
-	const cost = secondTower.promotionCost;
-	if (!game.sandbox && game.gold < cost) return false;
+	if (!canAffordPromotion(secondTower)) return false;
 
-	const recipe = TIER4_RECIPES[secondTower.role];
-	const resultRole = recipe.result;
-	const cfg = TOWER_ROLES[resultRole];
-	if (!cfg) return false;
+	const resultRole = TIER4_RECIPES[secondTower.role].result;
 
-	if (!game.sandbox) game.gold -= cost;
+	game.gold -= secondTower.promotionCost;
 
 	// 대상 타워 제거
 	game.entities.towers = game.entities.towers.filter(x => x !== target);
@@ -768,11 +759,16 @@ function drawRadarAntenna(tower) {
 	ctx.restore();
 }
 
-// 타워 외형(4티어 후광 + 본체 + 레이더 안테나)만 그림.
-// 게임 전용 요소(전직 펄스·XP 바)는 제외 → drawTower와 위키가 공유하는 단일 소스.
-function drawTowerBody(tower, selected) {
-	const cfg = tower.cfg;
-	if (tower.tier === 4) drawTier4Halo(tower);
+// 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
+// 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
+// angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
+export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Math.PI / 2, cooldown = 0, selected = false } = {}) {
+	const tower = { x: 0, y: 0, cfg, angle, cooldown }; // 본체 함수 공용 인자 묶음 (내부 구현)
+	// 본체는 원점에 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
+	const scale = radius / TOWER.radius;
+	ctx.save();
+	ctx.translate(x, y);
+	if (scale !== 1) ctx.scale(scale, scale);
 
 	if (cfg.disablesModifiers) {
 		drawAssassinBody(tower, selected);
@@ -791,26 +787,6 @@ function drawTowerBody(tower, selected) {
 	}
 
 	if (cfg.marksEnemies) drawRadarAntenna(tower);
-}
-
-// 게임 밖(위키 등)에서 타워 외형을 그릴 때 사용. (cx, cy) 중심·게임과 동일 크기.
-// 합성 타워 객체를 만들어 drawTowerBody를 재사용 — 외형 정의는 한 곳뿐.
-export function drawTowerSprite(role, cx, cy, opts = {}) {
-	const cfg = TOWER_ROLES[role];
-	if (!cfg) return;
-	const isTier4 = !!cfg.recipe;
-	const tower = {
-		x: 0, y: 0, role, cfg, // 원점에 그린 뒤 translate/scale로 배치
-		tier: isTier4 ? 4 : 1,
-		angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
-		cooldown: 0,
-	};
-	// 본체는 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
-	const scale = (opts.radius || TOWER.radius) / TOWER.radius;
-	ctx.save();
-	ctx.translate(cx, cy);
-	if (scale !== 1) ctx.scale(scale, scale);
-	drawTowerBody(tower, false);
 	ctx.restore();
 }
 
@@ -829,7 +805,8 @@ export function drawTower(tower) {
 		ctx.globalAlpha = 1;
 	}
 
-	drawTowerBody(tower, selected);
+	if (tower.tier === 4) drawTier4Halo(tower);
+	drawTowerSprite(tower.cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
@@ -860,11 +837,7 @@ export function getPromotionState(tower) {
 	if (isPromotionReady(tower) == false) return 'notReady';
 	if (tower.tier === 3) {
 		if (tower === game.promotionTarget) return 'cancelTarget';
-		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
-			const afford = game.sandbox || game.gold >= tower.promotionCost;
-			return afford ? 'openChoice' : 'noGold';
-		}
-		return 'setTarget';
+		if (!isTier4ChoiceContext(tower)) return 'setTarget';
 	}
 	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 }
@@ -924,9 +897,8 @@ export function handleTowerSettingsTap(tower, p) {
 	return false;
 }
 
-function drawPromotionCard(slot, role, cost) {
+function drawPromotionCard(slot, role, cost, canAfford) {
 	const cfg = TOWER_ROLES[role];
-	const canAfford = game.gold >= cost;
 
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
 		fill: canAfford ? '#222d40' : '#1a1f28',
@@ -934,7 +906,7 @@ function drawPromotionCard(slot, role, cost) {
 		alpha: 0.95,
 	});
 
-	drawTowerSprite(role, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
+	drawTowerSprite(cfg, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
 
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
@@ -956,9 +928,8 @@ function drawPromotionCard(slot, role, cost) {
 	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
 }
 
-function drawTier4ResultCard(slot, role, cost) {
+function drawTier4ResultCard(slot, role, cost, canAfford) {
 	const cfg = TOWER_ROLES[role];
-	const canAfford = game.gold >= cost;
 
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
 		fill: canAfford ? '#222d40' : '#1a1f28',
@@ -967,7 +938,7 @@ function drawTier4ResultCard(slot, role, cost) {
 	});
 
 	// 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
-	drawTowerSprite(role, slot.x + 42, slot.y + 42, { radius: 22 });
+	drawTowerSprite(cfg, slot.x + 42, slot.y + 42, { radius: 22 });
 
 	// 이름 + 비용
 	ctx.textAlign = 'left';
@@ -1013,13 +984,9 @@ function drawTier4ResultCard(slot, role, cost) {
 	}
 }
 
-// 현재 선택 타워가 4티어 합체 전직 분기인지
-export function isTier4ChoiceContext(tower) {
-	return tower && tower.tier === 3 && game.promotionTarget
-    && isCompatibleTier4Partner(game.promotionTarget, tower);
-}
-
-export function drawPromotionPanel(tower) {
+// canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
+// tier4Result: 4티어 합체 분기면 결과 역할, 아니면 undefined (호출부가 isTier4ChoiceContext로 도출해 전달).
+export function drawPromotionPanel(tower, canAfford, tier4Result) {
 	drawPanel(promotionPanel.x, promotionPanel.y, promotionPanel.w, promotionPanel.h, {
 		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
 	});
@@ -1030,26 +997,22 @@ export function drawPromotionPanel(tower) {
 	ctx.font = 'bold 18px sans-serif';
 	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
-	const tier4 = isTier4ChoiceContext(tower);
 	const cost = tower.promotionCost;
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
-	if (tier4) {
-		const recipe = getTier4Recipe(tower);
-		const fromCfg = tower.cfg;
-		const toCfg = TOWER_ROLES[recipe.result];
+	if (tier4Result) {
 		ctx.fillText(
-			t('{from} 타워가 {to} 타워로 전직됩니다', { from: fromCfg.name, to: toCfg.name }),
+			t('{from} 타워가 {to} 타워로 전직됩니다', { from: tower.cfg.name, to: TOWER_ROLES[tier4Result].name }),
 			promotionPanel.x + promotionPanel.w / 2,
 			promotionPanel.y + 48,
 		);
-		drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost);
+		drawTier4ResultCard(tier4ResultCardSlot, tier4Result, cost, canAfford);
 	} else {
 		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
 		const promotions = tower.cfg.promotions;
 		for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
-			drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
+			drawPromotionCard(promotionCardSlots[i], promotions[i], cost, canAfford);
 		}
 	}
 

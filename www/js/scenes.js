@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, TIER4_RECIPES, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -17,7 +17,7 @@ import {
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower, drawTowerSprite,
 	promoteTower, updateTower, drawTower,
-	getPromotionState, towerDualCapable, handleTowerSettingsTap, drawPromotionPanel,
+	getPromotionState, towerDualCapable, handleTowerSettingsTap, drawPromotionPanel, canAffordPromotion,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
@@ -388,7 +388,7 @@ function drawGhostTower() {
 	drawTowerRange(g, 0.12, 0);
 	// 고스트 본체 (반투명) + 유효성 링
 	ctx.globalAlpha = 0.55;
-	drawTowerSprite('novice', g.x, g.y);
+	drawTowerSprite(g.cfg, g.x, g.y);
 	ctx.globalAlpha = 1;
 	ctx.strokeStyle = ok ? '#2ecc71' : '#e74c3c';
 	ctx.lineWidth = 2;
@@ -599,7 +599,8 @@ scenes.playing = {
 
 		if (game.selectedTower) {
 			if (game.towerPanel === TOWER_PANEL.PROMOTION) {
-				drawPromotionPanel(game.selectedTower);
+				const sel = game.selectedTower;
+				drawPromotionPanel(sel, canAffordPromotion(sel), isTier4ChoiceContext(sel) ? TIER4_RECIPES[sel.role].result : undefined);
 			} else if (game.towerPanel === TOWER_PANEL.SETTINGS) {
 				drawTowerSettingsCard(game.selectedTower, towerDualCapable(game.selectedTower.cfg));
 			} else {

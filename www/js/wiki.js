@@ -384,7 +384,7 @@ function drawGroupHeader(y, label) {
 function drawTowerItem(y, role, cfg, expanded) {
 	return drawAccordionItem(y, {
 		expanded,
-		iconFn: (cx, cy) => drawTowerSprite(role, cx, cy),
+		iconFn: (cx, cy) => drawTowerSprite(cfg, cx, cy),
 		name: cfg.name,
 		tagline: cfg.tagline,
 		detailFn: (dy) => drawTowerDetail(dy, role, cfg),
