@@ -759,11 +759,16 @@ function drawRadarAntenna(tower) {
 	ctx.restore();
 }
 
-// 타워 외형(4티어 후광 + 본체 + 레이더 안테나)만 그림.
-// 게임 전용 요소(전직 펄스·XP 바)는 제외 → drawTower와 위키가 공유하는 단일 소스.
-function drawTowerBody(tower, selected) {
-	const cfg = tower.cfg;
-	if (tower.tier === 4) drawTier4Halo(tower);
+// 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
+// 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
+// angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
+export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Math.PI / 2, cooldown = 0, selected = false } = {}) {
+	const tower = { x: 0, y: 0, cfg, angle, cooldown }; // 본체 함수 공용 인자 묶음 (내부 구현)
+	// 본체는 원점에 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
+	const scale = radius / TOWER.radius;
+	ctx.save();
+	ctx.translate(x, y);
+	if (scale !== 1) ctx.scale(scale, scale);
 
 	if (cfg.disablesModifiers) {
 		drawAssassinBody(tower, selected);
@@ -782,26 +787,6 @@ function drawTowerBody(tower, selected) {
 	}
 
 	if (cfg.marksEnemies) drawRadarAntenna(tower);
-}
-
-// 게임 밖(위키 등)에서 타워 외형을 그릴 때 사용. (cx, cy) 중심·게임과 동일 크기.
-// 합성 타워 객체를 만들어 drawTowerBody를 재사용 — 외형 정의는 한 곳뿐.
-export function drawTowerSprite(role, cx, cy, opts = {}) {
-	const cfg = TOWER_ROLES[role];
-	if (!cfg) return;
-	const isTier4 = !!cfg.recipe;
-	const tower = {
-		x: 0, y: 0, role, cfg, // 원점에 그린 뒤 translate/scale로 배치
-		tier: isTier4 ? 4 : 1,
-		angle: opts.angle ?? -Math.PI / 2, // 기본: 위쪽을 향함
-		cooldown: 0,
-	};
-	// 본체는 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
-	const scale = (opts.radius || TOWER.radius) / TOWER.radius;
-	ctx.save();
-	ctx.translate(cx, cy);
-	if (scale !== 1) ctx.scale(scale, scale);
-	drawTowerBody(tower, false);
 	ctx.restore();
 }
 
@@ -820,7 +805,8 @@ export function drawTower(tower) {
 		ctx.globalAlpha = 1;
 	}
 
-	drawTowerBody(tower, selected);
+	if (tower.tier === 4) drawTier4Halo(tower);
+	drawTowerSprite(tower.cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
@@ -920,7 +906,7 @@ function drawPromotionCard(slot, role, cost, canAfford) {
 		alpha: 0.95,
 	});
 
-	drawTowerSprite(role, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
+	drawTowerSprite(cfg, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
 
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
@@ -952,7 +938,7 @@ function drawTier4ResultCard(slot, role, cost, canAfford) {
 	});
 
 	// 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
-	drawTowerSprite(role, slot.x + 42, slot.y + 42, { radius: 22 });
+	drawTowerSprite(cfg, slot.x + 42, slot.y + 42, { radius: 22 });
 
 	// 이름 + 비용
 	ctx.textAlign = 'left';
