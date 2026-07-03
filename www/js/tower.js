@@ -856,10 +856,7 @@ export function getPromotionState(tower) {
 	if (isPromotionReady(tower) == false) return 'notReady';
 	if (tower.tier === 3) {
 		if (tower === game.promotionTarget) return 'cancelTarget';
-		if (isTier4ChoiceContext(tower)) {
-			return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
-		}
-		return 'setTarget';
+		if (!isTier4ChoiceContext(tower)) return 'setTarget';
 	}
 	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 }
