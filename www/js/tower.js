@@ -41,20 +41,20 @@ export function setTowerTier(tower, role, tier, prevRole) {
 	else applyTowerPriorityOnPromote(tower, prevRole);
 }
 
-export function isPromotionReady(tower) {
+function isPromotionReady(tower) {
 	return tower.canPromote && (game.sandbox || tower.xp >= tower.xpMax);
 }
 
-export function canAffordPromotion(tower) {
+function canAffordPromotion(tower) {
 	return game.sandbox || game.gold >= tower.promotionCost;
 }
 
 // ============ Tier 4 helpers ============
-export function getTier4Recipe(tower) {
+function getTier4Recipe(tower) {
 	return TIER4_RECIPES[tower.role] || null;
 }
 
-export function isCompatibleTier4Partner(target, candidate) {
+function isCompatibleTier4Partner(target, candidate) {
 	// 두 3티어 타워가 서로의 레시피 파트너인지
 	if (!target || !candidate || target === candidate) return false;
 	if (target.tier !== 3 || candidate.tier !== 3) return false;
@@ -122,7 +122,7 @@ function getEffectiveDamage(tower) {
 	return base;
 }
 
-export function getXpGainAtWaveEnd(tower) {
+function getXpGainAtWaveEnd(tower) {
 	for (const other of game.entities.towers) {
 		if (other === tower) continue;
 		const otherCfg = other.cfg;
