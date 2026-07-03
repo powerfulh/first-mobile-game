@@ -42,7 +42,7 @@ export function setTowerTier(tower, role, tier, prevRole) {
 }
 
 function isPromotionReady(tower) {
-	return tower.canPromote && tower.xp >= tower.xpMax;
+	return tower.canPromote && (game.sandbox || tower.xp >= tower.xpMax);
 }
 
 function canAffordPromotion(tower) {
