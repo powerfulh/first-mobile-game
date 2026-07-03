@@ -10,7 +10,7 @@ export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
 const infoTopBtn = {
 	y: 504, w: 28, h: 28
 }
-export const infoWikiButton = { x: 308, ...infoTopBtn };
+export const infoWikiButton = { x: 276, ...infoTopBtn };
 export const infoSettingsButton = { x: 308, ...infoTopBtn };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
@@ -71,6 +71,34 @@ function drawGearButton(btn) {
 	ctx.beginPath();
 	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
 	ctx.fill();
+}
+
+// 정보 카드 우상단 위키 버튼 — 기어 버튼과 같은 셀 스타일에 펼친 책 아이콘.
+function drawWikiButton(btn) {
+	const cx = btn.x + btn.w / 2;
+	const cy = btn.y + btn.h / 2;
+	ctx.fillStyle = SLATE;
+	roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+	ctx.fill();
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	// 펼친 책 — 등뼈 기준 좌우 페이지 외곽 + 등뼈
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.moveTo(cx, cy - 4);
+	ctx.quadraticCurveTo(cx - 4, cy - 7, cx - 8, cy - 5);
+	ctx.lineTo(cx - 8, cy + 4);
+	ctx.quadraticCurveTo(cx - 4, cy + 2, cx, cy + 5);
+	ctx.quadraticCurveTo(cx + 4, cy + 2, cx + 8, cy + 4);
+	ctx.lineTo(cx + 8, cy - 5);
+	ctx.quadraticCurveTo(cx + 4, cy - 7, cx, cy - 4);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(cx, cy - 4);
+	ctx.lineTo(cx, cy + 5);
+	ctx.stroke();
 }
 
 // 전직 버튼 — state(tower.getPromotionState)로 라벨·활성 도출, 구운 tower 필드 사용.
@@ -186,7 +214,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		drawPromotionButton(tower, promotionState);
 	}
 
-	// drawGearButton(infoSettingsButton);
+	drawWikiButton(infoWikiButton);
 	drawGearButton(infoSettingsButton);
 }
 

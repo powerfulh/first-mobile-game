@@ -38,7 +38,7 @@ import {
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
-	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoPanel, infoPromotionButton,
+	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoWikiButton, infoPanel, infoPromotionButton,
 	drawPromotionPanel, promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
@@ -76,7 +76,7 @@ const playingSettingsButtons = [
 		},
 	},
 ];
-import { wiki } from './wiki.js';
+import { wiki, openWikiAtTower } from './wiki.js';
 
 export const scenes = {};
 let currentSceneName = null;
@@ -743,6 +743,11 @@ scenes.playing = {
 		}
 
 		if (game.selectedTower) {
+			if (hitButton(infoWikiButton, p)) {
+				playButton();
+				openWikiAtTower(game.selectedTower.role, 'playing');
+				return;
+			}
 			if (hitButton(infoSettingsButton, p)) {
 				playButton();
 				game.towerPanel = TOWER_PANEL.SETTINGS;

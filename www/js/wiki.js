@@ -201,6 +201,34 @@ function clampScroll(v) {
 	return clamp(v, 0, max);
 }
 
+// 특정 타워 항목으로 바로 진입 — 해당 항목을 펼치고 그 위치로 스크롤 (플레잉 정보 카드의 위키 버튼).
+// changeScene의 enter()가 상태를 리셋하므로 그 뒤에 목표 상태를 덮어쓴다.
+export function openWikiAtTower(role, returnTo) {
+	wiki.returnTo = returnTo;
+	changeScene('wiki');
+	wiki.category = 'tower';
+	wiki.expandedKey = 'tower:' + role;
+	wiki.scroll = towerScrollOffset(role);
+}
+
+// 대상 항목이 컨텐츠 최상단에 오는 스크롤 값 — handleContentTap과 동일한 레이아웃 순회로 산출.
+// 대상만 펼쳐진 상태 기준. 컨텐츠 끝을 넘지 않게 전체 높이(하단 여백 포함)로 클램프.
+function towerScrollOffset(targetRole) {
+	let y = 0, offset = 0;
+	for (const group of TOWER_GROUPS) {
+		y += GROUP_HEADER_H + 2;
+		for (const role of group.roles) {
+			const cfg = TOWER_ROLES[role];
+			if (!cfg) continue;
+			if (role === targetRole) offset = y;
+			y += ITEM_H + ITEM_GAP;
+			if (role === targetRole) y += measureTowerDetailH(role, cfg);
+		}
+		y += 6;
+	}
+	return clamp(offset, 0, Math.max(0, y + 16 - CONTENT_H));
+}
+
 // ============ 헤더 ============
 function drawHeader() {
 	ctx.fillStyle = '#0f1a0f';
