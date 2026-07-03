@@ -15,14 +15,14 @@ import {
 	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
 } from './enemy.js';
 import {
-	placeTower, createGhostTower, moveGhostTower, canPlaceTower, drawTowerSprite,
+	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
 	promoteTower, updateTower, drawTower,
 	getPromotionState, towerDualCapable, handleTowerSettingsTap, drawPromotionPanel, canAffordPromotion,
 	promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
-import { drawTowerRange } from './ui/sprite.js';
+import { drawTowerRange, drawTowerSprite } from './ui/sprite.js';
 import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawSplash, drawZap,
