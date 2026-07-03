@@ -46,7 +46,7 @@ function isPromotionReady(tower) {
 }
 
 function canAffordPromotion(tower) {
-	return game.sandbox || game.gold >= tower.promotionCost;
+	return game.gold >= tower.promotionCost;
 }
 
 // ============ Tier 4 helpers ============
@@ -924,9 +924,8 @@ export function handleTowerSettingsTap(tower, p) {
 	return false;
 }
 
-function drawPromotionCard(slot, role, cost) {
+function drawPromotionCard(slot, role, cost, canAfford) {
 	const cfg = TOWER_ROLES[role];
-	const canAfford = game.gold >= cost;
 
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
 		fill: canAfford ? '#222d40' : '#1a1f28',
@@ -956,9 +955,8 @@ function drawPromotionCard(slot, role, cost) {
 	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
 }
 
-function drawTier4ResultCard(slot, role, cost) {
+function drawTier4ResultCard(slot, role, cost, canAfford) {
 	const cfg = TOWER_ROLES[role];
-	const canAfford = game.gold >= cost;
 
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
 		fill: canAfford ? '#222d40' : '#1a1f28',
@@ -1032,6 +1030,7 @@ export function drawPromotionPanel(tower) {
 
 	const tier4 = isTier4ChoiceContext(tower);
 	const cost = tower.promotionCost;
+	const canAfford = canAffordPromotion(tower); // 카드 시각 상태와 탭 시 실제 판정의 단일 기준
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
@@ -1044,12 +1043,12 @@ export function drawPromotionPanel(tower) {
 			promotionPanel.x + promotionPanel.w / 2,
 			promotionPanel.y + 48,
 		);
-		drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost);
+		drawTier4ResultCard(tier4ResultCardSlot, recipe.result, cost, canAfford);
 	} else {
 		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
 		const promotions = tower.cfg.promotions;
 		for (let i = 0; i < promotions.length && i < promotionCardSlots.length; i++) {
-			drawPromotionCard(promotionCardSlots[i], promotions[i], cost);
+			drawPromotionCard(promotionCardSlots[i], promotions[i], cost, canAfford);
 		}
 	}
 
