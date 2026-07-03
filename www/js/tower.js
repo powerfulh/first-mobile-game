@@ -50,10 +50,6 @@ function canAffordPromotion(tower) {
 }
 
 // ============ Tier 4 helpers ============
-function getTier4Recipe(tower) {
-	return TIER4_RECIPES[tower.role] || null;
-}
-
 // 현재 선택 타워가 4티어 합체 전직 분기인지 — 지정된 합체 대상(game.promotionTarget)과 서로 레시피 파트너인 3티어 타워.
 export function isTier4ChoiceContext(tower) {
 	const target = game.promotionTarget;
@@ -1028,7 +1024,7 @@ export function drawPromotionPanel(tower) {
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
 	if (tier4) {
-		const recipe = getTier4Recipe(tower);
+		const recipe = TIER4_RECIPES[tower.role];
 		const fromCfg = tower.cfg;
 		const toCfg = TOWER_ROLES[recipe.result];
 		ctx.fillText(
