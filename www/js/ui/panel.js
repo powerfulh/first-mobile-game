@@ -398,10 +398,12 @@ export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
 }
 
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
-// e: enemy inst, factor: slow factor
-export function drawEnemyInfoPanel(e, factor) {
+// e: enemy inst, factor: slow factor, wikiAvailable: 위키 항목 존재 여부 (호출부가 보스 여부로 도출)
+export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: '#e74c3c', alpha: 0.9 });
+
+	if (wikiAvailable) drawTopIconButton(infoWikiButton, drawBookIcon);
 
 	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	

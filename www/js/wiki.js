@@ -211,6 +211,25 @@ export function openWikiAtTower(role, returnTo) {
 	wiki.scroll = towerScrollOffset(role);
 }
 
+// 특정 적 항목으로 바로 진입 — 타워 버전과 동일한 방식 (플레잉 적 정보 카드의 위키 버튼).
+export function openWikiAtEnemy(key, returnTo) {
+	wiki.returnTo = returnTo;
+	changeScene('wiki');
+	wiki.category = 'enemy';
+	wiki.expandedKey = 'enemy:' + key;
+	wiki.scroll = enemyScrollOffset(key);
+}
+
+function enemyScrollOffset(targetKey) {
+	let y = GROUP_HEADER_H + 2, offset = 0;
+	for (const entry of ENEMY_ENTRIES) {
+		if (entry.key === targetKey) offset = y;
+		y += ITEM_H + ITEM_GAP;
+		if (entry.key === targetKey) y += measureEnemyDetailH(entry);
+	}
+	return clamp(offset, 0, Math.max(0, y + 16 - CONTENT_H));
+}
+
 // 대상 항목이 컨텐츠 최상단에 오는 스크롤 값 — handleContentTap과 동일한 레이아웃 순회로 산출.
 // 대상만 펼쳐진 상태 기준. 컨텐츠 끝을 넘지 않게 전체 높이(하단 여백 포함)로 클램프.
 function towerScrollOffset(targetRole) {

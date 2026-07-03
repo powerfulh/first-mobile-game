@@ -76,7 +76,7 @@ const playingSettingsButtons = [
 		},
 	},
 ];
-import { wiki, openWikiAtTower } from './wiki.js';
+import { wiki, openWikiAtTower, openWikiAtEnemy } from './wiki.js';
 
 export const scenes = {};
 let currentSceneName = null;
@@ -613,7 +613,7 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower, getPromotionState(game.selectedTower));
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(game.selectedEnemy, getEnemySpeedFactor(game.selectedEnemy));
+			drawEnemyInfoPanel(game.selectedEnemy, getEnemySpeedFactor(game.selectedEnemy), !isBoss(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
@@ -766,6 +766,13 @@ scenes.playing = {
 				if (handlePromotionButton(game.selectedTower)) playButton();
 				return;
 			}
+		}
+
+		// 적 정보 카드 위키 버튼 — 위키 항목이 있는 적만 (보스 제외, 버튼도 안 그려짐)
+		if (game.selectedEnemy && !isBoss(game.selectedEnemy) && hitButton(infoWikiButton, p)) {
+			playButton();
+			openWikiAtEnemy(game.selectedEnemy.spriteType, 'playing');
+			return;
 		}
 
 		// 타워 hit는 정보 패널 안 빈 영역보다 먼저 검사
