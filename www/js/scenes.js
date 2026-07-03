@@ -38,7 +38,7 @@ import {
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
-	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoWikiButton, infoPanel, infoPromotionButton,
+	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoWikiButton, SETTINGS_DELETE_BTN, infoPanel, infoPromotionButton,
 	drawPromotionPanel, promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
@@ -341,6 +341,19 @@ function deselectTower() {
 	game.towerPanel = TOWER_PANEL.INFO;
 }
 
+// 타워 삭제 공통 — 홀드 삭제 완료와 설정 패널 삭제 버튼이 공유. 선택·전직 대상 참조도 정리.
+function deleteTower(dead) {
+	game.entities.towers = game.entities.towers.filter(x => x !== dead);
+	recomputeStats();
+	if (game.selectedTower === dead) {
+		game.selectedTower = null;
+		game.towerPanel = TOWER_PANEL.INFO;
+	}
+	if (game.promotionTarget === dead) {
+		game.promotionTarget = null;
+	}
+}
+
 // 좌표에 타워가 있으면 그 타워로 선택 전환(카드 닫음) 후 true, 없으면 false.
 function selectTowerAt(p) {
 	for (const tower of game.entities.towers) {
@@ -432,16 +445,7 @@ scenes.playing = {
 		if (game.holdDelete) {
 			game.holdDelete.accumulated += dt;
 			if (game.holdDelete.accumulated >= HOLD_DELETE_SECONDS) {
-				const dead = game.holdDelete.tower;
-				game.entities.towers = game.entities.towers.filter(x => x !== dead);
-				recomputeStats();
-				if (game.selectedTower === dead) {
-					game.selectedTower = null;
-					game.towerPanel = TOWER_PANEL.INFO;
-				}
-				if (game.promotionTarget === dead) {
-					game.promotionTarget = null;
-				}
+				deleteTower(game.holdDelete.tower);
 				game.holdDelete = null;
 			}
 		}
@@ -696,6 +700,11 @@ scenes.playing = {
 			return;
 		}
 		if (game.selectedTower && game.towerPanel === TOWER_PANEL.SETTINGS) {
+			if (hitButton(SETTINGS_DELETE_BTN, p)) {
+				playButton();
+				deleteTower(game.selectedTower); // 홀드와 달리 즉시 삭제
+				return;
+			}
 			if (handleTowerSettingsTap(game.selectedTower, p)) {
 				playButton();
 				return;

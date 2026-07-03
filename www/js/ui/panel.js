@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition, drawTowerSprite, drawGearIcon, drawBookIcon } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawTowerSprite, drawGearIcon, drawBookIcon, drawTrashIcon } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
@@ -12,6 +12,8 @@ const infoTopBtn = {
 }
 export const infoWikiButton = { x: 276, ...infoTopBtn };
 export const infoSettingsButton = { x: 308, ...infoTopBtn };
+// 설정 패널의 삭제 버튼 — 의도적으로 위키 버튼 자리 재사용 (정보 ↔ 설정 패널에서 같은 슬롯)
+export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
@@ -206,6 +208,8 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	ctx.fillText(t('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
+
+	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
 	// 우선순위 영역
 	ctx.fillStyle = '#9ab';

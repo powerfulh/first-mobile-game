@@ -472,7 +472,7 @@ export function drawProhibition(cx, cy, r) {
 }
 
 // ============ 버튼 아이콘 ============
-// 흰색 고정, 중심 좌표만 받는 순수 아이콘 — 버튼 배경은 호출부(ui/panel) 담당.
+// 중심 좌표만 받는 순수 아이콘 — 버튼 배경은 호출부(ui/panel) 담당.
 
 // 기어 아이콘 (이빨 + 링 + 중심)
 export function drawGearIcon(cx, cy) {
@@ -494,6 +494,36 @@ export function drawGearIcon(cx, cy) {
 	ctx.beginPath();
 	ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
 	ctx.fill();
+}
+
+// 휴지통 아이콘 (뚜껑·손잡이 + 몸통 + 세로 줄) — 파괴적 동작이라 붉은색
+export function drawTrashIcon(cx, cy) {
+	ctx.strokeStyle = ACCENT_RED;
+	ctx.lineWidth = 1.5;
+	// 뚜껑 + 손잡이
+	ctx.beginPath();
+	ctx.moveTo(cx - 6, cy - 4);
+	ctx.lineTo(cx + 6, cy - 4);
+	ctx.moveTo(cx - 2, cy - 4);
+	ctx.lineTo(cx - 2, cy - 6);
+	ctx.lineTo(cx + 2, cy - 6);
+	ctx.lineTo(cx + 2, cy - 4);
+	ctx.stroke();
+	// 몸통 — 아래로 살짝 좁아지는 사다리꼴
+	ctx.beginPath();
+	ctx.moveTo(cx - 5, cy - 2);
+	ctx.lineTo(cx - 4, cy + 6);
+	ctx.lineTo(cx + 4, cy + 6);
+	ctx.lineTo(cx + 5, cy - 2);
+	ctx.closePath();
+	ctx.stroke();
+	// 세로 줄 2개
+	ctx.beginPath();
+	ctx.moveTo(cx - 1.5, cy);
+	ctx.lineTo(cx - 1.5, cy + 4);
+	ctx.moveTo(cx + 1.5, cy);
+	ctx.lineTo(cx + 1.5, cy + 4);
+	ctx.stroke();
 }
 
 // 펼친 책 아이콘 — 등뼈 기준 좌우 페이지 외곽 + 등뼈
