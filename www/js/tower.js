@@ -54,12 +54,13 @@ function getTier4Recipe(tower) {
 	return TIER4_RECIPES[tower.role] || null;
 }
 
-function isCompatibleTier4Partner(target, candidate) {
-	// 두 3티어 타워가 서로의 레시피 파트너인지
-	if (!target || !candidate || target === candidate) return false;
-	if (target.tier !== 3 || candidate.tier !== 3) return false;
+// 현재 선택 타워가 4티어 합체 전직 분기인지 — 지정된 합체 대상(game.promotionTarget)과 서로 레시피 파트너인 3티어 타워.
+export function isTier4ChoiceContext(tower) {
+	const target = game.promotionTarget;
+	if (!target || !tower || target === tower) return false;
+	if (target.tier !== 3 || tower.tier !== 3) return false;
 	const recipe = TIER4_RECIPES[target.role];
-	return !!recipe && recipe.partner === candidate.role;
+	return !!recipe && recipe.partner === tower.role;
 }
 
 export function hasReadyTier4Candidate() {
@@ -280,8 +281,7 @@ export function promoteTower(tower, role) {
 export function promoteToTier4(secondTower) {
 	// 대상(첫 타워)이 사라지고 secondTower 자리에 4티어 타워 생성
 	const target = game.promotionTarget;
-	if (!target) return false;
-	if (!isCompatibleTier4Partner(target, secondTower)) return false;
+	if (!isTier4ChoiceContext(secondTower)) return false;
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
 	const cost = secondTower.promotionCost;
 	if (game.gold < cost) return false;
@@ -860,7 +860,7 @@ export function getPromotionState(tower) {
 	if (isPromotionReady(tower) == false) return 'notReady';
 	if (tower.tier === 3) {
 		if (tower === game.promotionTarget) return 'cancelTarget';
-		if (game.promotionTarget && isCompatibleTier4Partner(game.promotionTarget, tower)) {
+		if (isTier4ChoiceContext(tower)) {
 			return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 		}
 		return 'setTarget';
@@ -1008,12 +1008,6 @@ function drawTier4ResultCard(slot, role, cost, canAfford) {
 	for (let i = 0; i < lines.length; i++) {
 		ctx.fillText('• ' + lines[i], slot.x + 16, baseY + i * lineH);
 	}
-}
-
-// 현재 선택 타워가 4티어 합체 전직 분기인지
-export function isTier4ChoiceContext(tower) {
-	return tower && tower.tier === 3 && game.promotionTarget
-    && isCompatibleTier4Partner(game.promotionTarget, tower);
 }
 
 export function drawPromotionPanel(tower) {
