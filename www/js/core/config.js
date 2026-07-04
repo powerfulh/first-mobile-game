@@ -151,7 +151,7 @@ export const TOWER_ROLES = {
 	},
 	radar: {
 		name: '래이다르', tagline: '사거리 내 일제 + 마킹 · 지상 / 공중',
-		color: '#16a085', color2: '#7cb342', // 재료 색1 재활용: 트랩 + 비콘
+		color: '#16a085', color2: '#5d8731', // 재료 재활용: 트랩 색1 + 비콘 색2
 		range: 100, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -165,7 +165,7 @@ export const TOWER_ROLES = {
 	},
 	assassin: {
 		name: '어쌔신', tagline: '관통 빔 + 방어막 무력화 · 지상 / 공중',
-		color: '#b8860b', color2: '#b93aa1', // 재료 색1 재활용: 딜맨 + 데몬
+		color: '#b93aa1', color2: '#8a6508', // 재료 재활용: 데몬 색1 + 딜맨 색2
 		range: 200, fireRate: 0.8, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -196,7 +196,7 @@ export const TOWER_ROLES = {
 	},
 	gatling: {
 		name: '개틀링', tagline: '비유도 연사 탄막 · 공중',
-		color: '#6d7b8d', color2: '#4338ca', // 벙커 색1 + 재료(마스터) 색1 재활용
+		color: '#6d7b8d', color2: '#322a97', // 벙커 색1 + 재료(마스터) 색2 재활용
 		range: 150, fireRate: 20, damage: 2.2,
 		attackTypes: ['air'], splash: 0,
 		promotions: [],
