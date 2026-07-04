@@ -148,7 +148,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		const xpMax = tower.xpMax;
 		const bx = sx;
 		const by = sy + 44;
-		const bw = 240;
+		const bw = 220;
 		const bh = 8;
 		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		drawBar(bx, by, bw, bh, ratio, tower.xp >= xpMax ? GOLD : INFO_BLUE);
