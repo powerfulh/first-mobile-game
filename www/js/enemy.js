@@ -392,12 +392,12 @@ export function updateEnemy(e, dt) {
 }
 
 // ============ Draw ============
-function drawMarkRing(e, cy) {
-	// 래이다르 마킹: 적 주변 회전하는 점선 링 + 중심 십자
+function drawMarkRing(e) {
+	// 래이다르 마킹: 적 주변 회전하는 점선 링 + 중심 십자 (보빙 미반영, e.y 기준)
 	const r = e.radius + 6;
 	const t = performance.now() / 700;
 	ctx.save();
-	ctx.translate(e.x, cy);
+	ctx.translate(e.x, e.y);
 	ctx.rotate(t);
 	ctx.strokeStyle = '#1abc9c';
 	ctx.lineWidth = 1.4;
@@ -618,23 +618,23 @@ export function drawEnemy(e) {
 	}
 	if (e.kind === 'groundBoss') {
 		drawGroundBoss(e);
-		if (e.marked) drawMarkRing(e, e.y);
+		if (e.marked) drawMarkRing(e);
 		return; // 보스 HP는 고정 UI에 표시
 	}
 	if (e.kind === 'airBoss') {
 		drawAirBoss(e);
-		if (e.marked) drawMarkRing(e, e.y);
+		if (e.marked) drawMarkRing(e);
 		return;
 	}
 	if (e.kind === 'regen') {
 		drawRegenEnemy(e);
-		if (e.marked) drawMarkRing(e, e.y);
+		if (e.marked) drawMarkRing(e);
 		return;
 	}
 	// 공중 적만 본체가 위아래로 보빙 (마크링·HP바는 e.y 고정).
 	const bobY = e.ga === 'air' ? e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3 : e.y;
 	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, { shielded: e.shielded });
-	if (e.marked) drawMarkRing(e, e.y);
+	if (e.marked) drawMarkRing(e);
 }
 
 // ============ 장벽 차단 헬퍼 ============
