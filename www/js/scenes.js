@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, updateShieldBreakFx, drawShieldBreakFx, isBoss,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, updateShieldBreakFx, isBoss,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -21,7 +21,7 @@ import {
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
 } from './tower.js';
-import { drawTowerRange, drawTowerSprite } from './ui/sprite.js';
+import { drawTowerRange, drawTowerSprite, drawShieldBreakFx } from './ui/sprite.js';
 import {
 	updateProjectile, updateBeam, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawSplash, drawZap,

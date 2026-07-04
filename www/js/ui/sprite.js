@@ -440,6 +440,39 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	ctx.globalAlpha = 1;
 }
 
+// 방어막 파쇄 연출 — 관통 공격이 방어막을 깬 순간의 fx. 상태 관리·수명은 enemy.js.
+export function drawShieldBreakFx(fx) {
+	const t = 1 - fx.life / fx.maxLife; // 0 → 1
+	const baseR = fx.radius + 3;
+
+	// 흩어지는 방어막 파편 — 호 조각이 바깥으로 퍼지며(살짝 회전) 사라짐
+	ctx.strokeStyle = INFO_BLUE;
+	ctx.lineWidth = 2;
+	ctx.globalAlpha = Math.max(0, 1 - t);
+	const shards = 8;
+	for (let i = 0; i < shards; i++) {
+		const a = (Math.PI * 2 * i / shards) + t * 0.6;
+		const rr = baseR + t * 12;
+		const half = 0.35 * (1 - t); // 조각 길이 점차 축소
+		ctx.beginPath();
+		ctx.arc(fx.x, fx.y, rr, a - half, a + half);
+		ctx.stroke();
+	}
+
+	// 관통 섬광 — 초반에 짧게 번쩍이는 흰 링
+	const flash = Math.max(0, 1 - t * 2.5);
+	if (flash > 0) {
+		ctx.globalAlpha = flash;
+		ctx.strokeStyle = '#fff';
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(fx.x, fx.y, baseR, 0, Math.PI * 2);
+		ctx.stroke();
+	}
+
+	ctx.globalAlpha = 1;
+}
+
 // 금지 기호 (원 + 대각선) — 비활성 표시 오버레이.
 export function drawProhibition(cx, cy, r) {
 	ctx.strokeStyle = '#e74c3c';
