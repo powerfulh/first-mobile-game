@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, TIER4_RECIPES,
+	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, isFusionMaterialRole,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE,
 	TOWER_PANEL,
 } from './core/config.js';
@@ -54,14 +54,13 @@ export function isTier4ChoiceContext(tower) {
 	const target = game.promotionTarget;
 	if (!target || !tower || target === tower) return false;
 	if (target.tier !== 3 || tower.tier !== 3) return false;
-	const recipe = TIER4_RECIPES[target.role];
-	return !!recipe && recipe.partner === tower.role;
+	return fusionResultFor([target.role, tower.role]) !== null;
 }
 
 export function hasReadyTier4Candidate() {
 	// 게임 내에 XP 가득 찬 4티어 후보 3티어가 존재하는지
 	for (const tower of game.entities.towers) {
-		if (tower.tier === 3 && TIER4_RECIPES[tower.role] && tower.xp >= tower.xpMax) {
+		if (tower.tier === 3 && isFusionMaterialRole(tower.role) && tower.xp >= tower.xpMax) {
 			return true;
 		}
 	}
@@ -279,7 +278,7 @@ export function promoteToTier4(secondTower) {
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
 	if (!canAffordPromotion(secondTower)) return false;
 
-	const resultRole = TIER4_RECIPES[secondTower.role].result;
+	const resultRole = fusionResultFor([target.role, secondTower.role]);
 
 	game.gold -= secondTower.promotionCost;
 
@@ -503,7 +502,7 @@ export function getPromotionState(tower) {
 // 역할 키 → cfg 해석을 도메인에 묶어 ui가 TOWER_ROLES를 모르게 함.
 export function getPromotionChoices(tower) {
 	if (isTier4ChoiceContext(tower)) {
-		return { tier4Cfg: TOWER_ROLES[TIER4_RECIPES[tower.role].result] };
+		return { tier4Cfg: TOWER_ROLES[fusionResultFor([game.promotionTarget.role, tower.role])] };
 	}
 	return { cfgs: tower.cfg.promotions.map(r => TOWER_ROLES[r]) };
 }

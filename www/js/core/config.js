@@ -208,15 +208,38 @@ for (const role in TOWER_ROLES) {
 	if (r.description) r.description = r.description.map(line => t(line));
 }
 
-// 4티어 레시피 역방향 맵 (3티어 역할 → { partner, result }) — 각 4티어 역할의 recipe에서 파생.
-// 정의는 recipe 한 곳뿐 (양방향 중복 기술·비대칭 오타 방지).
-export const TIER4_RECIPES = {};
+// ============ 합체(fusion) 레시피 ============
+// 정의는 각 합체 결과 role의 recipe(재료 role 배열) 한 곳뿐 — arity 무관(2종·3종…).
+// 재료 순서 무관 조회를 위해 정규화 키(정렬 join)로 집합→결과 맵과 재료→결과들 역인덱스를 파생.
+const FUSION_RESULT_BY_KEY = {};        // 정렬된 재료 role 키 → 결과 role
+const FUSION_RESULTS_BY_MATERIAL = {};  // 재료 role → [결과 role, ...] (그 재료가 쓰이는 모든 레시피)
+const fusionKey = (roles) => [...roles].sort().join('|');
 for (const result in TOWER_ROLES) {
 	const recipe = TOWER_ROLES[result].recipe;
 	if (!recipe) continue;
-	const [a, b] = recipe;
-	TIER4_RECIPES[a] = { partner: b, result };
-	TIER4_RECIPES[b] = { partner: a, result };
+	FUSION_RESULT_BY_KEY[fusionKey(recipe)] = result;
+	for (const mat of recipe) {
+		if (!FUSION_RESULTS_BY_MATERIAL[mat]) FUSION_RESULTS_BY_MATERIAL[mat] = [];
+		FUSION_RESULTS_BY_MATERIAL[mat].push(result);
+	}
+}
+
+// 재료 role 집합(순서 무관)이 정확히 이루는 합체 결과 role — 없으면 null.
+export function fusionResultFor(roles) {
+	return FUSION_RESULT_BY_KEY[fusionKey(roles)] || null;
+}
+
+// role이 어떤 합체 레시피의 재료로 쓰이는지.
+export function isFusionMaterialRole(role) {
+	return !!FUSION_RESULTS_BY_MATERIAL[role];
+}
+
+// role을 재료로 쓰는 레시피들 — 각 { result, others }(others = 그 레시피에서 role을 뺀 나머지 재료).
+export function fusionRecipesWithMaterial(role) {
+	return (FUSION_RESULTS_BY_MATERIAL[role] || []).map(res => ({
+		result: res,
+		others: TOWER_ROLES[res].recipe.filter(r => r !== role),
+	}));
 }
 
 // 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.

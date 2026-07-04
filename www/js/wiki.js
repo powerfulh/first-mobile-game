@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, TIER4_RECIPES, ACCENT_RED, INFO_BLUE, SLATE } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, fusionRecipesWithMaterial, ACCENT_RED, INFO_BLUE, SLATE } from './core/config.js';
 import { roundRect, hitButton, clamp } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawEnemySprite, drawTowerSprite } from './ui/sprite.js';
@@ -491,7 +491,7 @@ function describeLineage(role) {
 	for (const [parentRole, cfg] of Object.entries(TOWER_ROLES)) {
 		if ((cfg.promotions || []).includes(role)) parents.push(parentRole);
 	}
-	const tier4Recipe = TIER4_RECIPES[role];
+	const fusionUses = fusionRecipesWithMaterial(role);
 	const recipe = TOWER_ROLES[role]?.recipe;
 
 	if (recipe) {
@@ -512,9 +512,9 @@ function describeLineage(role) {
 		const names = promotions.map(r => TOWER_ROLES[r]?.name || r).join(', ');
 		parts.push(t('wiki.promoTo', { names }));
 	}
-	if (tier4Recipe) {
-		const partnerName = TOWER_ROLES[tier4Recipe.partner]?.name || tier4Recipe.partner;
-		const resultName = TOWER_ROLES[tier4Recipe.result]?.name || tier4Recipe.result;
+	for (const use of fusionUses) {
+		const partnerName = TOWER_ROLES[use.others[0]]?.name || use.others[0];
+		const resultName = TOWER_ROLES[use.result]?.name || use.result;
 		parts.push(t('wiki.tier4Fusion', { p: partnerName, r: resultName }));
 	}
 	return parts;
