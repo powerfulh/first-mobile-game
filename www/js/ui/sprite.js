@@ -100,6 +100,39 @@ function drawCannonBody(tower, selected) {
 	ctx.restore();
 }
 
+// 공중 전용 대공포(개틀링 제외) 공용 외형 — 작은 몸체 + 얇은 배럴 + 지면 고정 장치 4개.
+function drawAirGunBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius - 2; // 약간 작은 몸체
+
+	// 지면 고정 장치 4개 — 대각선 방향, 배럴 회전과 무관하게 고정 (시즈모드식 앵커). 몸체보다 먼저 그려 안쪽 끝이 가려짐.
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 4;
+	for (let i = 0; i < 4; i++) {
+		const a = Math.PI / 4 + i * Math.PI / 2; // 45°·135°·225°·315°
+		ctx.beginPath();
+		ctx.moveTo(tower.x + Math.cos(a) * (r - 1), tower.y + Math.sin(a) * (r - 1));
+		ctx.lineTo(tower.x + Math.cos(a) * (r + 7), tower.y + Math.sin(a) * (r + 7));
+		ctx.stroke();
+	}
+
+	// 몸체 원
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 배럴 — 기본 외형과 같은 길이, 얇게만 (높이 4)
+	ctx.save();
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
+	ctx.fillStyle = cfg.color2;
+	ctx.fillRect(0, -2, TOWER.radius + 4, 4);
+	ctx.restore();
+}
+
 function drawBeamEmitterBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius;
@@ -384,6 +417,8 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 		drawAreaSweepBody(tower, selected);
 	} else if (cfg.ballistic) {
 		drawSiloBody(tower, selected);
+	} else if ((cfg.attackTypes || []).length === 1 && cfg.attackTypes[0] === 'air') {
+		drawAirGunBody(tower, selected); // 공중 전용(개틀링 제외 — 위 scatterDeg 분기가 선점)
 	} else {
 		drawCannonBody(tower, selected);
 	}
