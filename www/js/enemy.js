@@ -241,54 +241,6 @@ export function updateBarrierSpawnFx(fx, dt) {
 	}
 }
 
-export function drawBarrierSpawnFx(fx) {
-	const t = 1 - fx.life / fx.maxLife; // 0 → 1
-	const r = 6 + (BARRIER_RADIUS - 6) * t;
-
-	// 채움 — 점차 진해짐
-	ctx.globalAlpha = t * 0.35;
-	ctx.fillStyle = '#aab7c4';
-	ctx.beginPath();
-	ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
-	ctx.fill();
-
-	// 외곽 펄스 링 (점선, 회전)
-	ctx.globalAlpha = 0.8;
-	ctx.strokeStyle = '#d5dbdb';
-	ctx.lineWidth = 2;
-	ctx.setLineDash([6, 4]);
-	ctx.lineDashOffset = -performance.now() / 40;
-	ctx.beginPath();
-	ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
-	ctx.stroke();
-	ctx.setLineDash([]);
-	ctx.lineDashOffset = 0;
-
-	// 중심 빛점 (사라지면서 외곽으로 흩어짐)
-	const sparkAlpha = (1 - t) * 0.9;
-	ctx.globalAlpha = sparkAlpha;
-	ctx.fillStyle = '#fff';
-	ctx.beginPath();
-	ctx.arc(fx.x, fx.y, 5 * (1 - t * 0.6), 0, Math.PI * 2);
-	ctx.fill();
-
-	// 사방 작은 입자 (수렴 → 펼침 양상)
-	const sparkCount = 6;
-	ctx.fillStyle = '#d5dbdb';
-	for (let i = 0; i < sparkCount; i++) {
-		const angle = (Math.PI * 2 * i / sparkCount) + t * 1.5;
-		const dist = r * 0.75;
-		const px = fx.x + Math.cos(angle) * dist;
-		const py = fx.y + Math.sin(angle) * dist;
-		ctx.globalAlpha = Math.max(0, (1 - t) * 0.8);
-		ctx.beginPath();
-		ctx.arc(px, py, 1.6, 0, Math.PI * 2);
-		ctx.fill();
-	}
-
-	ctx.globalAlpha = 1;
-}
-
 // 방어막 무력화 순간의 파쇄 연출 — 관통 공격(disablesModifiers)이 방어막을 깰 때 그 자리에 1회.
 export function startShieldBreak(x, y, radius) {
 	game.effects.shieldBreakFx.push({ x, y, radius, life: 0.35, maxLife: 0.35 });

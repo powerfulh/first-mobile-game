@@ -1,7 +1,7 @@
 // 적·타워 스프라이트 — 본체 모양만 그림 (HP바·마크링·재생 오라 등 게임 오버레이는 제외).
 // 게임/위키/인트로/정보패널/HUD 요약이 공유하는 순수 렌더 프리미티브.
 import { ctx } from '../core/canvas.js';
-import { AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, TOWER } from '../core/config.js';
+import { AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, TOWER, BARRIER_RADIUS } from '../core/config.js';
 import { roundRect, hasItems } from '../core/helpers.js';
 
 export function drawEnemySprite(type, cx, cy, r, opts = {}) {
@@ -437,6 +437,55 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 		ctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2);
 		ctx.stroke();
 	}
+	ctx.globalAlpha = 1;
+}
+
+// 장벽 생성 연출 — 장벽 적 처치 후 장벽이 나타나기까지의 fx. 상태 관리·수명은 enemy.js.
+export function drawBarrierSpawnFx(fx) {
+	const t = 1 - fx.life / fx.maxLife; // 0 → 1
+	const r = 6 + (BARRIER_RADIUS - 6) * t;
+
+	// 채움 — 점차 진해짐
+	ctx.globalAlpha = t * 0.35;
+	ctx.fillStyle = '#aab7c4';
+	ctx.beginPath();
+	ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 외곽 펄스 링 (점선, 회전)
+	ctx.globalAlpha = 0.8;
+	ctx.strokeStyle = '#d5dbdb';
+	ctx.lineWidth = 2;
+	ctx.setLineDash([6, 4]);
+	ctx.lineDashOffset = -performance.now() / 40;
+	ctx.beginPath();
+	ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.lineDashOffset = 0;
+
+	// 중심 빛점 (사라지면서 외곽으로 흩어짐)
+	const sparkAlpha = (1 - t) * 0.9;
+	ctx.globalAlpha = sparkAlpha;
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	ctx.arc(fx.x, fx.y, 5 * (1 - t * 0.6), 0, Math.PI * 2);
+	ctx.fill();
+
+	// 사방 작은 입자 (수렴 → 펼침 양상)
+	const sparkCount = 6;
+	ctx.fillStyle = '#d5dbdb';
+	for (let i = 0; i < sparkCount; i++) {
+		const angle = (Math.PI * 2 * i / sparkCount) + t * 1.5;
+		const dist = r * 0.75;
+		const px = fx.x + Math.cos(angle) * dist;
+		const py = fx.y + Math.sin(angle) * dist;
+		ctx.globalAlpha = Math.max(0, (1 - t) * 0.8);
+		ctx.beginPath();
+		ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
 	ctx.globalAlpha = 1;
 }
 
