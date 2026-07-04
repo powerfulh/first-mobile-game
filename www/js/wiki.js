@@ -25,7 +25,7 @@ const DETAIL_BOTTOM_PAD = 14;
 const TAP_THRESHOLD_PX = 8;
 
 // 타워 트리 그룹 (사용자 결정: 전직 트리별) — TOWER_ROLES에서 파생.
-// 루트(기본) / 루트의 전직 후보별 계열(전직 트리 DFS 전위 = 티어 진행 순) / 4티어 합체(recipe 보유 역할).
+// 루트(기본) / 루트의 전직 후보별 계열(전직 트리 DFS 전위 = 티어 진행 순) / 4·5티어 합체(recipe 길이 2/3).
 const TREE_ROOT = 'novice';
 
 function collectTree(role) {
@@ -40,7 +40,8 @@ const TOWER_GROUPS = [
 		label: t('wiki.groupLine', { name: TOWER_ROLES[root].name }),
 		roles: collectTree(root),
 	})),
-	{ label: t('wiki.groupTier4'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe) },
+	{ label: t('wiki.groupTier4'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe?.length === 2) },
+	{ label: t('wiki.groupTier5'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe?.length === 3) },
 ];
 
 // 적 명단 (사용자 결정: 일반/공중/재생 3종, 방어막·보스 제외)
@@ -495,11 +496,9 @@ function describeLineage(role) {
 	const recipe = TOWER_ROLES[role]?.recipe;
 
 	if (recipe) {
-		// role이 4티어 결과인 경우 (= role이 합체 결과)
-		const [parentA, parentB] = recipe;
-		const nameA = TOWER_ROLES[parentA]?.name || parentA;
-		const nameB = TOWER_ROLES[parentB]?.name || parentB;
-		return [t('wiki.recipe', { a: nameA, b: nameB })];
+		// role이 합체 결과인 경우 — 재료 전체(2종/3종) 표시
+		const names = recipe.map(r => TOWER_ROLES[r]?.name || r).join(' + ');
+		return [t('wiki.recipe', { names })];
 	}
 
 	const parts = [];
