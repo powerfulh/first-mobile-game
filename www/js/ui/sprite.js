@@ -198,6 +198,24 @@ function drawSupportBody(tower, selected) {
 	ctx.globalAlpha = 1;
 }
 
+// 개틀링 반동 배럴 사이클 — 모든 개틀링이 공유하는 렌더 전용 상태(발사 로직과 무관).
+// 시간 기반으로 배럴을 순번 전환하고, 각 배럴은 전환 직후 최대로 킥백했다가 다음 전환까지 복귀.
+// 애니메이션 전용 간격 — 실제 발사(50ms/20연사)보다 조금 느리게 두어 순차 반동이 눈에 띄게.
+const GATLING_BARREL_INTERVAL_MS = 100;
+let gatlingBarrel = 0;      // 현재 킥 중인 배럴 (0,1,2)
+let gatlingBarrelAt = 0;    // 마지막 전환 시각(ms)
+
+// { barrel, kick } 반환 — 애니메이션 간격마다 배럴을 전환. kick은 -5→0 감쇠.
+function gatlingRecoil() {
+	const now = performance.now();
+	if (now - gatlingBarrelAt >= GATLING_BARREL_INTERVAL_MS) {
+		gatlingBarrel = (gatlingBarrel + 1) % 3;
+		gatlingBarrelAt = now;
+	}
+	const frac = Math.max(0, 1 - (now - gatlingBarrelAt) / GATLING_BARREL_INTERVAL_MS); // 1(직후)→0(전환 직전)
+	return { barrel: gatlingBarrel, kick: -5 * frac };
+}
+
 function drawGatlingBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius;
@@ -215,22 +233,24 @@ function drawGatlingBody(tower, selected) {
 	ctx.translate(tower.x, tower.y);
 	ctx.rotate(tower.angle);
 
-	// 발사 직후 짧은 반동 (cooldown 마지막 30%)
-	const interval = 1 / cfg.fireRate;
-	const recoiling = tower.cooldown > interval * 0.7;
-	const recoilOffset = recoiling ? -1.5 : 0;
+	// 발사 반동 — 공유 사이클로 총구 하나씩 순번대로 킥백. 발사 중(cooldown>0)에만 표시해
+	// 유휴·프리뷰 타워는 정지 상태로 그려짐.
+	const { barrel, kick } = gatlingRecoil();
+	const firing = tower.cooldown > 0;
+	const barrelOffset = (barrelNum) => (firing && barrelNum === barrel ? kick : 0);
 
+	// i=-1,0,1 → 배럴 번호 0,1,2 (위→중앙→아래)
 	ctx.fillStyle = cfg.color2;
 	for (let i = -1; i <= 1; i++) {
 		const offY = i * 3.5;
-		ctx.fillRect(recoilOffset, offY - 1.2, r + 4, 2.4);
+		ctx.fillRect(barrelOffset(i + 1), offY - 1.2, r + 4, 2.4);
 	}
 
 	// 배럴 끝 강조
 	ctx.fillStyle = cfg.color;
 	for (let i = -1; i <= 1; i++) {
 		const offY = i * 3.5;
-		ctx.fillRect(r + recoilOffset + 2, offY - 1.2, 2, 2.4);
+		ctx.fillRect(r + barrelOffset(i + 1) + 2, offY - 1.2, 2, 2.4);
 	}
 
 	ctx.restore();
