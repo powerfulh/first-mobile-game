@@ -227,7 +227,7 @@ function drawGatlingBody(tower, selected) {
 	}
 
 	// 배럴 끝 강조
-	ctx.fillStyle = '#1a252f';
+	ctx.fillStyle = cfg.color;
 	for (let i = -1; i <= 1; i++) {
 		const offY = i * 3.5;
 		ctx.fillRect(r + recoilOffset + 2, offY - 1.2, 2, 2.4);
@@ -236,7 +236,7 @@ function drawGatlingBody(tower, selected) {
 	ctx.restore();
 
 	// 중심 캡(회전축 표시)
-	ctx.fillStyle = '#bdc3c7';
+	ctx.fillStyle = cfg.color2;
 	ctx.beginPath();
 	ctx.arc(tower.x, tower.y, 2, 0, Math.PI * 2);
 	ctx.fill();
@@ -269,9 +269,10 @@ function drawAssassinBody(tower, selected) {
 	ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
 	ctx.fill();
 
-	// 붉은 빛점 (위협 펄스)
+	// 위협 빛점 (본체색 펄스) — 알파는 restore가 복원
 	const pulse = 0.5 + 0.5 * Math.sin(time / 250);
-	ctx.fillStyle = `rgba(231, 76, 60, ${0.6 + 0.4 * pulse})`;
+	ctx.globalAlpha = 0.6 + 0.4 * pulse;
+	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
 	ctx.arc(0, 0, 1.8 + pulse * 0.5, 0, Math.PI * 2);
 	ctx.fill();
@@ -352,13 +353,14 @@ function drawSiloBody(tower, selected) {
 
 function drawRadarAntenna(tower) {
 	// 회전 안테나(디시) — 본체 위에 별도 디시 + sweeping 빔
+	const cfg = tower.cfg;
 	const sweep = (performance.now() / 600) % (Math.PI * 2);
 	ctx.save();
 	ctx.translate(tower.x, tower.y);
 	ctx.rotate(sweep);
 
 	// 디시 윤곽
-	ctx.fillStyle = '#0e6655';
+	ctx.fillStyle = cfg.color2;
 	ctx.beginPath();
 	ctx.arc(0, 0, 6, -Math.PI * 0.4, Math.PI * 0.4);
 	ctx.lineTo(0, 0);
@@ -368,8 +370,9 @@ function drawRadarAntenna(tower) {
 	ctx.lineWidth = 1;
 	ctx.stroke();
 
-	// 스윕 라인 (옅게 길게)
-	ctx.strokeStyle = 'rgba(26, 188, 156, 0.45)';
+	// 스윕 라인 (옅게 길게) — 알파는 restore가 복원
+	ctx.globalAlpha = 0.45;
+	ctx.strokeStyle = cfg.color2;
 	ctx.lineWidth = 1;
 	ctx.beginPath();
 	ctx.moveTo(0, 0);
