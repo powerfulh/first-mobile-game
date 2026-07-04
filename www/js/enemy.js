@@ -18,6 +18,7 @@ const DEFAULT_WAVE = {
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
+	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
@@ -62,9 +63,9 @@ export function getRegenChance(wave) {
 }
 
 export function getRegenHealRate(wave) {
-	// Wave 110~160: 12% / Wave 161~170: +1%/wave (22%) /
-	// Wave 191~200: +1%/wave 추가 (32%) / 그 외 구간 고정
-	const bonus1 = clamp((wave - 160) * 0.01, 0, 0.10);
+	// 기본 12% / regenHealRampWave 이후 +1%/wave (10웨이브 누적 22%) /
+	// Wave 191~200: +1%/wave 추가 (32%, 전 맵 공통) / 그 외 구간 고정
+	const bonus1 = clamp((wave - wparams().regenHealRampWave) * 0.01, 0, 0.10);
 	const bonus2 = clamp((wave - 190) * 0.01, 0, 0.10);
 	return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
