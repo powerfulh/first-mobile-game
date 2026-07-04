@@ -102,17 +102,8 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
 	const nameWidth = ctx.measureText(cfg.name).width;
 
-	const tierX = infoPanel.x + 14 + nameWidth + 8;
-	const tierY = infoPanel.y + 22;
-	const tierStr = `Tier ${tower.tier}`;
 	ctx.font = 'bold 11px sans-serif';
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-	ctx.lineWidth = 2.5;
-	ctx.lineJoin = 'round';
-	ctx.strokeText(tierStr, tierX, tierY);
-	ctx.fillStyle = cfg.color;
-	ctx.fillText(tierStr, tierX, tierY);
-	ctx.lineWidth = 1;
+	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + 14 + nameWidth + 8, infoPanel.y + 22);
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
