@@ -136,7 +136,7 @@ export const TOWER_ROLES = {
 	},
 	master: {
 		name: 'tower.master.name', tagline: 'tower.master.tagline',
-		color: '#e04b47', color2: '#a1332f', // b
+		color: '#29ac66', color2: '#1c7a48', // e
 		range: 140, fireRate: 4, damage: 4,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -144,7 +144,7 @@ export const TOWER_ROLES = {
 	},
 	dealman: {
 		name: 'tower.dealman.name', tagline: 'tower.dealman.tagline',
-		color: '#29ac66', color2: '#1c7a48', // e
+		color: '#e04b47', color2: '#a1332f', // b
 		range: 180, fireRate: 1, damage: 10,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
