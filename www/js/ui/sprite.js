@@ -446,6 +446,34 @@ export function drawTier4Halo(tower) {
 	}
 }
 
+// 5티어 공통 후광 — 옅은 금빛 링 + 그 위를 공전하는 금빛 점 5개(penta). 4티어(검은 점만, 링 없음)와
+// 색(금)·형태(링 추가)·개수(5)로 명확히 구분하되, 링/점을 얇고 옅게 유지해 과하지 않게.
+export function drawTier5Halo(tower) {
+	const cx = tower.x;
+	const cy = tower.y;
+	const haloR = TOWER.radius + 9;
+	const time = performance.now();
+
+	// 옅은 금빛 링
+	ctx.strokeStyle = 'rgba(245, 215, 110, 0.28)';
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
+	ctx.stroke();
+
+	// 공전하는 금빛 점 8개
+	for (let i = 0; i < 8; i++) {
+		const angle = (Math.PI * 2 * i / 8) + time / 620;
+		const px = cx + Math.cos(angle) * haloR;
+		const py = cy + Math.sin(angle) * haloR;
+		const alpha = 0.4 + 0.4 * (0.5 + 0.5 * Math.sin(time / 300 + i * 1.25));
+		ctx.fillStyle = `rgba(245, 215, 110, ${alpha})`;
+		ctx.beginPath();
+		ctx.arc(px, py, 1.8, 0, Math.PI * 2);
+		ctx.fill();
+	}
+}
+
 // 타워 사거리 표시 — 채움 원(+ minRange 도넛) + 테두리. range·minRange 모두 tower가 들고 있는 값.
 export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	const range = tower.range;

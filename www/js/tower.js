@@ -11,7 +11,7 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
-import { drawTier4Halo, drawTowerSprite } from './ui/sprite.js';
+import { drawTier4Halo, drawTier5Halo, drawTowerSprite } from './ui/sprite.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
 // ============ Promotion / XP helpers ============
@@ -486,6 +486,7 @@ export function drawTower(tower) {
 	}
 
 	if (tower.tier === 4) drawTier4Halo(tower);
+	else if (tower.tier === 5) drawTier5Halo(tower);
 	drawTowerSprite(tower.cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
 
 	if (tower.canPromote) {
