@@ -19,14 +19,14 @@ export const TOWER = {
 export const TOWER_ROLES = {
 	novice: {
 		name: '기본', tagline: '균형형 · 지상 단일',
-		color: '#3498db', color2: '#1a5680',
+		color: '#3498db', color2: '#2373a8',
 		range: 90, fireRate: 1.2, damage: 1.2,
 		attackTypes: ['ground'], splash: 0,
 		promotions: ['bunker', 'scout'],
 	},
 	bunker: {
 		name: '벙커', tagline: '단발 고화력 · 지상 전담',
-		color: '#5d6d7e', color2: '#212f3d',
+		color: '#6d7b8d', color2: '#505c6b',
 		range: 100, fireRate: 1, damage: 3.6,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 300, // 1티어
@@ -34,7 +34,7 @@ export const TOWER_ROLES = {
 	},
 	scout: {
 		name: '스카웃', tagline: '원거리 다목적 · 지상/공중',
-		color: '#16a085', color2: '#0e6655',
+		color: '#16a085', color2: '#0f7a64',
 		range: 140, fireRate: 1.2, damage: 1.6,
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어
@@ -42,7 +42,7 @@ export const TOWER_ROLES = {
 	},
 	tank: {
 		name: '탱크', tagline: '범위 공격 · 지상 (반경 50)',
-		color: '#7e5109', color2: '#4a2810',
+		color: '#b8860b', color2: '#8a6508',
 		range: 90, fireRate: 0.8, damage: 5,
 		attackTypes: ['ground'], splash: 50,
 		projectileSpeed: 320, // 2티어
@@ -50,7 +50,7 @@ export const TOWER_ROLES = {
 	},
 	whale: {
 		name: '웨일', tagline: '광역 폭발 · 지상 (반경 80)',
-		color: '#5d4037', color2: '#3e2723',
+		color: '#b93aa1', color2: '#8b2b79',
 		range: 120, fireRate: 0.6, damage: 10,
 		attackTypes: ['ground'], splash: 80,
 		projectileSpeed: 340, // 3티어
@@ -58,7 +58,7 @@ export const TOWER_ROLES = {
 	},
 	trap: {
 		name: '트랩', tagline: '사거리 내 일제 타격 · 지상 / 공중',
-		color: '#7b241c', color2: '#4a1810',
+		color: '#16a085', color2: '#0f7a64',
 		range: 90, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -66,7 +66,7 @@ export const TOWER_ROLES = {
 	},
 	base: {
 		name: '배이스', tagline: '주변 아군 사거리·XP 강화',
-		color: '#d4ac0d', color2: '#9a7d0a',
+		color: '#6d7b8d', color2: '#505c6b',
 		range: 90, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 320, // 2티어
@@ -76,7 +76,7 @@ export const TOWER_ROLES = {
 	},
 	beacon: {
 		name: '비콘', tagline: '사거리·공격력·XP 버프 · 지상',
-		color: '#f4d03f', color2: '#b9770e',
+		color: '#7cb342', color2: '#5d8731',
 		range: 120, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 340, // 3티어
@@ -87,7 +87,7 @@ export const TOWER_ROLES = {
 	},
 	demon: {
 		name: '데몬', tagline: '버프 + 적 슬로우 · 비공격',
-		color: '#5b2c6f', color2: '#2c0d3c',
+		color: '#b93aa1', color2: '#8b2b79',
 		range: 90, fireRate: 0, damage: 0,
 		attackTypes: [], splash: 0,
 		promotions: [],
@@ -99,7 +99,7 @@ export const TOWER_ROLES = {
 	},
 	eagle: {
 		name: '이글', tagline: '공중 전담 · 빠른 사격',
-		color: '#2874a6', color2: '#1f618d',
+		color: '#7cb342', color2: '#5d8731',
 		range: 140, fireRate: 2.4, damage: 3.2,
 		attackTypes: ['air'], splash: 0,
 		projectileSpeed: 320, // 2티어
@@ -107,7 +107,7 @@ export const TOWER_ROLES = {
 	},
 	skydoom: {
 		name: '스카이둠', tagline: '광역 공중 폭격 · 반경 50',
-		color: '#1f3a5f', color2: '#0c1c30',
+		color: '#4338ca', color2: '#322a97',
 		range: 140, fireRate: 2.4, damage: 5,
 		attackTypes: ['air'], splash: 50,
 		projectileSpeed: 340, // 3티어
@@ -115,7 +115,7 @@ export const TOWER_ROLES = {
 	},
 	interceptor: {
 		name: '인터셉터', tagline: '7발 부채꼴 · 공중 (직선 비유도)',
-		color: '#85c1e9', color2: '#5499c7',
+		color: '#e04658', color2: '#a83242',
 		range: 140, fireRate: 4.8, damage: 2,
 		attackTypes: ['air'], splash: 0,
 		promotions: [],
@@ -125,7 +125,7 @@ export const TOWER_ROLES = {
 	},
 	filder: {
 		name: '필더', tagline: '즉발 빔 · 지상 / 공중',
-		color: '#52be80', color2: '#239b56',
+		color: '#3498db', color2: '#2373a8',
 		range: 120, fireRate: 1.6, damage: 2.4,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: ['master', 'dealman'],
@@ -133,7 +133,7 @@ export const TOWER_ROLES = {
 	},
 	master: {
 		name: '마스터', tagline: '강화 즉발 빔 · 지상 / 공중',
-		color: '#196f3d', color2: '#0e4d2a',
+		color: '#4338ca', color2: '#322a97',
 		range: 140, fireRate: 4, damage: 4,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -141,7 +141,7 @@ export const TOWER_ROLES = {
 	},
 	dealman: {
 		name: '딜맨', tagline: '관통 빔 · 고HP 우선 · 지상 / 공중',
-		color: '#cb4335', color2: '#922b21',
+		color: '#b8860b', color2: '#8a6508',
 		range: 180, fireRate: 1, damage: 10,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
