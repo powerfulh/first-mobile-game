@@ -189,7 +189,7 @@ export const TOWER_ROLES = {
 	},
 	gatling: {
 		name: 'tower.gatling.name', tagline: 'tower.gatling.tagline',
-		color: '#e04b47', color2: '#1c7a48', // 팔레트 재활용: b 색1 + e 색2
+		color: '#29ac66', color2: '#1c7a48', // 팔레트 재활용: e 색1 + e 색2
 		range: 150, fireRate: 20, damage: 2.2,
 		attackTypes: ['air'], splash: 0,
 		promotions: [],
