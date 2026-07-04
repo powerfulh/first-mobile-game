@@ -516,15 +516,16 @@ scenes.playing = {
 					game.waves.shift();
 				}
 			}
-			// 모든 웨이브 완료 + 장벽 생성 fx 없음 → 배치 종료 (다음 웨이브로 진행)
-			if (game.waves.length === 0 && game.effects.barrierSpawnFx.length === 0) {
+			// 모든 웨이브 완료 → 배치 종료 (다음 웨이브로 진행). 장벽 생성 fx는 순수 연출이라 대기 안 함.
+			if (game.waves.length === 0) {
 				batchEnded = true;
 			}
 		}
 		if (batchEnded) {
 			grantWaveEndXp();
-			// 잔여 장벽 정리 (배치 종료 시 사라짐)
+			// 잔여 장벽 정리 (배치 종료 시 사라짐) + 대기 중이던 생성 fx도 폐기(다음 웨이브에 장벽 새어나옴 방지)
 			game.entities.enemies = game.entities.enemies.filter(e => e.kind !== 'barrier');
+			game.effects.barrierSpawnFx = [];
 			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)
 			game.wave = game.waveFrontier;
 			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
