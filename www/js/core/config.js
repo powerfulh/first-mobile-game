@@ -10,10 +10,10 @@ export const TOWER = {
 	cost: 50,
 	radius: 14,
 	projectileSpeed: 280,
-	promotionCosts: [125, 250, 1000, 3000], // [t0→t1, t1→t2, t2→t3, t3→t4]
-	xpThresholds:   [20,  40,  200,  500],
-	buffRates:      [0.10, 0.10, 0.20, 0.30, 0.40], // 받는 타워 티어 (t0~t4)
-	maxTier: 4,
+	promotionCosts: [125, 250, 1000, 3000, 8000], // [t0→t1 … t3→t4, t4→t5] · t4→t5는 placeholder
+	xpThresholds:   [20,  40,  200,  500,  1000], // t4(→t5)는 placeholder
+	buffRates:      [0.10, 0.10, 0.20, 0.30, 0.40, 0.50], // 받는 타워 티어 (t0~t5) · t5는 placeholder
+	maxTier: 5,
 };
 
 // 타워 테마색 팔레트 (색1/색2 쌍) — 색상환 72° 균등 분포 5종. 기본 외형(캐논) 5종이 a~e를 하나씩 맡아
@@ -197,6 +197,41 @@ export const TOWER_ROLES = {
 		projectileCount: 2, // 매 발사마다 2발
 		recipe: ['master', 'interceptor'],
 		description: ['tower.gatling.desc1', 'tower.gatling.desc2'],
+	},
+
+	// ---- 5티어 (합체 3종) — placeholder: 기본(novice) 복제, 실제 디자인 예정 ----
+	// 레시피는 4티어 4종 {radar, assassin, silo, gatling} 중 중복 없는 3종(=4가지 조합, 각각 1종 제외).
+	penta1: {
+		name: 'tower.penta1.name', tagline: 'tower.penta.tmpTagline',
+		color: '#3f80d4', color2: '#2b5991', // a (기본 복제)
+		range: 90, fireRate: 1.2, damage: 1.2,
+		attackTypes: ['ground'], splash: 0,
+		promotions: [],
+		recipe: ['radar', 'assassin', 'silo'], // 제외: gatling
+	},
+	penta2: {
+		name: 'tower.penta2.name', tagline: 'tower.penta.tmpTagline',
+		color: '#3f80d4', color2: '#2b5991',
+		range: 90, fireRate: 1.2, damage: 1.2,
+		attackTypes: ['ground'], splash: 0,
+		promotions: [],
+		recipe: ['radar', 'assassin', 'gatling'], // 제외: silo
+	},
+	penta3: {
+		name: 'tower.penta3.name', tagline: 'tower.penta.tmpTagline',
+		color: '#3f80d4', color2: '#2b5991',
+		range: 90, fireRate: 1.2, damage: 1.2,
+		attackTypes: ['ground'], splash: 0,
+		promotions: [],
+		recipe: ['radar', 'silo', 'gatling'], // 제외: assassin
+	},
+	penta4: {
+		name: 'tower.penta4.name', tagline: 'tower.penta.tmpTagline',
+		color: '#3f80d4', color2: '#2b5991',
+		range: 90, fireRate: 1.2, damage: 1.2,
+		attackTypes: ['ground'], splash: 0,
+		promotions: [],
+		recipe: ['assassin', 'silo', 'gatling'], // 제외: radar
 	},
 };
 

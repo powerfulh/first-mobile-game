@@ -79,6 +79,12 @@ const STRINGS = {
 	'tower.gatling.tagline': { ko: '비유도 연사 탄막 · 공중', ja: '非誘導連射弾幕 · 空中', en: 'Unguided barrage · Air' },
 	'tower.gatling.desc1': { ko: '약간 부정확하지만 폭발적인 공세를 퍼붓습니다', ja: 'やや不正確だが爆発的な弾幕を浴びせます', en: 'Slightly inaccurate but pours on explosive volume' },
 	'tower.gatling.desc2': { ko: '지상 공격 능력을 잃습니다', ja: '地上攻撃能力を失います', en: 'Loses ground attack' },
+	// 5티어 placeholder (디자인 예정 — 이름/문구 임시)
+	'tower.penta.tmpTagline': { ko: '5티어 · 임시(기본 복제)', ja: 'ティア5 · 仮(ベーシック複製)', en: 'Tier 5 · placeholder (basic clone)' },
+	'tower.penta1.name': { ko: '펜타1', ja: 'ペンタ1', en: 'Penta 1' },
+	'tower.penta2.name': { ko: '펜타2', ja: 'ペンタ2', en: 'Penta 2' },
+	'tower.penta3.name': { ko: '펜타3', ja: 'ペンタ3', en: 'Penta 3' },
+	'tower.penta4.name': { ko: '펜타4', ja: 'ペンタ4', en: 'Penta 4' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },
