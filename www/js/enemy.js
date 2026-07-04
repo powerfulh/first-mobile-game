@@ -20,6 +20,7 @@ const DEFAULT_WAVE = {
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
+	densityCeilWave: 120, // 이 웨이브 이후 maxNarrow -0.01/wave (10웨이브 누적 -0.10)
 };
 
 export function wparams() {

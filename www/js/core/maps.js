@@ -62,6 +62,7 @@ export const MAPS = {
 			shieldStartCap: 0.4, // 방어막 상한: 81~90 확장 없이 등장(51)부터 1~40% (101~110 → 50%는 공통)
 			countRampWave: 31, countCapWave: 90, // 적 수 +2→+1 전환 wave 31, 상한 wave 90 → 126마리
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (minNarrow 0.30 @ wave 50)
+			densityCeilWave: 80, // 조밀도 상한 추가 강화를 wave 81~90으로 (maxNarrow 0.90 @ wave 90)
 		},
 		unlock: { type: 'clearWave', map: 'map1', wave: 201 }, // 1번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
