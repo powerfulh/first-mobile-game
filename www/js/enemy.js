@@ -16,6 +16,7 @@ import { t } from './core/i18n.js';
 const DEFAULT_WAVE = {
 	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
+	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 };
@@ -49,9 +50,10 @@ export function getAirHpRatio(wave) {
 }
 
 export function getRegenChance(wave) {
-	if (wave < 111) return 0;
-	// Wave 111~130: +0.2%/wave (4%) / Wave 191~200: +0.4%/wave 추가 (8%)
-	const base = Math.min(0.04, (wave - 110) * 0.002);
+	const p = wparams();
+	if (wave < p.regenStartWave) return 0;
+	// 시작 웨이브부터 +step/wave 누적 (cap까지) / Wave 191~200: +0.4%/wave 추가 (전 맵 공통)
+	const base = Math.min(p.regenChanceCap, (wave - p.regenStartWave + 1) * p.regenChanceStep);
 	const lateBonus = Math.min(0.04, Math.max(0, wave - 190) * 0.004);
 	return base + lateBonus;
 }
