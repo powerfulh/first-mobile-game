@@ -17,6 +17,7 @@ const DEFAULT_WAVE = {
 	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
+	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 };
@@ -86,11 +87,12 @@ export function getShieldChance(wave, spawnInterval) {
 	const ratio = span > 0
 		? clamp((currentNarrow - minN) / span, 0, 1)
 		: 1;
-	// 상한 누적: Wave 81~90 +2%/wave, 101~110 +1%/wave, 181~190 +3%/wave
-	const bonus = Math.min(0.2, Math.max(0, (wave - 80) * 0.02));
+	// 상한 누적: Wave 81~90 +2%/wave (시작 상한 → 40%; 이미 40%면 없음), 101~110 +1%/wave, 181~190 +3%/wave
+	const p = wparams();
+	const bonus = Math.min(Math.max(0, 0.4 - p.shieldStartCap), Math.max(0, (wave - 80) * 0.02));
 	const extraBonus = Math.min(0.10, Math.max(0, (wave - 100) * 0.01));
 	const lateBonus = Math.min(0.30, Math.max(0, (wave - 180) * 0.03));
-	return 0.01 + ratio * (0.19 + bonus + extraBonus + lateBonus);
+	return 0.01 + ratio * ((p.shieldStartCap - 0.01) + bonus + extraBonus + lateBonus);
 }
 
 // 방어막 적이 피격당 받는 피해 감소량 (flat). applyTowerHit·적 정보 패널 공용.
