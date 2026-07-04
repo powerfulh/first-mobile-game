@@ -19,7 +19,7 @@ import {
 	promoteTower, updateTower, drawTower,
 	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
-	handlePromotionButton, promoteToTier4, hasReadyTier4Candidate, isTier4ChoiceContext,
+	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, isFusionTriggerContext,
 } from './tower.js';
 import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx } from './ui/sprite.js';
 import {
@@ -725,10 +725,10 @@ scenes.playing = {
 				return;
 			}
 
-			if (isTier4ChoiceContext(game.selectedTower)) {
+			if (isFusionTriggerContext(game.selectedTower)) {
 				if (hitButton(tier4ResultCardSlot, p)) {
 					const second = game.selectedTower;
-					if (promoteToTier4(second)) {
+					if (promoteFusion(second)) {
 						playPromote();
 						game.towerPanel = TOWER_PANEL.INFO;
 						game.selectedTower = second; // 변환된 4티어 그대로 선택 유지

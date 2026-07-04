@@ -229,6 +229,16 @@ export function fusionResultFor(roles) {
 	return FUSION_RESULT_BY_KEY[fusionKey(roles)] || null;
 }
 
+// 부분 재료 role들을 모두 포함하는 합체 결과 role 목록 — 재료를 더 지정할 수 있는지(확장 가능성) 판단·힌트용.
+export function fusionCandidatesFor(partialRoles) {
+	const out = [];
+	for (const result in TOWER_ROLES) {
+		const recipe = TOWER_ROLES[result].recipe;
+		if (recipe && partialRoles.every(r => recipe.includes(r))) out.push(result);
+	}
+	return out;
+}
+
 // role이 어떤 합체 레시피의 재료로 쓰이는지.
 export function isFusionMaterialRole(role) {
 	return !!FUSION_RESULTS_BY_MATERIAL[role];

@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, isFusionMaterialRole,
+	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE,
 	TOWER_PANEL,
 } from './core/config.js';
@@ -49,12 +49,25 @@ export function canAffordPromotion(tower) {
 }
 
 // ============ Tier 4 helpers ============
-// 현재 선택 타워가 4티어 합체 전직 분기인지 — 지정된 합체 대상(game.fusionMaterials)과 서로 레시피 파트너인 3티어 타워.
-export function isTier4ChoiceContext(tower) {
-	const target = game.fusionMaterials[0];
-	if (!target || !tower || target === tower) return false;
-	if (target.tier !== 3 || tower.tier !== 3) return false;
-	return fusionResultFor([target.role, tower.role]) !== null;
+// tower를 지금 탭하면 합체가 완성되는 분기인지 — 지정된 재료들 + tower가 정확히 한 레시피를 이룸(같은 티어·역할 중복 없음).
+export function isFusionTriggerContext(tower) {
+	const mats = game.fusionMaterials;
+	if (!tower || mats.length === 0 || mats.includes(tower)) return false;
+	if (mats[0].tier !== tower.tier) return false;
+	const roles = mats.map(m => m.role);
+	if (roles.includes(tower.role)) return false;
+	return fusionResultFor([...roles, tower.role]) !== null;
+}
+
+// 지정된 재료들에 tower를 재료로 더 추가할 수 있는지 — 같은 티어·역할 중복 없음·확장 가능한 부분집합.
+// (완성은 isFusionTriggerContext에서 별도 처리 — 여기 도달 전에 걸러짐.)
+function canJoinFusion(tower) {
+	const mats = game.fusionMaterials;
+	if (mats.length === 0) return true; // 첫 재료
+	if (mats[0].tier !== tower.tier) return false; // 다른 합체 레벨끼리 섞지 않음
+	const roles = mats.map(m => m.role);
+	if (roles.includes(tower.role)) return false; // 역할 중복 불가
+	return fusionCandidatesFor([...roles, tower.role]).length > 0;
 }
 
 export function hasReadyTier4Candidate() {
@@ -271,26 +284,28 @@ export function promoteTower(tower, role) {
 	return true;
 }
 
-export function promoteToTier4(secondTower) {
-	// 대상(첫 타워)이 사라지고 secondTower 자리에 4티어 타워 생성
-	const target = game.fusionMaterials[0];
-	if (!isTier4ChoiceContext(secondTower)) return false;
-	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
-	if (!canAffordPromotion(secondTower)) return false;
+// 합체 전직 — 지정된 재료 타워들이 소모되고 triggerTower 자리에 결과 타워(다음 티어)가 생성.
+export function promoteFusion(triggerTower) {
+	if (!isFusionTriggerContext(triggerTower)) return false;
+	const materials = game.fusionMaterials;
+	if (!isPromotionReady(triggerTower)) return false;
+	for (const m of materials) if (!isPromotionReady(m)) return false;
+	if (!canAffordPromotion(triggerTower)) return false;
 
-	const resultRole = fusionResultFor([target.role, secondTower.role]);
+	const roles = materials.map(m => m.role);
+	const resultRole = fusionResultFor([...roles, triggerTower.role]);
 
-	game.gold -= secondTower.promotionCost;
+	game.gold -= triggerTower.promotionCost;
 
-	// 대상 타워 제거
-	game.entities.towers = game.entities.towers.filter(x => x !== target);
+	// 재료 타워들 제거 (트리거는 남아서 결과로 변환)
+	const consumed = new Set(materials);
+	game.entities.towers = game.entities.towers.filter(x => !consumed.has(x));
 	game.fusionMaterials = [];
 
-	// 두 번째 타워 자리에 4티어로 변환
-	const prevRole = secondTower.role;
-	secondTower.cooldown = 0;
-	secondTower.xp = 0;
-	setTowerTier(secondTower, resultRole, 4, prevRole);
+	const prevRole = triggerTower.role;
+	triggerTower.cooldown = 0;
+	triggerTower.xp = 0;
+	setTowerTier(triggerTower, resultRole, triggerTower.tier + 1, prevRole);
 	recomputeStats();
 	return true;
 }
@@ -488,26 +503,27 @@ export function drawTower(tower) {
 
 // ============ Tower info panel / Promotion panel ============
 // 타워의 전직 관련 상태 — 단일 값(약속된 문자열). 드로잉(라벨·활성)·핸들링(액션)이 이것 하나로 도출.
-// 'notReady'(XP부족) | 'noGold'(골드부족) | 'openChoice'(전직 선택 패널) | 'setTarget'(4티어 대상 지정) | 'cancelTarget'(대상 취소)
+// 'notReady'(XP부족) | 'noGold'(골드부족) | 'openChoice'(전직 선택 패널) | 'setTarget'(합체 재료 지정/추가) | 'cancelTarget'(재료 취소)
 export function getPromotionState(tower) {
 	if (isPromotionReady(tower) == false) return 'notReady';
-	if (tower.tier === 3) {
+	if (isFusionMaterialRole(tower.role)) {
 		if (game.fusionMaterials.includes(tower)) return 'cancelTarget';
-		if (!isTier4ChoiceContext(tower)) return 'setTarget';
+		if (!isFusionTriggerContext(tower)) return 'setTarget';
 	}
 	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
 }
 
-// 전직 패널에 표시할 선택지 뷰모델 — 4티어 합체면 결과 cfg 하나(tier4Cfg), 아니면 역할별 cfg 목록(cfgs).
+// 전직 패널에 표시할 선택지 뷰모델 — 합체 완성이면 결과 cfg 하나(tier4Cfg), 아니면 역할별 cfg 목록(cfgs).
 // 역할 키 → cfg 해석을 도메인에 묶어 ui가 TOWER_ROLES를 모르게 함.
 export function getPromotionChoices(tower) {
-	if (isTier4ChoiceContext(tower)) {
-		return { tier4Cfg: TOWER_ROLES[fusionResultFor([game.fusionMaterials[0].role, tower.role])] };
+	if (isFusionTriggerContext(tower)) {
+		const roles = game.fusionMaterials.map(m => m.role);
+		return { tier4Cfg: TOWER_ROLES[fusionResultFor([...roles, tower.role])] };
 	}
 	return { cfgs: tower.cfg.promotions.map(r => TOWER_ROLES[r]) };
 }
 
-// 전직 버튼 탭 처리 — 전직 상태에 따른 액션 실행 (패널 전환 / 4티어 대상 지정·취소).
+// 전직 버튼 탭 처리 — 전직 상태에 따른 액션 실행 (패널 전환 / 합체 재료 지정·추가·취소).
 // 소비 시 true (호출부에서 사운드). 버튼 존재·hit 판정은 호출부(scenes)가 담당.
 export function handlePromotionButton(tower) {
 	switch (getPromotionState(tower)) {
@@ -515,11 +531,12 @@ export function handlePromotionButton(tower) {
 			game.towerPanel = TOWER_PANEL.PROMOTION;
 			return true;
 		case 'setTarget':
-			game.fusionMaterials = [tower];
+			// 확장 가능하면 재료 추가, 아니면 새 합체 시작(리셋). arity 2는 재료 최대 1개라 두 분기 결과가 [tower]로 동일.
+			game.fusionMaterials = canJoinFusion(tower) ? [...game.fusionMaterials, tower] : [tower];
 			game.selectedTower = null;
 			return true;
 		case 'cancelTarget':
-			game.fusionMaterials = [];
+			game.fusionMaterials = game.fusionMaterials.filter(m => m !== tower);
 			return true;
 		default:
 			return false; // notReady, noGold
