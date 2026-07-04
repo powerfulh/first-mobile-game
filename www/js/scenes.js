@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, updateShieldBreakFx, drawShieldBreakFx, isBoss, drawEnemyHpBarOverlay,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, updateShieldBreakFx, drawShieldBreakFx, isBoss,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -33,7 +33,7 @@ import { setToast, updateToast } from './toast.js';
 import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
-	drawToast,
+	drawToast, drawEnemyHpBar,
 	drawSettingsModal, drawPath,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
@@ -566,8 +566,12 @@ scenes.playing = {
 
 		for (const tower of game.entities.towers) drawTower(tower);
 		for (const e of game.entities.enemies) drawEnemy(e);
-		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지
-		for (const e of game.entities.enemies) drawEnemyHpBarOverlay(e);
+		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지.
+		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음.
+		for (const e of game.entities.enemies) {
+			if (e.kind === 'barrier' || isBoss(e)) continue;
+			drawEnemyHpBar(e);
+		}
 		if (game.selectedEnemy) {
 			const se = game.selectedEnemy;
 			ctx.strokeStyle = '#fff';

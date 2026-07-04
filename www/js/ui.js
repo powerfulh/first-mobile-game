@@ -159,6 +159,18 @@ export function drawNextWaveButton({ enabled, showBadge }) {
 	}
 }
 
+// 적 HP바 — 본체 위 별도 패스로 그림(호출부가 대상 판별). 보빙 미반영: 항상 e.y 기준.
+export function drawEnemyHpBar(e) {
+	const barW = 20;
+	const barH = 3;
+	const ratio = e.hp / e.hpMax;
+	const top = e.y - e.radius - 8;
+	ctx.fillStyle = '#000';
+	ctx.fillRect(e.x - barW / 2, top, barW, barH);
+	ctx.fillStyle = e.shielded ? INFO_BLUE : '#2ecc71';
+	ctx.fillRect(e.x - barW / 2, top, barW * ratio, barH);
+}
+
 // ============ Toast (그리기) — 상태 관리는 toast.js ============
 export function drawToast(toast) {
 	const alpha = Math.min(1, toast.life / 0.3);
