@@ -191,7 +191,7 @@ export function drawPausedOverlay() {
 	ctx.textBaseline = 'middle';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(t('⏸  일시정지'), LOGICAL_W / 2, 76);
+	ctx.fillText(t('hud.paused'), LOGICAL_W / 2, 76);
 	ctx.textBaseline = 'alphabetic';
 }
 
@@ -208,7 +208,7 @@ export function drawSettingsModal(buttons) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 22px sans-serif';
-	ctx.fillText(t('설정'), LOGICAL_W / 2, titleY);
+	ctx.fillText(t('settings.title'), LOGICAL_W / 2, titleY);
 
 	drawVolumeSliders(sliders, sliderCy);
 	drawSettingsCheckboxes(checkboxes, checkboxY);
@@ -217,7 +217,7 @@ export function drawSettingsModal(buttons) {
 
 	ctx.fillStyle = '#9ab';
 	ctx.font = '12px sans-serif';
-	ctx.fillText(t('이전 버튼을 눌러 닫습니다'), LOGICAL_W / 2, guideY);
+	ctx.fillText(t('settings.closeGuide'), LOGICAL_W / 2, guideY);
 }
 
 // 가로 1줄 레이아웃: 라벨(왼쪽) · 트랙 · % (오른쪽). value/label은 settingsView가 주입.

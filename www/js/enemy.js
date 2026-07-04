@@ -501,12 +501,12 @@ export function isBoss(e) {
 function enemyName(kind) {
 	switch (kind) {
 		case 'groundBoss':
-		case 'airBoss': return t('보스');
-		case 'barrier': return t('장벽');
-		case 'barrierSpawner': return t('장벽 적');
-		case 'regen': return t('재생 적');
-		case 'air': return t('공중 적');
-		default: return t('일반 적'); // basic
+		case 'airBoss': return t('enemy.boss');
+		case 'barrier': return t('enemy.barrier');
+		case 'barrierSpawner': return t('enemy.barrierSpawner.name');
+		case 'regen': return t('enemy.regen.name');
+		case 'air': return t('enemy.air.name');
+		default: return t('enemy.ground.name'); // basic
 	}
 }
 

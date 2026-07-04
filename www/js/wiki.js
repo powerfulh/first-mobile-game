@@ -37,60 +37,48 @@ function collectTree(role) {
 const TOWER_GROUPS = [
 	{ label: TOWER_ROLES[TREE_ROOT].name, roles: [TREE_ROOT] },
 	...TOWER_ROLES[TREE_ROOT].promotions.map(root => ({
-		label: t('{name} 계열', { name: TOWER_ROLES[root].name }),
+		label: t('wiki.groupLine', { name: TOWER_ROLES[root].name }),
 		roles: collectTree(root),
 	})),
-	{ label: t('4티어 합체'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe) },
+	{ label: t('wiki.groupTier4'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe) },
 ];
 
 // 적 명단 (사용자 결정: 일반/공중/재생 3종, 방어막·보스 제외)
+// name/tagline/description은 i18n 키 — 아래 변환 루프가 표시 문자열로 바꿈.
 const ENEMY_ENTRIES = [
 	{
 		key: 'ground',
-		name: '일반 적',
-		tagline: '처음부터 등장하는 기본 지상 유닛',
-		description: [
-			'HP는 웨이브가 오를수록 증가',
-			'이동 속도는 웨이브가 오를수록 빨라지며 후반 고정',
-			'지상 공격이 가능한 모든 타워의 표적',
-		],
+		name: 'enemy.ground.name',
+		tagline: 'enemy.ground.tagline',
+		description: ['enemy.ground.desc1', 'enemy.ground.desc2', 'enemy.ground.desc3'],
 	},
 	{
 		key: 'air',
-		name: '공중 적',
-		tagline: '일정 웨이브부터 등장 · 공중 공격 가능 타워만 처리',
-		description: [
-			'웨이브가 오를수록 출현 확률 상승',
-			'HP는 지상보다 낮게 시작해 후반에 지상과 같아짐',
-			'지상 전담 타워는 공격 불가, 스카웃 계열로 대비',
-		],
+		name: 'enemy.air.name',
+		tagline: 'enemy.air.tagline',
+		description: ['enemy.common.spawnRises', 'enemy.air.desc1', 'enemy.air.desc2'],
 	},
 	{
 		key: 'regen',
-		name: '재생 적',
-		tagline: '후반 등장 · 자가 회복, 느린 지상',
-		description: [
-			'웨이브가 오를수록 출현 확률 상승',
-			'HP는 일반 지상과 같고 이동 속도가 느림',
-			'HP가 가득 차지 않으면 매초 스스로 회복',
-			'후반으로 갈수록 회복량 증가',
-		],
+		name: 'enemy.regen.name',
+		tagline: 'enemy.regen.tagline',
+		description: ['enemy.common.spawnRises', 'enemy.regen.desc1', 'enemy.regen.desc2', 'enemy.regen.desc3'],
 	},
 	{
 		key: 'barrierSpawner',
-		name: '장벽 적',
-		tagline: '후반 등장 · 처치 시 장벽 생성',
+		name: 'enemy.barrierSpawner.name',
+		tagline: 'enemy.barrierSpawner.tagline',
 		description: [
-			'웨이브가 오를수록 출현 확률 상승',
-			'공중 타입, HP/속도는 일반 적과 동일',
-			'처치 시 그 자리에 튼튼한 장벽 생성',
-			'장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지',
-			'지상 전용 공격은 장벽 영향 없음',
+			'enemy.common.spawnRises',
+			'enemy.barrierSpawner.desc1',
+			'enemy.barrierSpawner.desc2',
+			'enemy.barrierSpawner.desc3',
+			'enemy.barrierSpawner.desc4',
 		],
 	},
 ];
 
-// 위키 표시 텍스트 다국어화 — 정의 직후 1회 변환. (타워명/태그라인/설명은 config.js에서, 그룹 라벨은 파생 시 변환됨)
+// 위키 표시 텍스트 다국어화 — i18n 키를 정의 직후 1회 표시 문자열로 변환. (타워 텍스트는 config.js에서, 그룹 라벨은 파생 시 변환됨)
 for (const e of ENEMY_ENTRIES) {
 	e.name = t(e.name);
 	if (e.tagline) e.tagline = t(e.tagline);
@@ -269,8 +257,8 @@ function drawHeader() {
 	ctx.fillText('◀', backBtn.x + backBtn.w / 2, backBtn.y + backBtn.h / 2);
 	ctx.textBaseline = 'alphabetic';
 
-	drawTab(tabTower, t('타워'), wiki.category === 'tower');
-	drawTab(tabEnemy, t('적'), wiki.category === 'enemy');
+	drawTab(tabTower, t('wiki.tab.tower'), wiki.category === 'tower');
+	drawTab(tabEnemy, t('wiki.tab.enemy'), wiki.category === 'enemy');
 }
 
 function drawTab(btn, label, active) {
@@ -326,7 +314,7 @@ function drawTowerCategory(y) {
 }
 
 function drawEnemyCategory(y) {
-	y = drawGroupHeader(y, t('적 명단'));
+	y = drawGroupHeader(y, t('wiki.enemyList'));
 	for (const entry of ENEMY_ENTRIES) {
 		const key = 'enemy:' + entry.key;
 		const expanded = wiki.expandedKey === key;
@@ -446,20 +434,20 @@ function drawTowerDetail(y, role, cfg, measure = false) {
 	ctx.fillStyle = '#cdd';
 	ctx.font = '12px sans-serif';
 
-	const atkLabels = { ground: t('지상'), air: t('공중') };
+	const atkLabels = { ground: t('common.ground'), air: t('common.air') };
 	const attackTypes = cfg.attackTypes || [];
 	const atkText = attackTypes.length > 0
 		? attackTypes.map(a => atkLabels[a] || a).join('/')
-		: t('없음');
+		: t('common.none');
 
 	const statLines = [];
-	statLines.push(t('사거리 {range}', { range: cfg.range }) + (cfg.minRange ? t('  (최소 {min})', { min: cfg.minRange }) : ''));
+	statLines.push(t('wiki.range', { range: cfg.range }) + (cfg.minRange ? t('wiki.rangeMin', { min: cfg.minRange }) : ''));
 	if (attackTypes.length > 0) {
-		statLines.push(t('데미지 {dmg}  ·  공속 {rate}/s', { dmg: cfg.damage, rate: cfg.fireRate }));
+		statLines.push(t('wiki.dmgRate', { dmg: cfg.damage, rate: cfg.fireRate }));
 	} else {
-		statLines.push(t('데미지 — · 공속 —'));
+		statLines.push(t('wiki.dmgRateNone'));
 	}
-	statLines.push(t('공격 대상: {types}', { types: atkText }) + (cfg.splash ? t('  (광역 {n})', { n: cfg.splash }) : ''));
+	statLines.push(t('panel.targets', { types: atkText }) + (cfg.splash ? t('wiki.splash', { n: cfg.splash }) : ''));
 
 	for (const line of statLines) {
 		if (!measure) ctx.fillText(line, 18, cy);
@@ -511,23 +499,23 @@ function describeLineage(role) {
 		const [parentA, parentB] = recipe;
 		const nameA = TOWER_ROLES[parentA]?.name || parentA;
 		const nameB = TOWER_ROLES[parentB]?.name || parentB;
-		return [t('합체 레시피: {a} + {b}', { a: nameA, b: nameB })];
+		return [t('wiki.recipe', { a: nameA, b: nameB })];
 	}
 
 	const parts = [];
 	if (parents.length > 0) {
 		const names = parents.map(r => TOWER_ROLES[r]?.name || r).join(', ');
-		parts.push(t('전직 전: {names}', { names }));
+		parts.push(t('wiki.promoFrom', { names }));
 	}
 	const promotions = TOWER_ROLES[role]?.promotions || [];
 	if (promotions.length > 0) {
 		const names = promotions.map(r => TOWER_ROLES[r]?.name || r).join(', ');
-		parts.push(t('전직 후보: {names}', { names }));
+		parts.push(t('wiki.promoTo', { names }));
 	}
 	if (tier4Recipe) {
 		const partnerName = TOWER_ROLES[tier4Recipe.partner]?.name || tier4Recipe.partner;
 		const resultName = TOWER_ROLES[tier4Recipe.result]?.name || tier4Recipe.result;
-		parts.push(t('4티어 합체: + {p} → {r}', { p: partnerName, r: resultName }));
+		parts.push(t('wiki.tier4Fusion', { p: partnerName, r: resultName }));
 	}
 	return parts;
 }

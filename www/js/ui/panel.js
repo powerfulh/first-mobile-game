@@ -61,11 +61,11 @@ function drawPromotionButton(tower, state) {
 	const cost = tower.promotionCost.toLocaleString();
 	let label;
 	switch (state) {
-		case 'notReady': label = t('전직 (XP {xp} / {max})', { xp: tower.xp, max: tower.xpMax }); break;
-		case 'noGold': label = t('전직 ({cost}G · 골드 부족)', { cost }); break;
-		case 'setTarget': label = t('4티어 대상 지정'); break;
-		case 'cancelTarget': label = t('대상 취소'); break;
-		default: label = t('전직 ({cost}G)', { cost }); break; // openChoice
+		case 'notReady': label = t('panel.promote.notReady', { xp: tower.xp, max: tower.xpMax }); break;
+		case 'noGold': label = t('panel.promote.noGold', { cost }); break;
+		case 'setTarget': label = t('panel.promote.setTarget'); break;
+		case 'cancelTarget': label = t('panel.promote.cancelTarget'); break;
+		default: label = t('panel.promote.cost', { cost }); break; // openChoice
 	}
 
 	ctx.globalAlpha = active ? 1 : 0.55;
@@ -110,11 +110,11 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const sx = infoPanel.x + 14;
 	const sy = infoPanel.y + 50;
 	const total = round1(tower.totalDamage);
-	const atkLabels = { ground: t('지상'), air: t('공중') };
+	const atkLabels = { ground: t('common.ground'), air: t('common.air') };
 	const activeTypes = [];
 	if (tower.canGround) activeTypes.push('ground');
 	if (tower.canAir) activeTypes.push('air');
-	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('없음');
+	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('common.none');
 
 	if (hasItems(cfg.attackTypes)) {
 		const effDmg = tower.damage;
@@ -123,26 +123,26 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		const dpsValue = round1(effDmg * cfg.fireRate);
 		const dmgValue = round1(effDmg);
 		const dmgStr = dmgBuffPct > 0
-			? t('데미지: {dmg} (+{pct}%, {dps}/초)', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
-			: t('데미지: {dmg} ({dps}/초)', { dmg: baseDmg, dps: dpsValue });
+			? t('panel.dmgBuffed', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
+			: t('panel.dmg', { dmg: baseDmg, dps: dpsValue });
 		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(t('발사속도: {rate}/초', { rate: cfg.fireRate.toFixed(1) }), sx, sy + 18);
+		ctx.fillText(t('panel.fireRate', { rate: cfg.fireRate.toFixed(1) }), sx, sy + 18);
 	} else {
-		ctx.fillText(t('데미지: —'), sx, sy);
-		ctx.fillText(t('발사속도: —'), sx, sy + 18);
+		ctx.fillText(t('panel.dmgNone'), sx, sy);
+		ctx.fillText(t('panel.fireRateNone'), sx, sy + 18);
 	}
 
 	const effRange = tower.range;
 	const baseRange = tower.cfg.range;
 	const buffPct = effRange > baseRange ? Math.round((effRange / baseRange - 1) * 100) : 0;
 	const rangeStr = buffPct > 0
-		? t('사거리: {range} (+{pct}%)', { range: Math.round(effRange), pct: buffPct })
-		: t('사거리: {range}', { range: baseRange });
+		? t('panel.rangeBuffed', { range: Math.round(effRange), pct: buffPct })
+		: t('panel.range', { range: baseRange });
 	ctx.fillText(rangeStr, sx + 160, sy);
-	ctx.fillText(t('공격 대상: {types}', { types: atkText }), sx + 160, sy + 18);
+	ctx.fillText(t('panel.targets', { types: atkText }), sx + 160, sy + 18);
 	const wave = round1(tower.waveDamage);
-	ctx.fillText(t('웨이브 누적 데미지: {dmg}', { dmg: wave.toLocaleString() }), sx, sy + 36);
-	ctx.fillText(t('누적 데미지: {dmg}', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
+	ctx.fillText(t('panel.waveDamage', { dmg: wave.toLocaleString() }), sx, sy + 36);
+	ctx.fillText(t('panel.totalDamage', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
@@ -169,7 +169,7 @@ export const SETTINGS_GA = {
 	air: { x: 216, y: 556, w: 48, h: 32 },
 };
 export const SETTINGS_PRIORITY_BTN = { x: 38, y: 596, w: 284, h: 24 };
-const PRIORITY_LABELS = { closest: t('가장 가까움'), farthest: t('가장 멈'), strongest: t('가장 강함'), weakest: t('가장 약함') };
+const PRIORITY_LABELS = { closest: t('panel.priority.closest'), farthest: t('panel.priority.farthest'), strongest: t('panel.priority.strongest'), weakest: t('panel.priority.weakest') };
 
 function drawCellButton(cell) {
 	ctx.fillStyle = SLATE;
@@ -198,14 +198,14 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(t('{name} 설정', { name: cfg.name }), p.x + 14, p.y + 22);
+	ctx.fillText(t('panel.settingsTitle', { name: cfg.name }), p.x + 14, p.y + 22);
 
 	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
 	// 우선순위 영역
 	ctx.fillStyle = '#9ab';
 	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText(t('우선순위'), p.x + 14, p.y + 46);
+	ctx.fillText(t('panel.priority'), p.x + 14, p.y + 46);
 
 	const ax = p.x + 14;
 	const ay = p.y + 54;
@@ -220,7 +220,7 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 		ctx.fillStyle = '#7a8a99';
 		ctx.font = '12px sans-serif';
 		ctx.textAlign = 'center';
-		ctx.fillText(t('공격하지 않는 타워'), p.x + p.w / 2, ay + ah / 2 + 4);
+		ctx.fillText(t('panel.nonAttacking'), p.x + p.w / 2, ay + ah / 2 + 4);
 		ctx.textAlign = 'left';
 		return;
 	}
@@ -254,7 +254,7 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 		ctx.font = 'bold 13px sans-serif';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
-		ctx.fillText(t('표적: {p}', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
+		ctx.fillText(t('panel.target', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
 		ctx.textBaseline = 'alphabetic';
 		ctx.textAlign = 'left';
 	}
@@ -288,7 +288,7 @@ function drawPromotionCard(slot, cfg, cost, canAfford) {
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
-	ctx.fillText(t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
+	ctx.fillText(t('panel.cardStats', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
 
 	ctx.fillStyle = '#8aa';
 	ctx.font = '11px sans-serif';
@@ -327,7 +327,7 @@ function drawTier4ResultCard(slot, cfg, cost, canAfford) {
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
 	ctx.fillText(
-		t('사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
+		t('panel.cardStats', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
 		slot.x + 80, slot.y + 54,
 	);
 
@@ -365,7 +365,7 @@ export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = GOLD;
 	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(t('전직 가능!'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
+	ctx.fillText(t('panel.promote.title'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
 
 	const cost = tower.promotionCost;
 
@@ -373,13 +373,13 @@ export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
 	ctx.font = '12px sans-serif';
 	if (tier4Cfg) {
 		ctx.fillText(
-			t('{from} 타워가 {to} 타워로 전직됩니다', { from: tower.cfg.name, to: tier4Cfg.name }),
+			t('panel.promote.tier4Info', { from: tower.cfg.name, to: tier4Cfg.name }),
 			promotionPanel.x + promotionPanel.w / 2,
 			promotionPanel.y + 48,
 		);
 		drawTier4ResultCard(tier4ResultCardSlot, tier4Cfg, cost, canAfford);
 	} else {
-		ctx.fillText(t('역할을 선택하세요'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+		ctx.fillText(t('panel.promote.choose'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
 		for (let i = 0; i < cfgs.length && i < promotionCardSlots.length; i++) {
 			drawPromotionCard(promotionCardSlots[i], cfgs[i], cost, canAfford);
 		}
@@ -415,11 +415,11 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 	const rowY = () => p.y + 52 + (row++) * ROW;
 
 	// 타입
-	ctx.fillText(t('타입: {type}', { type: e.ga === 'air' ? t('공중') : t('지상') }), sx, rowY());
+	ctx.fillText(t('panel.type', { type: e.ga === 'air' ? t('common.air') : t('common.ground') }), sx, rowY());
 
 	// 체력 — 텍스트 + 오른쪽 같은 줄 HP 바
 	const yHp = rowY();
-	const hpLabel = t('체력: {hp} / {max}', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) });
+	const hpLabel = t('panel.hp', { hp: fmtHp(e.hp), max: fmtHp(e.hpMax) });
 	ctx.fillText(hpLabel, sx, yHp);
 	const bh = 8;
 	const bx = sx + ctx.measureText(hpLabel).width + 10;
@@ -434,19 +434,19 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 	const slowPct = factor < 1 ? Math.round((1 - factor) * 100) : 0;
 	ctx.fillText(
 		slowPct > 0
-			? t('이동 속도: {spd} (둔화 {pct}%)', { spd: eff, pct: slowPct })
-			: t('이동 속도: {spd}', { spd: eff }),
+			? t('panel.speedSlowed', { spd: eff, pct: slowPct })
+			: t('panel.speed', { spd: eff }),
 		sx, rowY(),
 	);
 
 	// 종류별 추가 항목 — 방어막(데미지 감소량) / 재생(초당 회복률) / 장벽(생성 장벽 체력)
 	if (e.shielded) {
-		ctx.fillText(t('방어력: {n}', { n: e.shieldReduction.toFixed(1) }), sx, rowY());
+		ctx.fillText(t('panel.armor', { n: e.shieldReduction.toFixed(1) }), sx, rowY());
 	}
 	if (e.kind === 'regen') {
-		ctx.fillText(t('초당 회복: {pct}%', { pct: Math.round(e.regenRate * 100) }), sx, rowY());
+		ctx.fillText(t('panel.heal', { pct: Math.round(e.regenRate * 100) }), sx, rowY());
 	}
 	if (e.kind === 'barrierSpawner') {
-		ctx.fillText(t('장벽 체력: {hp}', { hp: fmtHp(e.barrierHp) }), sx, rowY());
+		ctx.fillText(t('panel.barrierHp', { hp: fmtHp(e.barrierHp) }), sx, rowY());
 	}
 }

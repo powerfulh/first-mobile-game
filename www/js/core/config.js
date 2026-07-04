@@ -18,14 +18,14 @@ export const TOWER = {
 
 export const TOWER_ROLES = {
 	novice: {
-		name: '기본', tagline: '균형형 · 지상 단일',
+		name: 'tower.novice.name', tagline: 'tower.novice.tagline',
 		color: '#3498db', color2: '#2373a8',
 		range: 90, fireRate: 1.2, damage: 1.2,
 		attackTypes: ['ground'], splash: 0,
 		promotions: ['bunker', 'scout'],
 	},
 	bunker: {
-		name: '벙커', tagline: '단발 고화력 · 지상 전담',
+		name: 'tower.bunker.name', tagline: 'tower.bunker.tagline',
 		color: '#6d7b8d', color2: '#505c6b',
 		range: 100, fireRate: 1, damage: 3.6,
 		attackTypes: ['ground'], splash: 0,
@@ -33,7 +33,7 @@ export const TOWER_ROLES = {
 		promotions: ['tank', 'base'],
 	},
 	scout: {
-		name: '스카웃', tagline: '원거리 다목적 · 지상/공중',
+		name: 'tower.scout.name', tagline: 'tower.scout.tagline',
 		color: '#16a085', color2: '#0f7a64',
 		range: 140, fireRate: 1.2, damage: 1.6,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -41,7 +41,7 @@ export const TOWER_ROLES = {
 		promotions: ['eagle', 'filder'],
 	},
 	tank: {
-		name: '탱크', tagline: '범위 공격 · 지상 (반경 50)',
+		name: 'tower.tank.name', tagline: 'tower.tank.tagline',
 		color: '#b8860b', color2: '#8a6508',
 		range: 90, fireRate: 0.8, damage: 5,
 		attackTypes: ['ground'], splash: 50,
@@ -49,7 +49,7 @@ export const TOWER_ROLES = {
 		promotions: ['whale', 'trap'],
 	},
 	whale: {
-		name: '웨일', tagline: '광역 폭발 · 지상 (반경 80)',
+		name: 'tower.whale.name', tagline: 'tower.whale.tagline',
 		color: '#b93aa1', color2: '#8b2b79',
 		range: 120, fireRate: 0.6, damage: 10,
 		attackTypes: ['ground'], splash: 80,
@@ -57,7 +57,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 	},
 	trap: {
-		name: '트랩', tagline: '사거리 내 일제 타격 · 지상 / 공중',
+		name: 'tower.trap.name', tagline: 'tower.trap.tagline',
 		color: '#16a085', color2: '#0f7a64',
 		range: 90, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -65,7 +65,7 @@ export const TOWER_ROLES = {
 		areaSweep: true,
 	},
 	base: {
-		name: '배이스', tagline: '주변 아군 사거리·XP 강화',
+		name: 'tower.base.name', tagline: 'tower.base.tagline',
 		color: '#6d7b8d', color2: '#505c6b',
 		range: 90, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
@@ -75,7 +75,7 @@ export const TOWER_ROLES = {
 		boostsXp: true,
 	},
 	beacon: {
-		name: '비콘', tagline: '사거리·공격력·XP 버프 · 지상',
+		name: 'tower.beacon.name', tagline: 'tower.beacon.tagline',
 		color: '#7cb342', color2: '#5d8731',
 		range: 120, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
@@ -86,7 +86,7 @@ export const TOWER_ROLES = {
 		boostsXp: true,
 	},
 	demon: {
-		name: '데몬', tagline: '버프 + 적 슬로우 · 비공격',
+		name: 'tower.demon.name', tagline: 'tower.demon.tagline',
 		color: '#b93aa1', color2: '#8b2b79',
 		range: 90, fireRate: 0, damage: 0,
 		attackTypes: [], splash: 0,
@@ -98,7 +98,7 @@ export const TOWER_ROLES = {
 		gainsXpOnEnemyEnter: true,
 	},
 	eagle: {
-		name: '이글', tagline: '공중 전담 · 빠른 사격',
+		name: 'tower.eagle.name', tagline: 'tower.eagle.tagline',
 		color: '#7cb342', color2: '#5d8731',
 		range: 140, fireRate: 2.4, damage: 3.2,
 		attackTypes: ['air'], splash: 0,
@@ -106,7 +106,7 @@ export const TOWER_ROLES = {
 		promotions: ['skydoom', 'interceptor'],
 	},
 	skydoom: {
-		name: '스카이둠', tagline: '광역 공중 폭격 · 반경 50',
+		name: 'tower.skydoom.name', tagline: 'tower.skydoom.tagline',
 		color: '#4338ca', color2: '#322a97',
 		range: 140, fireRate: 2.4, damage: 5,
 		attackTypes: ['air'], splash: 50,
@@ -114,7 +114,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 	},
 	interceptor: {
-		name: '인터셉터', tagline: '7발 부채꼴 · 공중 (직선 비유도)',
+		name: 'tower.interceptor.name', tagline: 'tower.interceptor.tagline',
 		color: '#e04658', color2: '#a83242',
 		range: 140, fireRate: 4.8, damage: 2,
 		attackTypes: ['air'], splash: 0,
@@ -124,7 +124,7 @@ export const TOWER_ROLES = {
 		spreadDeg: 32,
 	},
 	filder: {
-		name: '필더', tagline: '즉발 빔 · 지상 / 공중',
+		name: 'tower.filder.name', tagline: 'tower.filder.tagline',
 		color: '#3498db', color2: '#2373a8',
 		range: 120, fireRate: 1.6, damage: 2.4,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -132,7 +132,7 @@ export const TOWER_ROLES = {
 		instantHit: true,
 	},
 	master: {
-		name: '마스터', tagline: '강화 즉발 빔 · 지상 / 공중',
+		name: 'tower.master.name', tagline: 'tower.master.tagline',
 		color: '#4338ca', color2: '#322a97',
 		range: 140, fireRate: 4, damage: 4,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -140,7 +140,7 @@ export const TOWER_ROLES = {
 		instantHit: true,
 	},
 	dealman: {
-		name: '딜맨', tagline: '관통 빔 · 고HP 우선 · 지상 / 공중',
+		name: 'tower.dealman.name', tagline: 'tower.dealman.tagline',
 		color: '#b8860b', color2: '#8a6508',
 		range: 180, fireRate: 1, damage: 10,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -150,7 +150,7 @@ export const TOWER_ROLES = {
 		targetMode: 'highestHp',
 	},
 	radar: {
-		name: '래이다르', tagline: '사거리 내 일제 + 마킹 · 지상 / 공중',
+		name: 'tower.radar.name', tagline: 'tower.radar.tagline',
 		color: '#16a085', color2: '#5d8731', // 재료 재활용: 트랩 색1 + 비콘 색2
 		range: 100, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -158,13 +158,10 @@ export const TOWER_ROLES = {
 		areaSweep: true,
 		marksEnemies: true,
 		recipe: ['beacon', 'trap'],
-		description: [
-			'적을 감지하여 사거리와 상관없이 공격할 수 있게 합니다',
-			'비콘의 버프 능력을 잃습니다',
-		],
+		description: ['tower.radar.desc1', 'tower.radar.desc2'],
 	},
 	assassin: {
-		name: '어쌔신', tagline: '관통 빔 + 방어막 무력화 · 지상 / 공중',
+		name: 'tower.assassin.name', tagline: 'tower.assassin.tagline',
 		color: '#b93aa1', color2: '#8a6508', // 재료 재활용: 데몬 색1 + 딜맨 색2
 		range: 200, fireRate: 0.8, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
@@ -174,13 +171,10 @@ export const TOWER_ROLES = {
 		targetMode: 'highestHp',
 		disablesModifiers: true,
 		recipe: ['dealman', 'demon'],
-		description: [
-			'피해를 입은 적의 방어막을 영구 무력화합니다',
-			'데몬의 버프 능력을 잃습니다',
-		],
+		description: ['tower.assassin.desc1', 'tower.assassin.desc2'],
 	},
 	silo: {
-		name: '사일로', tagline: '비유도 광역 폭격 · 지상 (반경 160)',
+		name: 'tower.silo.name', tagline: 'tower.silo.tagline',
 		color: '#34495e', color2: '#1a252f',
 		range: 120, minRange: 60, fireRate: 0.4, damage: 40,
 		attackTypes: ['ground'], splash: 160,
@@ -188,14 +182,10 @@ export const TOWER_ROLES = {
 		ballistic: true,
 		projectileSpeed: 196, // TOWER.projectileSpeed(280)의 70%
 		recipe: ['whale', 'skydoom'],
-		description: [
-			'유도 없이 발사 시점의 착탄 지점에 광역 폭격',
-			'최소 사거리 존재',
-			'스카이둠의 공중 공격 능력은 잃습니다',
-		],
+		description: ['tower.silo.desc1', 'tower.silo.desc2', 'tower.silo.desc3'],
 	},
 	gatling: {
-		name: '개틀링', tagline: '비유도 연사 탄막 · 공중',
+		name: 'tower.gatling.name', tagline: 'tower.gatling.tagline',
 		color: '#6d7b8d', color2: '#322a97', // 벙커 색1 + 재료(마스터) 색2 재활용
 		range: 150, fireRate: 20, damage: 2.2,
 		attackTypes: ['air'], splash: 0,
@@ -203,14 +193,11 @@ export const TOWER_ROLES = {
 		scatterDeg: 12, // ±6° 흩어짐
 		projectileCount: 2, // 매 발사마다 2발
 		recipe: ['master', 'interceptor'],
-		description: [
-			'약간 부정확하지만 폭발적인 공세를 퍼붓습니다',
-			'지상 공격 능력을 잃습니다',
-		],
+		description: ['tower.gatling.desc1', 'tower.gatling.desc2'],
 	},
 };
 
-// 타워 표시 텍스트 다국어화 — 정의 직후 1회 변환 (en이면 영어로, ko면 그대로).
+// 타워 표시 텍스트 다국어화 — name/tagline/description은 i18n 키, 정의 직후 1회 표시 문자열로 변환.
 for (const role in TOWER_ROLES) {
 	const r = TOWER_ROLES[role];
 	r.name = t(r.name);

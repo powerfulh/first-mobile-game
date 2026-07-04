@@ -157,7 +157,7 @@ function makeIntro(opts) {
 			ctx.font = `${lineSize}px sans-serif`;
 			lines.forEach((line, i) => ctx.fillText(t(line), cx, panel.y + lineStart + i * lineGap));
 			if (drawExtra) drawExtra(panel, cx);
-			drawButton(confirmBtn, t('확인'));
+			drawButton(confirmBtn, t('common.confirm'));
 		},
 	};
 }
@@ -167,15 +167,15 @@ export const INTRO_MODALS = {
 	airIntro: makeIntro({
 		key: AIR_INTRO_KEY, accent: AIR_COLOR,
 		drawIcon: (cx, cy) => drawEnemySprite('air', cx, cy, 14),
-		title: '공중 적 등장!',
-		lines: ['보라색 삼각형은 공중 적입니다.', '지상 전담 타워는 공격할 수 없으니', '스카웃을 활용해 대비하세요.'],
+		title: 'intro.air.title',
+		lines: ['intro.air.line1', 'intro.air.line2', 'intro.air.line3'],
 	}),
 
 	buffIntro: makeIntro({
 		key: BUFF_INTRO_KEY, accent: '#d4ac0d',
 		drawIcon: drawBuffIcon,
-		title: '티어별 버프율',
-		lines: ['버프를 받는 타워의 티어에 따라', '효과가 달라집니다.'],
+		title: 'intro.buff.title',
+		lines: ['intro.buff.line1', 'intro.buff.line2'],
 		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#d4ac0d';
 			ctx.font = 'bold 16px sans-serif';
@@ -186,15 +186,15 @@ export const INTRO_MODALS = {
 	bossIntro: makeIntro({
 		key: BOSS_INTRO_KEY, accent: ACCENT_RED,
 		drawIcon: drawBossIcon,
-		title: '보스 등장!',
-		lines: ['20 웨이브마다 보스가 등장합니다.', '일반 적보다 훨씬 단단하지만 느리게 이동합니다.'],
+		title: 'intro.boss.title',
+		lines: ['intro.boss.line1', 'intro.boss.line2'],
 	}),
 
 	shieldIntro: makeIntro({
 		key: SHIELD_INTRO_KEY, accent: INFO_BLUE,
 		drawIcon: (cx, cy) => drawEnemySprite('ground', cx, cy, 14, { shielded: true }),
-		title: '방어막 적 등장!',
-		lines: ['일부 적이 방어막을 두르고 등장합니다.', '받는 데미지가 감소합니다.'],
+		title: 'intro.shield.title',
+		lines: ['intro.shield.line1', 'intro.shield.line2'],
 	}),
 
 	tier4Intro: makeIntro({
@@ -202,30 +202,30 @@ export const INTRO_MODALS = {
 		panel: { x: 20, y: 160, w: 320, h: 320 },
 		confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
 		drawIcon: drawTier4Icon, iconY: 56,
-		title: '합체 전직 가능!', titleColor: '#f5d76e', titleSize: 20, titleY: 100,
-		lines: ['XP를 모두 채운 3티어 타워 두 개로', '레시피 조합 4티어 전직이 가능합니다.'],
+		title: 'intro.tier4.title', titleColor: '#f5d76e', titleSize: 20, titleY: 100,
+		lines: ['intro.tier4.line1', 'intro.tier4.line2'],
 		lineSize: 13, lineStart: 128, lineGap: 20,
 		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#f5d76e';
 			ctx.font = 'bold 13px sans-serif';
-			ctx.fillText(t('① 한 타워의 "4티어 대상 지정"'), cx, p.y + 180);
-			ctx.fillText(t('② 레시피 짝 타워에서 "전직"'), cx, p.y + 200);
-			ctx.fillText(t('③ 대상 타워는 소모, 짝 타워가 4티어로 전직'), cx, p.y + 220);
+			ctx.fillText(t('intro.tier4.step1'), cx, p.y + 180);
+			ctx.fillText(t('intro.tier4.step2'), cx, p.y + 200);
+			ctx.fillText(t('intro.tier4.step3'), cx, p.y + 220);
 		},
 	}),
 
 	barrierIntro: makeIntro({
 		key: BARRIER_INTRO_KEY, accent: '#aab7c4',
 		drawIcon: (cx, cy) => drawEnemySprite('barrierSpawner', cx, cy, 14),
-		title: '장벽 적 등장!',
-		lines: ['장벽 적이 등장합니다.', '처치한 자리에 장벽이 생성되어', '공중 공격을 차단합니다.'],
+		title: 'intro.barrier.title',
+		lines: ['intro.barrier.line1', 'intro.barrier.line2', 'intro.barrier.line3'],
 	}),
 
 	regenIntro: makeIntro({
 		key: REGEN_INTRO_KEY, accent: '#2ecc71',
 		drawIcon: (cx, cy) => drawEnemySprite('regen', cx, cy, 13),
-		title: '재생 적 등장!',
-		lines: ['초록색 사각형은 재생 적입니다.', '이동 속도가 절반이지만', '피해를 입어도 매초 체력을 회복합니다.'],
+		title: 'intro.regen.title',
+		lines: ['intro.regen.line1', 'intro.regen.line2', 'intro.regen.line3'],
 	}),
 
 	parallelIntro: makeIntro({
@@ -233,29 +233,29 @@ export const INTRO_MODALS = {
 		panel: { x: 20, y: 160, w: 320, h: 320 },
 		confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
 		drawIcon: drawParallelIcon, iconY: 54,
-		title: '추가 웨이브 (병렬 호출)', titleSize: 20, titleY: 100,
-		lines: ['현재 웨이브가 끝나기 전에', '다음 웨이브를 즉시 병렬로 진행합니다.'],
+		title: 'intro.parallel.title', titleSize: 20, titleY: 100,
+		lines: ['intro.parallel.line1', 'intro.parallel.line2'],
 		lineSize: 13, lineStart: 138, lineGap: 22,
 		drawExtra: (p, cx) => {
 			ctx.fillStyle = '#f39c12';
 			ctx.font = 'bold 13px sans-serif';
-			ctx.fillText(t('• 병렬로 부른 웨이브는 저장되지 않습니다.'), cx, p.y + 202);
-			ctx.fillText(t('• 적이 겹쳐 방어 부담이 큽니다. 신중히!'), cx, p.y + 226);
+			ctx.fillText(t('intro.parallel.warn1'), cx, p.y + 202);
+			ctx.fillText(t('intro.parallel.warn2'), cx, p.y + 226);
 		},
 	}),
 
 	mapUnlock: makeIntro({
 		key: MAP_UNLOCK_INTRO_KEY, accent: GOLD,
 		drawIcon: drawMapUnlockIcon,
-		title: '새로운 맵 해금!',
-		lines: ['1번 맵을 깊이 진행했습니다!', '새로운 맵이 해금되었습니다.', '게임 시작에서 선택하세요.'],
+		title: 'intro.mapUnlock.title',
+		lines: ['intro.mapUnlock.line1', 'intro.mapUnlock.line2', 'intro.mapUnlock.line3'],
 	}),
 
 	shortcutIntro: makeIntro({
 		key: SHORTCUT_INTRO_KEY, accent: AIR_COLOR,
 		drawIcon: drawShortcutIcon,
-		title: '공중 지름길',
-		lines: ['이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다', '정규 경로와 번갈아 이용합니다'],
+		title: 'intro.shortcut.title',
+		lines: ['intro.shortcut.line1', 'intro.shortcut.line2'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };

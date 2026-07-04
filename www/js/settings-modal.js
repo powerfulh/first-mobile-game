@@ -53,8 +53,8 @@ function settingsLayout(count) {
 // ---- 볼륨 슬라이더 모델 (배경음 / 효과음 마스터 분리) ----
 export const SLIDER_TRACK = { x: 108, w: 150, knobR: 9 };
 const SLIDERS = [
-	{ label: '배경음', get: getBgmVolume, set: setBgmVolume },
-	{ label: '효과음', get: getSfxVolume, set: setSfxVolume },
+	{ label: 'settings.bgm', get: getBgmVolume, set: setBgmVolume },
+	{ label: 'settings.sfx', get: getSfxVolume, set: setSfxVolume },
 ];
 let activeSlider = -1; // 드래그 중인 슬라이더 인덱스 (-1 = 없음)
 
@@ -98,8 +98,8 @@ export function volumePointerUp() {
 export const CHECKBOX_X = 80, CHECKBOX_H = 26, CHECKBOX_BOX = 20;
 const CHECKBOX_W = 200;
 const SETTINGS_CHECKBOXES = [
-	{ label: '원터치 배치', get: getOneTouchPlace, set: setOneTouchPlace },
-	{ label: '웨이브 간 인터미션', get: getIntermissionEnabled, set: setIntermissionEnabled },
+	{ label: 'settings.oneTouch', get: getOneTouchPlace, set: setOneTouchPlace },
+	{ label: 'settings.intermission', get: getIntermissionEnabled, set: setIntermissionEnabled },
 ];
 
 // 체크박스 탭 처리 — 소비 시 true. checkboxY는 settingsLayout 산출값.
@@ -129,7 +129,7 @@ export function settingsModalTap(p, buttons) {
 }
 
 // 렌더러(ui.js)용 뷰 모델 — 레이아웃 + 현재 슬라이더 값/체크 상태.
-// 라벨은 원문 그대로 (렌더러가 t()로 변환).
+// 라벨은 i18n 키 그대로 (렌더러가 t()로 변환).
 export function settingsView(buttons) {
 	const layout = settingsLayout(buttons.length);
 	return {

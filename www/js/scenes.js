@@ -49,9 +49,9 @@ import { playTowerSelect, playTowerPlace, playButton, playPauseToggle, playPromo
 // 위치/패널 높이는 ui.js의 settingsLayout이 개수에 맞춰 계산.
 const titleSettingsButtons = [
 	{
-		label: '저장 정보 초기화',
+		label: 'settings.resetSave',
 		action() {
-			if (typeof confirm === 'function' && !confirm(t('저장 정보를 초기화할까요?'))) return false;
+			if (typeof confirm === 'function' && !confirm(t('settings.resetConfirm'))) return false;
 			resetLocalData();
 			changeScene('title');
 			return true;
@@ -61,7 +61,7 @@ const titleSettingsButtons = [
 
 const playingSettingsButtons = [
 	{
-		label: '위키',
+		label: 'common.wiki',
 		action() {
 			wiki.returnTo = 'playing'; // 위키에서 나갈 때 진행 중 게임으로 복귀
 			changeScene('wiki');
@@ -69,7 +69,7 @@ const playingSettingsButtons = [
 		},
 	},
 	{
-		label: '메인으로 나가기',
+		label: 'settings.exitToTitle',
 		action() {
 			changeScene('title');
 			return true;
@@ -120,7 +120,7 @@ function drawContinueButton(btn, wave) {
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	ctx.font = '13px sans-serif';
-	ctx.fillText(t('이어서 하기'), btn.x + btn.w / 2, btn.y + btn.h / 2 - 13);
+	ctx.fillText(t('title.continue'), btn.x + btn.w / 2, btn.y + btn.h / 2 - 13);
 	ctx.font = 'bold 22px sans-serif';
 	ctx.fillText(`Wave ${wave}`, btn.x + btn.w / 2, btn.y + btn.h / 2 + 11);
 	ctx.textBaseline = 'alphabetic';
@@ -163,15 +163,15 @@ scenes.title = {
 			ctx.globalAlpha = 0.6 + 0.4 * pulse;
 			drawContinueButton(titleButtonsWithSave.continueBtn, titleSave.wave);
 			ctx.globalAlpha = 1;
-			drawButton(titleButtonsWithSave.start, t('게임 시작'));
-			drawButton(titleButtonsWithSave.wiki, t('위키'));
-			drawButton(titleButtonsWithSave.settings, t('설정'));
+			drawButton(titleButtonsWithSave.start, t('title.start'));
+			drawButton(titleButtonsWithSave.wiki, t('common.wiki'));
+			drawButton(titleButtonsWithSave.settings, t('settings.title'));
 		} else {
 			ctx.globalAlpha = 0.6 + 0.4 * pulse;
-			drawButton(titleButtonsNoSave.start, t('게임 시작'));
+			drawButton(titleButtonsNoSave.start, t('title.start'));
 			ctx.globalAlpha = 1;
-			drawButton(titleButtonsNoSave.wiki, t('위키'));
-			drawButton(titleButtonsNoSave.settings, t('설정'));
+			drawButton(titleButtonsNoSave.wiki, t('common.wiki'));
+			drawButton(titleButtonsNoSave.settings, t('settings.title'));
 		}
 
 		if (this.settingsOpen) drawSettingsModal(titleSettingsButtons);
@@ -274,7 +274,7 @@ function drawMapThumb(map, b) {
 	ctx.font = 'bold 14px sans-serif';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
-	ctx.fillText(map.name, b.x + b.w / 2, b.y + b.h - nameH / 2);
+	ctx.fillText(t(map.name), b.x + b.w / 2, b.y + b.h - nameH / 2);
 	ctx.textBaseline = 'alphabetic';
 }
 scenes.mapSelect = {
@@ -600,7 +600,7 @@ scenes.playing = {
 			ctx.textAlign = 'center';
 			ctx.fillStyle = '#fff';
 			ctx.font = 'bold 18px sans-serif';
-			ctx.fillText(t('다음 웨이브까지 {n}초', { n: Math.ceil(game.intermissionTimer) }), LOGICAL_W / 2, LOGICAL_H / 2 + 6);
+			ctx.fillText(t('hint.nextWave', { n: Math.ceil(game.intermissionTimer) }), LOGICAL_W / 2, LOGICAL_H / 2 + 6);
 		}
 
 		if (game.selectedTower) {
@@ -618,14 +618,14 @@ scenes.playing = {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
 			ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-			ctx.fillText(t('빈 곳을 탭하여 배치 취소'), LOGICAL_W / 2, LOGICAL_H - 20);
+			ctx.fillText(t('hint.cancelPlace'), LOGICAL_W / 2, LOGICAL_H - 20);
 		} else {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
 			ctx.fillStyle = game.gold >= TOWER.cost ? 'rgba(255,255,255,0.7)' : 'rgba(255,150,150,0.7)';
-			ctx.fillText(t('빈 곳을 탭하여 타워 배치 ({cost}G)', { cost: TOWER.cost }), LOGICAL_W / 2, LOGICAL_H - 28);
+			ctx.fillText(t('hint.placeTower', { cost: TOWER.cost }), LOGICAL_W / 2, LOGICAL_H - 28);
 			ctx.fillStyle = 'rgba(255,255,255,0.7)';
-			ctx.fillText(t('타워를 꾹 눌러 삭제'), LOGICAL_W / 2, LOGICAL_H - 12);
+			ctx.fillText(t('hint.holdDelete'), LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
 		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
@@ -676,7 +676,7 @@ scenes.playing = {
 				callExtraWave();
 				playButton();
 			} else if (extraWaveBossBlocked()) {
-				setToast(t('보스 웨이브는 병렬로 호출할 수 없습니다'));
+				setToast(t('toast.bossParallel'));
 			}
 			return;
 		}
@@ -854,7 +854,7 @@ scenes.playing = {
 		if (!game.sandbox) return;
 		if (e.code === 'Space') {
 			e.preventDefault();
-			const input = prompt(t('이동할 웨이브?'), String(game.wave));
+			const input = prompt(t('sandbox.jumpPrompt'), String(game.wave));
 			if (input === null) return;
 			const wave = parseInt(input, 10);
 			if (isNaN(wave) || wave < 1) return;
@@ -865,7 +865,7 @@ scenes.playing = {
 		} else if (e.code === 'KeyS') {
 			e.preventDefault();
 			game.sandboxShieldsEnabled = !game.sandboxShieldsEnabled;
-			setToast(t('방어막 적 {s}', { s: game.sandboxShieldsEnabled ? 'ON' : 'OFF' }));
+			setToast(t('toast.sandboxShields', { s: game.sandboxShieldsEnabled ? 'ON' : 'OFF' }));
 		}
 	},
 };
@@ -894,10 +894,10 @@ scenes.gameOver = {
 
 		ctx.fillStyle = '#fff';
 		ctx.font = '16px sans-serif';
-		ctx.fillText(t('Wave {n}에서 패배', { n: game.wave }), LOGICAL_W / 2, 252);
+		ctx.fillText(t('gameover.defeat', { n: game.wave }), LOGICAL_W / 2, 252);
 
-		drawButton(gameOverButtons.restart, t('다시 시작'));
-		drawButton(gameOverButtons.toTitle, t('타이틀로'));
+		drawButton(gameOverButtons.restart, t('gameover.restart'));
+		drawButton(gameOverButtons.toTitle, t('gameover.toTitle'));
 	},
 	pointerDown(p) {
 		if (hitButton(gameOverButtons.restart, p)) {

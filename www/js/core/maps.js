@@ -6,7 +6,7 @@
 export const MAPS = {
 	map1: {
 		id: 'map1',
-		name: '맵 1',
+		name: 'map.map1.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		// 적 이동 경로 (= 맵 생김새). drawPath/거리판정/적 이동·스폰의 단일 출처.
 		path: [
 			{ x: 60, y: 0 },
@@ -27,7 +27,7 @@ export const MAPS = {
 	// 맵2 — 지정 경로: 우상단 진입 → 우측 하강 → 바닥 좌회전 → 중앙 상승 → 상단 좌회전 → 좌측 하강 → 좌중단 탈출.
 	map2: {
 		id: 'map2',
-		name: '맵 2',
+		name: 'map.map2.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
 			{ x: 300, y: 0 },
 			{ x: 300, y: 580 },
