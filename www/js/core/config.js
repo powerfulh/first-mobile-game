@@ -16,17 +16,20 @@ export const TOWER = {
 	maxTier: 4,
 };
 
+// 타워 테마색 팔레트 (색1/색2 쌍) — 색상환 72° 균등 분포 5종. 기본 외형(캐논) 5종이 a~e를 하나씩 맡아
+// 색만으로 구분되고, 다른 외형 타워는 이 5색을 공유. 4티어는 재료/지정 팔레트를 재활용.
+//   a 파랑 #3f80d4/#2b5991 · b 빨강 #e04b47/#a1332f · c 마젠타 #b04fc9/#7c3590 · d 옐로우 #b6c02c/#83891e · e 초록 #29ac66/#1c7a48
 export const TOWER_ROLES = {
 	novice: {
 		name: 'tower.novice.name', tagline: 'tower.novice.tagline',
-		color: '#3498db', color2: '#2373a8',
+		color: '#3f80d4', color2: '#2b5991', // a
 		range: 90, fireRate: 1.2, damage: 1.2,
 		attackTypes: ['ground'], splash: 0,
 		promotions: ['bunker', 'scout'],
 	},
 	bunker: {
 		name: 'tower.bunker.name', tagline: 'tower.bunker.tagline',
-		color: '#6d7b8d', color2: '#505c6b',
+		color: '#e04b47', color2: '#a1332f', // b
 		range: 100, fireRate: 1, damage: 3.6,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 300, // 1티어
@@ -34,7 +37,7 @@ export const TOWER_ROLES = {
 	},
 	scout: {
 		name: 'tower.scout.name', tagline: 'tower.scout.tagline',
-		color: '#16a085', color2: '#0f7a64',
+		color: '#29ac66', color2: '#1c7a48', // e
 		range: 140, fireRate: 1.2, damage: 1.6,
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어
@@ -42,7 +45,7 @@ export const TOWER_ROLES = {
 	},
 	tank: {
 		name: 'tower.tank.name', tagline: 'tower.tank.tagline',
-		color: '#b8860b', color2: '#8a6508',
+		color: '#b04fc9', color2: '#7c3590', // c
 		range: 90, fireRate: 0.8, damage: 5,
 		attackTypes: ['ground'], splash: 50,
 		projectileSpeed: 320, // 2티어
@@ -50,7 +53,7 @@ export const TOWER_ROLES = {
 	},
 	whale: {
 		name: 'tower.whale.name', tagline: 'tower.whale.tagline',
-		color: '#b93aa1', color2: '#8b2b79',
+		color: '#b6c02c', color2: '#83891e', // d
 		range: 120, fireRate: 0.6, damage: 10,
 		attackTypes: ['ground'], splash: 80,
 		projectileSpeed: 340, // 3티어
@@ -58,7 +61,7 @@ export const TOWER_ROLES = {
 	},
 	trap: {
 		name: 'tower.trap.name', tagline: 'tower.trap.tagline',
-		color: '#16a085', color2: '#0f7a64',
+		color: '#3f80d4', color2: '#2b5991', // a
 		range: 90, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -66,7 +69,7 @@ export const TOWER_ROLES = {
 	},
 	base: {
 		name: 'tower.base.name', tagline: 'tower.base.tagline',
-		color: '#6d7b8d', color2: '#505c6b',
+		color: '#3f80d4', color2: '#2b5991', // a
 		range: 90, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 320, // 2티어
@@ -76,7 +79,7 @@ export const TOWER_ROLES = {
 	},
 	beacon: {
 		name: 'tower.beacon.name', tagline: 'tower.beacon.tagline',
-		color: '#7cb342', color2: '#5d8731',
+		color: '#e04b47', color2: '#a1332f', // b
 		range: 120, fireRate: 1, damage: 2,
 		attackTypes: ['ground'], splash: 0,
 		projectileSpeed: 340, // 3티어
@@ -87,7 +90,7 @@ export const TOWER_ROLES = {
 	},
 	demon: {
 		name: 'tower.demon.name', tagline: 'tower.demon.tagline',
-		color: '#b93aa1', color2: '#8b2b79',
+		color: '#29ac66', color2: '#1c7a48', // e
 		range: 90, fireRate: 0, damage: 0,
 		attackTypes: [], splash: 0,
 		promotions: [],
@@ -99,7 +102,7 @@ export const TOWER_ROLES = {
 	},
 	eagle: {
 		name: 'tower.eagle.name', tagline: 'tower.eagle.tagline',
-		color: '#7cb342', color2: '#5d8731',
+		color: '#3f80d4', color2: '#2b5991', // a
 		range: 140, fireRate: 2.4, damage: 3.2,
 		attackTypes: ['air'], splash: 0,
 		projectileSpeed: 320, // 2티어
@@ -107,7 +110,7 @@ export const TOWER_ROLES = {
 	},
 	skydoom: {
 		name: 'tower.skydoom.name', tagline: 'tower.skydoom.tagline',
-		color: '#4338ca', color2: '#322a97',
+		color: '#b04fc9', color2: '#7c3590', // c
 		range: 140, fireRate: 2.4, damage: 5,
 		attackTypes: ['air'], splash: 50,
 		projectileSpeed: 340, // 3티어
@@ -115,7 +118,7 @@ export const TOWER_ROLES = {
 	},
 	interceptor: {
 		name: 'tower.interceptor.name', tagline: 'tower.interceptor.tagline',
-		color: '#e04658', color2: '#a83242',
+		color: '#29ac66', color2: '#1c7a48', // e
 		range: 140, fireRate: 4.8, damage: 2,
 		attackTypes: ['air'], splash: 0,
 		promotions: [],
@@ -125,7 +128,7 @@ export const TOWER_ROLES = {
 	},
 	filder: {
 		name: 'tower.filder.name', tagline: 'tower.filder.tagline',
-		color: '#3498db', color2: '#2373a8',
+		color: '#3f80d4', color2: '#2b5991', // a
 		range: 120, fireRate: 1.6, damage: 2.4,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: ['master', 'dealman'],
@@ -133,7 +136,7 @@ export const TOWER_ROLES = {
 	},
 	master: {
 		name: 'tower.master.name', tagline: 'tower.master.tagline',
-		color: '#4338ca', color2: '#322a97',
+		color: '#e04b47', color2: '#a1332f', // b
 		range: 140, fireRate: 4, damage: 4,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -141,7 +144,7 @@ export const TOWER_ROLES = {
 	},
 	dealman: {
 		name: 'tower.dealman.name', tagline: 'tower.dealman.tagline',
-		color: '#b8860b', color2: '#8a6508',
+		color: '#29ac66', color2: '#1c7a48', // e
 		range: 180, fireRate: 1, damage: 10,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -151,7 +154,7 @@ export const TOWER_ROLES = {
 	},
 	radar: {
 		name: 'tower.radar.name', tagline: 'tower.radar.tagline',
-		color: '#16a085', color2: '#5d8731', // 재료 재활용: 트랩 색1 + 비콘 색2
+		color: '#3f80d4', color2: '#a1332f', // 팔레트 재활용: a 색1 + b 색2
 		range: 100, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -162,7 +165,7 @@ export const TOWER_ROLES = {
 	},
 	assassin: {
 		name: 'tower.assassin.name', tagline: 'tower.assassin.tagline',
-		color: '#b93aa1', color2: '#8a6508', // 재료 재활용: 데몬 색1 + 딜맨 색2
+		color: '#b04fc9', color2: '#7c3590', // 팔레트 재활용: c 색1 + c 색2
 		range: 200, fireRate: 0.8, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -186,7 +189,7 @@ export const TOWER_ROLES = {
 	},
 	gatling: {
 		name: 'tower.gatling.name', tagline: 'tower.gatling.tagline',
-		color: '#6d7b8d', color2: '#322a97', // 벙커 색1 + 재료(마스터) 색2 재활용
+		color: '#e04b47', color2: '#1c7a48', // 팔레트 재활용: b 색1 + e 색2
 		range: 150, fireRate: 20, damage: 2.2,
 		attackTypes: ['air'], splash: 0,
 		promotions: [],
