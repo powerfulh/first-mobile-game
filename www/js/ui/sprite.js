@@ -242,44 +242,6 @@ function drawGatlingBody(tower, selected) {
 	ctx.fill();
 }
 
-function drawAssassinBody(tower, selected) {
-	const cfg = tower.cfg;
-	const r = TOWER.radius;
-	const time = performance.now();
-
-	// 본체 — 칼날 다이아몬드 (다른 타워와 비슷한 크기)
-	ctx.save();
-	ctx.translate(tower.x, tower.y);
-	ctx.rotate(tower.angle);
-
-	ctx.fillStyle = cfg.color;
-	ctx.beginPath();
-	ctx.moveTo(r + 2, 0);          // 앞 (날카롭게 뻗음)
-	ctx.lineTo(0, -r * 0.9);
-	ctx.lineTo(-r * 0.9, 0);
-	ctx.lineTo(0, r * 0.9);
-	ctx.closePath();
-	ctx.fill();
-	applyBodyStrokeStyle(selected, cfg.color2);
-	ctx.stroke();
-
-	// 중심 짙은 코어
-	ctx.fillStyle = cfg.color2;
-	ctx.beginPath();
-	ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-	ctx.fill();
-
-	// 위협 빛점 (본체색 펄스) — 알파는 restore가 복원
-	const pulse = 0.5 + 0.5 * Math.sin(time / 250);
-	ctx.globalAlpha = 0.6 + 0.4 * pulse;
-	ctx.fillStyle = cfg.color;
-	ctx.beginPath();
-	ctx.arc(0, 0, 1.8 + pulse * 0.5, 0, Math.PI * 2);
-	ctx.fill();
-
-	ctx.restore();
-}
-
 function drawSiloBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius;
@@ -392,9 +354,7 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 	ctx.translate(x, y);
 	if (scale !== 1) ctx.scale(scale, scale);
 
-	if (cfg.disablesModifiers) {
-		drawAssassinBody(tower, selected);
-	} else if (cfg.scatterDeg) {
+	if (cfg.scatterDeg) {
 		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {
 		drawBeamEmitterBody(tower, selected);
