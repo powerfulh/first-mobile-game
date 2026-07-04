@@ -60,6 +60,7 @@ export const MAPS = {
 			airHpBase: 0.4,    // 공중 HP 비율 시작 0.4 (wave 31부터 +0.02/wave → wave 60에 1.0)
 			regenStartWave: 71, regenChanceStep: 0.004, // 재생 적: wave 71부터 0.4% (+0.4%/wave → wave 80에 상한 4%)
 			shieldStartCap: 0.4, // 방어막 상한: 81~90 확장 없이 등장(51)부터 1~40% (101~110 → 50%는 공통)
+			barrierStartWave: 111, // 장벽 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
 			countRampWave: 31, countCapWave: 90, // 적 수 +2→+1 전환 wave 31, 상한 wave 90 → 126마리
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (minNarrow 0.30 @ wave 50)
 			densityCeilWave: 80, // 조밀도 상한 추가 강화를 wave 81~90으로 (maxNarrow 0.90 @ wave 90)

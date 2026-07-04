@@ -17,6 +17,7 @@ const DEFAULT_WAVE = {
 	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
+	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
@@ -69,10 +70,10 @@ export function getRegenHealRate(wave) {
 }
 
 export function getBarrierSpawnerChance(wave) {
-	if (wave < 151) return 0;
-	// Wave 151~160: +0.4%/wave (Wave 160 4%) / Wave 161~170 4% 고정
-	// Wave 171~180: +0.4%/wave 추가 (Wave 180 8%) / Wave 181+ 8% 고정
-	const base = Math.min(0.04, (wave - 150) * 0.004);
+	const p = wparams();
+	if (wave < p.barrierStartWave) return 0;
+	// 시작 웨이브부터 +0.4%/wave (10웨이브 누적 4% 상한) / Wave 171~180: +0.4%/wave 추가 (전 맵 공통, 최종 8%)
+	const base = Math.min(0.04, (wave - p.barrierStartWave + 1) * 0.004);
 	const lateBonus = clamp((wave - 170) * 0.004, 0, 0.04);
 	return base + lateBonus;
 }
