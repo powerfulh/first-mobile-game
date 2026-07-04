@@ -39,7 +39,7 @@ export const game = {
 	selectedTower: null,
 	selectedEnemy: null,
 	towerPanel: TOWER_PANEL.INFO,
-	promotionTarget: null,
+	fusionMaterials: [], // 합체 재료로 지정된 타워들. 티어4는 최대 1개(트리거 전까지).
 	modal: null,
 	paused: false,
 	holdDelete: null,
@@ -102,7 +102,7 @@ export function resetGame(mapId = 'map1') {
 	game.selectedTower = null;
 	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
-	game.promotionTarget = null;
+	game.fusionMaterials = [];
 	game.modal = null;
 	game.paused = false;
 	game.holdDelete = null;
@@ -185,7 +185,7 @@ export function loadGame(data) {
 	game.selectedTower = null;
 	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
-	game.promotionTarget = null;
+	game.fusionMaterials = [];
 	game.modal = null;
 	game.paused = false;
 	game.holdDelete = null;

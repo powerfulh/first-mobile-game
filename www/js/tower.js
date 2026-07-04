@@ -49,9 +49,9 @@ export function canAffordPromotion(tower) {
 }
 
 // ============ Tier 4 helpers ============
-// 현재 선택 타워가 4티어 합체 전직 분기인지 — 지정된 합체 대상(game.promotionTarget)과 서로 레시피 파트너인 3티어 타워.
+// 현재 선택 타워가 4티어 합체 전직 분기인지 — 지정된 합체 대상(game.fusionMaterials)과 서로 레시피 파트너인 3티어 타워.
 export function isTier4ChoiceContext(tower) {
-	const target = game.promotionTarget;
+	const target = game.fusionMaterials[0];
 	if (!target || !tower || target === tower) return false;
 	if (target.tier !== 3 || tower.tier !== 3) return false;
 	return fusionResultFor([target.role, tower.role]) !== null;
@@ -273,7 +273,7 @@ export function promoteTower(tower, role) {
 
 export function promoteToTier4(secondTower) {
 	// 대상(첫 타워)이 사라지고 secondTower 자리에 4티어 타워 생성
-	const target = game.promotionTarget;
+	const target = game.fusionMaterials[0];
 	if (!isTier4ChoiceContext(secondTower)) return false;
 	if (!isPromotionReady(target) || !isPromotionReady(secondTower)) return false;
 	if (!canAffordPromotion(secondTower)) return false;
@@ -284,7 +284,7 @@ export function promoteToTier4(secondTower) {
 
 	// 대상 타워 제거
 	game.entities.towers = game.entities.towers.filter(x => x !== target);
-	game.promotionTarget = null;
+	game.fusionMaterials = [];
 
 	// 두 번째 타워 자리에 4티어로 변환
 	const prevRole = secondTower.role;
@@ -457,7 +457,7 @@ export function updateTower(tower, dt) {
 
 export function drawTower(tower) {
 	const selected = (tower === game.selectedTower);
-	const isTarget = (tower === game.promotionTarget);
+	const isTarget = game.fusionMaterials.includes(tower);
 
 	if (isPromotionReady(tower)) {
 		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
@@ -492,7 +492,7 @@ export function drawTower(tower) {
 export function getPromotionState(tower) {
 	if (isPromotionReady(tower) == false) return 'notReady';
 	if (tower.tier === 3) {
-		if (tower === game.promotionTarget) return 'cancelTarget';
+		if (game.fusionMaterials.includes(tower)) return 'cancelTarget';
 		if (!isTier4ChoiceContext(tower)) return 'setTarget';
 	}
 	return canAffordPromotion(tower) ? 'openChoice' : 'noGold';
@@ -502,7 +502,7 @@ export function getPromotionState(tower) {
 // 역할 키 → cfg 해석을 도메인에 묶어 ui가 TOWER_ROLES를 모르게 함.
 export function getPromotionChoices(tower) {
 	if (isTier4ChoiceContext(tower)) {
-		return { tier4Cfg: TOWER_ROLES[fusionResultFor([game.promotionTarget.role, tower.role])] };
+		return { tier4Cfg: TOWER_ROLES[fusionResultFor([game.fusionMaterials[0].role, tower.role])] };
 	}
 	return { cfgs: tower.cfg.promotions.map(r => TOWER_ROLES[r]) };
 }
@@ -515,11 +515,11 @@ export function handlePromotionButton(tower) {
 			game.towerPanel = TOWER_PANEL.PROMOTION;
 			return true;
 		case 'setTarget':
-			game.promotionTarget = tower;
+			game.fusionMaterials = [tower];
 			game.selectedTower = null;
 			return true;
 		case 'cancelTarget':
-			game.promotionTarget = null;
+			game.fusionMaterials = [];
 			return true;
 		default:
 			return false; // notReady, noGold

@@ -326,7 +326,7 @@ function jumpToWave(targetWave) {
 	game.selectedTower = null;
 	game.selectedEnemy = null;
 	game.towerPanel = TOWER_PANEL.INFO;
-	game.promotionTarget = null;
+	game.fusionMaterials = [];
 	game.holdDelete = null;
 	game.modal = null;
 	setupWave(targetWave);
@@ -349,9 +349,7 @@ function deleteTower(dead) {
 		game.selectedTower = null;
 		game.towerPanel = TOWER_PANEL.INFO;
 	}
-	if (game.promotionTarget === dead) {
-		game.promotionTarget = null;
-	}
+	game.fusionMaterials = game.fusionMaterials.filter(t => t !== dead);
 }
 
 // 좌표에 타워가 있으면 그 타워로 선택 전환(카드 닫음) 후 true, 없으면 false.
