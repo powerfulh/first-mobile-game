@@ -145,7 +145,7 @@ export const TOWER_ROLES = {
 	dealman: {
 		name: 'tower.dealman.name', tagline: 'tower.dealman.tagline',
 		color: '#e04b47', color2: '#a1332f', // b
-		range: 180, fireRate: 1, damage: 10,
+		range: 180, fireRate: 1, damage: 9.2,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
 		instantHit: true,
