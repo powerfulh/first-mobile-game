@@ -55,15 +55,15 @@ export function getRegenChance(wave) {
 	if (wave < p.regenStartWave) return 0;
 	// 시작 웨이브부터 +step/wave 누적 (cap까지) / Wave 191~200: +0.4%/wave 추가 (전 맵 공통)
 	const base = Math.min(p.regenChanceCap, (wave - p.regenStartWave + 1) * p.regenChanceStep);
-	const lateBonus = Math.min(0.04, Math.max(0, wave - 190) * 0.004);
+	const lateBonus = clamp((wave - 190) * 0.004, 0, 0.04);
 	return base + lateBonus;
 }
 
 export function getRegenHealRate(wave) {
 	// Wave 110~160: 12% / Wave 161~170: +1%/wave (22%) /
 	// Wave 191~200: +1%/wave 추가 (32%) / 그 외 구간 고정
-	const bonus1 = Math.min(0.10, Math.max(0, wave - 160) * 0.01);
-	const bonus2 = Math.min(0.10, Math.max(0, wave - 190) * 0.01);
+	const bonus1 = clamp((wave - 160) * 0.01, 0, 0.10);
+	const bonus2 = clamp((wave - 190) * 0.01, 0, 0.10);
 	return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
 
@@ -72,7 +72,7 @@ export function getBarrierSpawnerChance(wave) {
 	// Wave 151~160: +0.4%/wave (Wave 160 4%) / Wave 161~170 4% 고정
 	// Wave 171~180: +0.4%/wave 추가 (Wave 180 8%) / Wave 181+ 8% 고정
 	const base = Math.min(0.04, (wave - 150) * 0.004);
-	const lateBonus = Math.min(0.04, Math.max(0, wave - 170) * 0.004);
+	const lateBonus = clamp((wave - 170) * 0.004, 0, 0.04);
 	return base + lateBonus;
 }
 
@@ -89,17 +89,17 @@ export function getShieldChance(wave, spawnInterval) {
 		: 1;
 	// 상한 누적: Wave 81~90 +2%/wave (시작 상한 → 40%; 이미 40%면 없음), 101~110 +1%/wave, 181~190 +3%/wave
 	const p = wparams();
-	const bonus = Math.min(Math.max(0, 0.4 - p.shieldStartCap), Math.max(0, (wave - 80) * 0.02));
-	const extraBonus = Math.min(0.10, Math.max(0, (wave - 100) * 0.01));
-	const lateBonus = Math.min(0.30, Math.max(0, (wave - 180) * 0.03));
+	const bonus = clamp((wave - 80) * 0.02, 0, Math.max(0, 0.4 - p.shieldStartCap));
+	const extraBonus = clamp((wave - 100) * 0.01, 0, 0.10);
+	const lateBonus = clamp((wave - 180) * 0.03, 0, 0.30);
 	return 0.01 + ratio * ((p.shieldStartCap - 0.01) + bonus + extraBonus + lateBonus);
 }
 
 // 방어막 적이 피격당 받는 피해 감소량 (flat). applyTowerHit·적 정보 패널 공용.
 // Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 131~150: 추가 +0.1/wave (+2.0).
 export function getShieldReduction(wave) {
-	return Math.min(3, 1 + Math.max(0, wave - 50) * 0.1)
-		+ Math.min(2, Math.max(0, wave - 130) * 0.1);
+	return clamp(1 + (wave - 50) * 0.1, 1, 3)
+		+ clamp((wave - 130) * 0.1, 0, 2);
 }
 
 // ============ Boss wave helpers ============

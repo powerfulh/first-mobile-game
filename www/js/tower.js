@@ -5,7 +5,7 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, hitButton, hasItems, round1 } from './core/helpers.js';
+import { pointToSegmentDist, hitButton, hasItems, round1, clamp } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
@@ -248,8 +248,8 @@ export function createGhostTower(x, y) {
 export function moveGhostTower(x, y) {
 	const ghost = game.ghostTower;
 	if (!ghost || !ghost.dragging) return;
-	ghost.x = Math.max(TOWER.radius, Math.min(LOGICAL_W - TOWER.radius, x));
-	ghost.y = Math.max(HUD_RESERVED_TOP + TOWER.radius, Math.min(LOGICAL_H - TOWER.radius, y));
+	ghost.x = clamp(x, TOWER.radius, LOGICAL_W - TOWER.radius);
+	ghost.y = clamp(y, HUD_RESERVED_TOP + TOWER.radius, LOGICAL_H - TOWER.radius);
 	ghost.range = getEffectiveRange(ghost); // 위치가 바뀌면 버프 커버 여부도 바뀌므로 재계산
 }
 

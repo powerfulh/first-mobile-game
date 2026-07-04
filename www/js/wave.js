@@ -3,6 +3,7 @@ import {
 	getBaseSpawnInterval, spawnBoss, getEnemiesPerWaveAt, wparams,
 } from './enemy.js';
 import { grantWaveEndXp } from './tower.js';
+import { clamp } from './core/helpers.js';
 
 // 보스 웨이브 판정 (20웨이브마다). 순수 웨이브 번호 로직 — wave.js에 거주.
 export function isBossWave(wave) {
@@ -14,11 +15,11 @@ export function isBossWave(wave) {
 export function getNarrowRange(wave) {
 	if (wave < 11) return { min: 1, max: 1 };
 	const ramp = Math.min(1, (wave - 10) / 20);
-	const extraReduction = Math.min(0.10, Math.max(0, wave - wparams().densityFloorWave) * 0.01);
-	const lateMinReduction = Math.min(0.10, Math.max(0, wave - 170) * 0.01);
+	const extraReduction = clamp((wave - wparams().densityFloorWave) * 0.01, 0, 0.10);
+	const lateMinReduction = clamp((wave - 170) * 0.01, 0, 0.10);
 	const minNarrow = Math.max(0, 1.0 - ramp * 0.6 - extraReduction - lateMinReduction);
-	const maxReduction = Math.min(0.10, Math.max(0, wave - 120) * 0.01);
-	const lateMaxReduction = Math.min(0.10, Math.max(0, wave - 170) * 0.01);
+	const maxReduction = clamp((wave - 120) * 0.01, 0, 0.10);
+	const lateMaxReduction = clamp((wave - 170) * 0.01, 0, 0.10);
 	const maxNarrow = Math.max(minNarrow, 1.0 - maxReduction - lateMaxReduction);
 	return { min: minNarrow, max: maxNarrow };
 }
