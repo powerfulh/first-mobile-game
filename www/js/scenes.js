@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, drawBarrierSpawnFx, isBoss, drawEnemyHpBarOverlay,
+	updateBarrierSpawnFx, drawBarrierSpawnFx, updateShieldBreakFx, drawShieldBreakFx, isBoss, drawEnemyHpBarOverlay,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -473,6 +473,7 @@ scenes.playing = {
 		for (const s of game.effects.splashes) updateSplash(s, dt);
 		for (const z of game.effects.zaps) updateZap(z, dt);
 		for (const fx of game.effects.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
+		for (const fx of game.effects.shieldBreakFx) updateShieldBreakFx(fx, dt);
 
 		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
 		game.entities.projectiles = game.entities.projectiles.filter(p => !p.dead);
@@ -480,6 +481,7 @@ scenes.playing = {
 		game.effects.splashes = game.effects.splashes.filter(s => !s.dead);
 		game.effects.zaps = game.effects.zaps.filter(z => !z.dead);
 		game.effects.barrierSpawnFx = game.effects.barrierSpawnFx.filter(fx => !fx.dead);
+		game.effects.shieldBreakFx = game.effects.shieldBreakFx.filter(fx => !fx.dead);
 
 		// 게임오버 판정을 웨이브 완료·저장보다 먼저 — 마지막 적이 골인하며 hp가 0이 된 프레임에
 		// 다음 웨이브가 setup·저장되면 hp 0 상태가 저장돼 불러올 때 즉시 게임오버가 됨.
@@ -578,6 +580,7 @@ scenes.playing = {
 		for (const s of game.effects.splashes) drawSplash(s);
 		for (const z of game.effects.zaps) drawZap(z);
 		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);
+		for (const fx of game.effects.shieldBreakFx) drawShieldBreakFx(fx);
 
 		drawBossHpBar();
 		drawWaveSpawnSummary(game.waveSpawnCounts);

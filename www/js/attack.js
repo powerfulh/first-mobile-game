@@ -6,7 +6,7 @@ import {
 	allowedTypesOf,
 } from './tower.js';
 import {
-	getBossReward, startBarrierSpawn,
+	getBossReward, startBarrierSpawn, startShieldBreak,
 	findBarrierBlockDist, projectileHitsBarrier, isBoss,
 } from './enemy.js';
 
@@ -30,8 +30,9 @@ export function applyTowerHit(shooter, target, damage) {
 			if (shooterCfg.marksEnemies) {
 				target.marked = true;
 			}
-			if (shooterCfg.disablesModifiers) {
+			if (shooterCfg.disablesModifiers && target.shielded) {
 				target.shielded = false;
+				startShieldBreak(target.x, target.y, target.radius); // 방어막이 깨지는 순간 1회 연출
 			}
 		}
 	}
