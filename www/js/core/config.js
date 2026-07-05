@@ -203,14 +203,15 @@ export const TOWER_ROLES = {
 	// 레시피는 4티어 4종 {radar, assassin, silo, gatling} 중 중복 없는 3종(=4가지 조합, 각각 1종 제외).
 	yeomra: {
 		name: 'tower.yeomra.name', tagline: 'tower.yeomra.tagline',
-		color: '#3f80d4', color2: '#2b5991', // (색/외형 추후)
+		color: '#3f80d4', color2: '#1c7a48',
 		range: 90, fireRate: 0, damage: 0,
 		attackTypes: [], splash: 0,
 		promotions: [],
 		recipe: ['radar', 'assassin', 'silo'], // 제외: gatling
+		buffsRange: true, // 배이스와 동일한 사거리 버프 (외형도 base 계열 분기로 감)
 		slowsEnemies: true, slowFactor: 0.25, // 사거리 내 적 이동속도 25%로
 		blocksRegen: true, // 사거리 내 재생 적 회복 차단
-		description: ['tower.yeomra.desc1', 'tower.yeomra.desc2'],
+		description: ['tower.yeomra.desc1', 'tower.yeomra.desc2', 'tower.yeomra.desc3'],
 	},
 	resolver: {
 		name: 'tower.resolver.name', tagline: 'tower.resolver.tagline',
