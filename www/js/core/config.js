@@ -218,6 +218,7 @@ export const TOWER_ROLES = {
 		recipe: ['radar', 'assassin', 'gatling'], // 제외: silo
 		body: 'energyCore', // 8각 셸 + 중앙 초고에너지 발전기
 		buffsAllies: true, // 적이 아닌 아군 타워를 겨냥 — 스윕 + 10초 공격력·공속 2배 버프
+		description: ['tower.resolver.desc1', 'tower.resolver.desc2'],
 	},
 	penta3: {
 		name: 'tower.penta3.name', tagline: 'tower.penta.tmpTagline',

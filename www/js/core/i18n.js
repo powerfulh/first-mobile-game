@@ -84,6 +84,8 @@ const STRINGS = {
 	'tower.penta1.name': { ko: '펜타1', ja: 'ペンタ1', en: 'Penta 1' },
 	'tower.resolver.name': { ko: '리솔버', ja: 'リゾルバー', en: 'Resolver' },
 	'tower.resolver.tagline': { ko: '아군 강화 · 지원형', ja: '味方強化 · 支援型', en: 'Ally empower · Support' },
+	'tower.resolver.desc1': { ko: '주변의 타워에게 직접 버프를 전달합니다', ja: '周囲のタワーに直接バフを付与します', en: 'Directly grants a buff to a nearby tower' },
+	'tower.resolver.desc2': { ko: '공격력, 공격 속도를 두 배로 버프합니다', ja: '攻撃力・攻撃速度を2倍にします', en: 'Doubles attack and fire rate' },
 	'tower.penta3.name': { ko: '펜타3', ja: 'ペンタ3', en: 'Penta 3' },
 	'tower.penta4.name': { ko: '펜타4', ja: 'ペンタ4', en: 'Penta 4' },
 
