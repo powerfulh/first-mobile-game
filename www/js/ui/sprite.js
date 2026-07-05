@@ -480,6 +480,95 @@ function drawEnergyCoreBody(tower, selected) {
 	drawEnergyBall(cx, cy, r * 0.44);
 }
 
+// penta4 응축기 입자 풀 — 랜덤 방향에서 초점으로 연속 유입되는 점들. 렌더 전용 공유 상태.
+const condenserParticles = [];
+let condenserPrevTime = 0;
+function respawnCondenserParticle(p) {
+	p.ang = Math.random() * Math.PI * 2;                 // 랜덤 방향
+	p.dist = TOWER.radius * (0.6 + Math.random() * 0.6);
+	p.t = 1;                                             // 1(바깥)→0(초점)
+	p.speed = 0.7 + Math.random() * 0.9;                 // 초당 t 감소량
+}
+function updateCondenserParticles(time) {
+	if (condenserParticles.length === 0) {
+		for (let i = 0; i < 16; i++) { const p = {}; respawnCondenserParticle(p); p.t = Math.random(); condenserParticles.push(p); }
+	}
+	let dt = (time - condenserPrevTime) / 1000;
+	condenserPrevTime = time;
+	if (dt > 0.1) dt = 0.016; // 첫 프레임·탭 복귀 보호
+	if (dt < 0) dt = 0;       // 같은 프레임 재호출(다중 타워) → 이중 전진 방지
+	for (const p of condenserParticles) {
+		p.t -= p.speed * dt;
+		if (p.t <= 0) respawnCondenserParticle(p);
+	}
+}
+
+// penta4(어쌔신+개틀링+사일로) — 필더 계열 육각 몸체 + 오목 응축 패널 + 2 집게(전극) + 랜덤 방향 연속 유입 입자 → 시안 응축 코어.
+function drawCondenserBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+	const time = performance.now();
+
+	// 육각 몸체 (필더 계열)
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	for (let i = 0; i < 6; i++) {
+		const a = i * Math.PI / 3 - Math.PI / 2;
+		const px = cx + r * Math.cos(a);
+		const py = cy + r * Math.sin(a);
+		if (i === 0) ctx.moveTo(px, py);
+		else ctx.lineTo(px, py);
+	}
+	ctx.closePath();
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	const focalX = cx;
+	const focalY = cy - r * 0.3; // 응축 초점 (상단 중앙)
+
+	// 오목 응축 패널 — 하단의 얕은 접시(⌣)
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.arc(cx, cy + r * 0.15, r * 0.62, Math.PI * 0.15, Math.PI * 0.85);
+	ctx.stroke();
+
+	// 2 응축 집게(전극) — 패널에서 초점으로 굽어 오름
+	ctx.lineWidth = 2.5;
+	for (const side of [-1, 1]) {
+		ctx.beginPath();
+		ctx.moveTo(cx + side * r * 0.5, cy + r * 0.28);
+		ctx.lineTo(cx + side * r * 0.62, cy - r * 0.05);
+		ctx.lineTo(focalX + side * r * 0.2, focalY + r * 0.08);
+		ctx.stroke();
+	}
+
+	// 연속 응축 입자 — 랜덤 방향에서 초점으로 (초점에 가까울수록 진해짐)
+	updateCondenserParticles(time);
+	ctx.fillStyle = '#bdf0ff';
+	for (const p of condenserParticles) {
+		ctx.globalAlpha = 0.85 * (1 - p.t);
+		ctx.beginPath();
+		ctx.arc(focalX + Math.cos(p.ang) * p.dist * p.t, focalY + Math.sin(p.ang) * p.dist * p.t, 1.2, 0, Math.PI * 2);
+		ctx.fill();
+	}
+	ctx.globalAlpha = 1;
+
+	// 응축 코어 (초점) — 시안 백색 발광, 맥동
+	const pulse = 0.5 + 0.5 * Math.sin(time / 300);
+	const glow = ctx.createRadialGradient(focalX, focalY, 0, focalX, focalY, 5 + pulse);
+	glow.addColorStop(0, `rgba(235, 252, 255, ${0.8 + 0.2 * pulse})`);
+	glow.addColorStop(0.5, `rgba(120, 210, 255, ${0.45 + 0.3 * pulse})`);
+	glow.addColorStop(1, 'rgba(60, 150, 240, 0)');
+	ctx.fillStyle = glow;
+	ctx.beginPath();
+	ctx.arc(focalX, focalY, 3.5 + 1.5 * pulse, 0, Math.PI * 2);
+	ctx.fill();
+}
+
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
 // 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
 // angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
@@ -493,6 +582,8 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 
 	if (cfg.body === 'energyCore') {
 		drawEnergyCoreBody(tower, selected);
+	} else if (cfg.body === 'condenser') {
+		drawCondenserBody(tower, selected);
 	} else if (cfg.scatterDeg) {
 		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {

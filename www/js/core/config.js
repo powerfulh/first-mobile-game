@@ -239,6 +239,7 @@ export const TOWER_ROLES = {
 		attackTypes: ['ground'], splash: 0,
 		promotions: [],
 		recipe: ['assassin', 'silo', 'gatling'], // 제외: radar
+		body: 'condenser', // 육각 몸체 + 오목 응축 패널·집게 + 연속 응축 입자 (외형만; 동작은 추후)
 	},
 };
 
