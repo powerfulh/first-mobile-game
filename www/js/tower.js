@@ -321,10 +321,54 @@ export function promoteFusion(triggerTower) {
 }
 
 // ============ Update / Fire ============
+// 리솔버 버프(공격력·공속 2배, 10초) 배수 — 미버프면 1.
+function resolverBuffMult(tower) {
+	return tower.resolverBuff > 0 ? 2 : 1;
+}
+
+// 리솔버(5티어) — 적이 아닌 아군 타워를 겨냥한다. 사거리 내 타워 중 웨이브 누적 데미지 최고(자신·이미 버프중 제외)를
+// 골라 그 타워 위치에 그 타워의 사거리만큼 스윕 데미지를 주고, 10초간 공격력·공속 2배 버프를 건다.
+function updateResolver(tower) {
+	const range = tower.range;
+	let target = null;
+	let bestWaveDamage = -1;
+	for (const other of game.entities.towers) {
+		if (other === tower || other.resolverBuff > 0) continue;
+		if (Math.hypot(other.x - tower.x, other.y - tower.y) > range) continue;
+		if (other.waveDamage > bestWaveDamage) {
+			bestWaveDamage = other.waveDamage;
+			target = other;
+		}
+	}
+	if (!target) return; // 겨냥할 아군 없음 → 공격 안 함
+	tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
+	if (tower.cooldown > 0) return;
+
+	// 피격 아군 기준 스윕 (그 타워의 사거리 = 스윕 범위), 리솔버 데미지
+	const allowed = allowedTypesOf(tower);
+	const sweepBlocked = allowed.includes('air');
+	const hitRange = target.range + 10;
+	const dmg = tower.damage * resolverBuffMult(tower);
+	for (const e of game.entities.enemies) {
+		if (e.dead) continue;
+		if (!allowed.includes(e.ga)) continue;
+		if (Math.hypot(e.x - target.x, e.y - target.y) > hitRange) continue;
+		if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(target.x, target.y, e)) continue;
+		applyTowerHit(tower, e, dmg);
+	}
+	spawnZap(target.x, target.y, target.range, tower.cfg.color);
+
+	target.resolverBuff = 10; // 초
+	tower.cooldown = 1 / (tower.cfg.fireRate * resolverBuffMult(tower));
+}
+
 export function updateTower(tower, dt) {
 	tower.cooldown = Math.max(0, tower.cooldown - dt);
+	if (tower.resolverBuff > 0) tower.resolverBuff = Math.max(0, tower.resolverBuff - dt);
 
 	const cfg = tower.cfg;
+	if (cfg.buffsAllies) { updateResolver(tower); return; } // 리솔버는 아군을 겨냥 — 별도 경로
+
 	const allowed = allowedTypesOf(tower);
 	const range = tower.range;
 
@@ -381,7 +425,7 @@ export function updateTower(tower, dt) {
 	if (target) {
 		tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
 		if (tower.cooldown <= 0) {
-			const damage = tower.damage;
+			const damage = tower.damage * resolverBuffMult(tower);
 			if (cfg.areaSweep) {
 				// 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer)
 				// areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
@@ -475,7 +519,7 @@ export function updateTower(tower, dt) {
 					attackTypes: allowed,
 				});
 			}
-			tower.cooldown = 1 / cfg.fireRate;
+			tower.cooldown = 1 / (cfg.fireRate * resolverBuffMult(tower));
 		}
 	}
 }
@@ -493,6 +537,16 @@ export function drawTower(tower) {
 		ctx.arc(tower.x, tower.y, TOWER.radius + 5, 0, Math.PI * 2);
 		ctx.stroke();
 		ctx.globalAlpha = 1;
+	}
+
+	if (tower.resolverBuff > 0) {
+		// 리솔버 버프 표시 — 빠른 주황 펄스 링 (공격력·공속 2배 중)
+		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 150);
+		ctx.strokeStyle = `rgba(230, 126, 34, ${0.5 + 0.4 * pulse})`;
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(tower.x, tower.y, TOWER.radius + 3, 0, Math.PI * 2);
+		ctx.stroke();
 	}
 
 	if (tower.tier === 4) drawTier4Halo(tower);

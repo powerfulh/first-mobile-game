@@ -82,7 +82,8 @@ const STRINGS = {
 	// 5티어 placeholder (디자인 예정 — 이름/문구 임시)
 	'tower.penta.tmpTagline': { ko: '5티어 · 임시(기본 복제)', ja: 'ティア5 · 仮(ベーシック複製)', en: 'Tier 5 · placeholder (basic clone)' },
 	'tower.penta1.name': { ko: '펜타1', ja: 'ペンタ1', en: 'Penta 1' },
-	'tower.penta2.name': { ko: '펜타2', ja: 'ペンタ2', en: 'Penta 2' },
+	'tower.resolver.name': { ko: '리솔버', ja: 'リゾルバー', en: 'Resolver' },
+	'tower.resolver.tagline': { ko: '아군 강화 · 지원형', ja: '味方強化 · 支援型', en: 'Ally empower · Support' },
 	'tower.penta3.name': { ko: '펜타3', ja: 'ペンタ3', en: 'Penta 3' },
 	'tower.penta4.name': { ko: '펜타4', ja: 'ペンタ4', en: 'Penta 4' },
 

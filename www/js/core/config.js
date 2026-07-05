@@ -10,9 +10,9 @@ export const TOWER = {
 	cost: 50,
 	radius: 14,
 	projectileSpeed: 280,
-	promotionCosts: [125, 250, 1000, 3000, 8000], // [t0→t1 … t3→t4, t4→t5] · t4→t5는 placeholder
-	xpThresholds:   [20,  40,  200,  500,  1000], // t4(→t5)는 placeholder
-	buffRates:      [0.10, 0.10, 0.20, 0.30, 0.40, 0.50], // 받는 타워 티어 (t0~t5) · t5는 placeholder
+	promotionCosts: [125, 250, 1000, 3000, 4000], // [t0→t1 … t3→t4, t4→t5]
+	xpThresholds:   [20,  40,  200,  500,  1000],
+	buffRates:      [0.10, 0.10, 0.20, 0.30, 0.40, 0.45], // 받는 타워 티어 (t0~t5)
 	maxTier: 5,
 };
 
@@ -209,14 +209,15 @@ export const TOWER_ROLES = {
 		promotions: [],
 		recipe: ['radar', 'assassin', 'silo'], // 제외: gatling
 	},
-	penta2: {
-		name: 'tower.penta2.name', tagline: 'tower.penta.tmpTagline',
-		color: '#3f80d4', color2: '#2b5991', // a 팔레트 (색은 추후 조정 가능)
-		range: 90, fireRate: 1.2, damage: 1.2,
-		attackTypes: ['ground'], splash: 0,
+	resolver: {
+		name: 'tower.resolver.name', tagline: 'tower.resolver.tagline',
+		color: '#3f80d4', color2: '#2b5991', // (색은 추후 조정 가능)
+		range: 80, fireRate: 0.2, damage: 20,
+		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
 		recipe: ['radar', 'assassin', 'gatling'], // 제외: silo
 		body: 'energyCore', // 8각 셸 + 중앙 초고에너지 발전기
+		buffsAllies: true, // 적이 아닌 아군 타워를 겨냥 — 스윕 + 10초 공격력·공속 2배 버프
 	},
 	penta3: {
 		name: 'tower.penta3.name', tagline: 'tower.penta.tmpTagline',
