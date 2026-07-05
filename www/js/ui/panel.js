@@ -127,7 +127,11 @@ export function drawTowerInfoPanel(tower, promotionState) {
 			? t('panel.dmgBuffed', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
 			: t('panel.dmg', { dmg: baseDmg, dps: dpsValue });
 		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(t('panel.fireRate', { rate: effRate.toFixed(1) }), sx, sy + 18);
+		const rateBuffPct = effRate > cfg.fireRate ? Math.round((effRate / cfg.fireRate - 1) * 100) : 0;
+		const rateStr = rateBuffPct > 0
+			? t('panel.fireRateBuffed', { rate: effRate.toFixed(1), pct: rateBuffPct })
+			: t('panel.fireRate', { rate: cfg.fireRate.toFixed(1) });
+		ctx.fillText(rateStr, sx, sy + 18);
 	} else {
 		ctx.fillText(t('panel.dmgNone'), sx, sy);
 		ctx.fillText(t('panel.fireRateNone'), sx, sy + 18);
