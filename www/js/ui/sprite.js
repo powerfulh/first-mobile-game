@@ -396,7 +396,7 @@ function drawRadarAntenna(tower) {
 	ctx.restore();
 }
 
-// penta1(레이더+어쌔신+사일로) — base 계열 8각 셸 + 중앙 초고에너지 발전기(에너지 저장 느낌). 점선 링 없음.
+// penta2(레이더+어쌔신+개틀링) — base 계열 8각 셸 + 중앙 초고에너지 발전기(에너지 저장 느낌). 점선 링 없음.
 // 5티어 전용 고퀄 외형: 리세스 하우징 + 코너 볼트 + 방사형 글로우 코어 + 회전 컨테인먼트 아크.
 function drawEnergyCoreBody(tower, selected) {
 	const cfg = tower.cfg;
