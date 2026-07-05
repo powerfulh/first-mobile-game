@@ -511,7 +511,7 @@ function drawCondenserBody(tower, selected) {
 	const cy = tower.y;
 	const time = performance.now();
 
-	// 육각 몸체 (필더 계열)
+	// 육각 몸체 (필더 계열) — 고정
 	ctx.fillStyle = cfg.color;
 	ctx.beginPath();
 	for (let i = 0; i < 6; i++) {
@@ -526,23 +526,27 @@ function drawCondenserBody(tower, selected) {
 	applyBodyStrokeStyle(selected, cfg.color2);
 	ctx.stroke();
 
-	const focalX = cx;
-	const focalY = cy - r * 0.3; // 응축 초점 (상단 중앙)
+	// 응축 이미터 — 조준(tower.angle) 방향으로 회전 (로컬 -y가 전방)
+	ctx.save();
+	ctx.translate(cx, cy);
+	ctx.rotate(tower.angle + Math.PI / 2);
 
-	// 오목 응축 패널 — 하단의 얕은 접시(⌣)
+	const fy = -r * 0.3; // 초점 (로컬 전방)
+
+	// 오목 응축 패널 — 후방의 얕은 접시(⌣)
 	ctx.strokeStyle = cfg.color2;
 	ctx.lineWidth = 3;
 	ctx.beginPath();
-	ctx.arc(cx, cy + r * 0.15, r * 0.62, Math.PI * 0.15, Math.PI * 0.85);
+	ctx.arc(0, r * 0.15, r * 0.62, Math.PI * 0.15, Math.PI * 0.85);
 	ctx.stroke();
 
-	// 2 응축 집게(전극) — 패널에서 초점으로 굽어 오름
+	// 2 응축 집게(전극) — 패널에서 초점으로 굽어 나감
 	ctx.lineWidth = 2.5;
 	for (const side of [-1, 1]) {
 		ctx.beginPath();
-		ctx.moveTo(cx + side * r * 0.5, cy + r * 0.28);
-		ctx.lineTo(cx + side * r * 0.62, cy - r * 0.05);
-		ctx.lineTo(focalX + side * r * 0.2, focalY + r * 0.08);
+		ctx.moveTo(side * r * 0.5, r * 0.28);
+		ctx.lineTo(side * r * 0.62, -r * 0.05);
+		ctx.lineTo(side * r * 0.2, fy + r * 0.08);
 		ctx.stroke();
 	}
 
@@ -552,21 +556,23 @@ function drawCondenserBody(tower, selected) {
 	for (const p of condenserParticles) {
 		ctx.globalAlpha = 0.85 * (1 - p.t);
 		ctx.beginPath();
-		ctx.arc(focalX + Math.cos(p.ang) * p.dist * p.t, focalY + Math.sin(p.ang) * p.dist * p.t, 1.2, 0, Math.PI * 2);
+		ctx.arc(Math.cos(p.ang) * p.dist * p.t, fy + Math.sin(p.ang) * p.dist * p.t, 1.2, 0, Math.PI * 2);
 		ctx.fill();
 	}
 	ctx.globalAlpha = 1;
 
 	// 응축 코어 (초점) — 시안 백색 발광, 맥동
 	const pulse = 0.5 + 0.5 * Math.sin(time / 300);
-	const glow = ctx.createRadialGradient(focalX, focalY, 0, focalX, focalY, 5 + pulse);
+	const glow = ctx.createRadialGradient(0, fy, 0, 0, fy, 5 + pulse);
 	glow.addColorStop(0, `rgba(235, 252, 255, ${0.8 + 0.2 * pulse})`);
 	glow.addColorStop(0.5, `rgba(120, 210, 255, ${0.45 + 0.3 * pulse})`);
 	glow.addColorStop(1, 'rgba(60, 150, 240, 0)');
 	ctx.fillStyle = glow;
 	ctx.beginPath();
-	ctx.arc(focalX, focalY, 3.5 + 1.5 * pulse, 0, Math.PI * 2);
+	ctx.arc(0, fy, 3.5 + 1.5 * pulse, 0, Math.PI * 2);
 	ctx.fill();
+
+	ctx.restore();
 }
 
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.

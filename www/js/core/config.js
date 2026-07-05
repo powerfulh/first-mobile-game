@@ -234,7 +234,7 @@ export const TOWER_ROLES = {
 	},
 	dragon: {
 		name: 'tower.dragon.name', tagline: 'tower.dragon.tagline',
-		color: '#3f80d4', color2: '#2b5991', // (색은 추후)
+		color: '#29ac66', color2: '#7c3590',
 		range: 150, fireRate: 16, damage: 3.2,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
@@ -243,7 +243,7 @@ export const TOWER_ROLES = {
 		pierces: true,
 		scatterDeg: 12, // 개틀링식 공격 각도 난수 (fireLineBeam이 반영)
 		body: 'condenser', // 육각 몸체 + 오목 응축 패널·집게 + 연속 응축 입자
-		description: ['tower.dragon.desc1', 'tower.dragon.desc2'],
+		description: ['tower.dragon.desc1'],
 	},
 };
 

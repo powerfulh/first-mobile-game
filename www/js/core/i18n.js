@@ -94,7 +94,6 @@ const STRINGS = {
 	'tower.dragon.name': { ko: '드래곤', ja: 'ドラゴン', en: 'Dragon' },
 	'tower.dragon.tagline': { ko: '관통 연사 빔 · 지상/공중', ja: '貫通連射ビーム · 地上/空中', en: 'Piercing rapid beam · Ground/Air' },
 	'tower.dragon.desc1': { ko: '일직선상의 모든 적을 관통하는 빔을 초고속 연사합니다', ja: '直線上の敵を貫通するビームを高速連射します', en: 'Rapid-fires beams that pierce all enemies in a line' },
-	'tower.dragon.desc2': { ko: '개틀링처럼 발사 각도에 난수가 적용돼 흩뿌려집니다', ja: 'ガトリングのように発射角度に乱数がかかり散らばります', en: 'Attack angle scatters randomly, like the Gatling' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },
