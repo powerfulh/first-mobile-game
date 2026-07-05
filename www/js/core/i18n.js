@@ -145,7 +145,7 @@ const STRINGS = {
 	'panel.promote.cost': { ko: '전직 ({cost}G)', ja: '転職 ({cost}G)', en: 'Promote ({cost}G)' },
 	'panel.promote.noGold': { ko: '전직 ({cost}G · 골드 부족)', ja: '転職 ({cost}G · ゴールド不足)', en: 'Promote ({cost}G · not enough)' },
 	'panel.promote.cancelTarget': { ko: '대상 취소', ja: '対象キャンセル', en: 'Cancel target' },
-	'panel.promote.setTarget': { ko: '4티어 대상 지정', ja: 'ティア4対象指定', en: 'Set Tier-4 target' },
+	'panel.promote.setTarget': { ko: '{tier}티어 대상 지정', ja: 'ティア{tier}対象指定', en: 'Set Tier-{tier} target' },
 
 	// ---- 설정 모달 / 일시정지 ----
 	'settings.title': { ko: '설정', ja: '設定', en: 'Settings' },

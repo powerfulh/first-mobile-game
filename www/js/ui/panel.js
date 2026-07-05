@@ -63,7 +63,7 @@ function drawPromotionButton(tower, state) {
 	switch (state) {
 		case 'notReady': label = t('panel.promote.notReady', { xp: tower.xp, max: tower.xpMax }); break;
 		case 'noGold': label = t('panel.promote.noGold', { cost }); break;
-		case 'setTarget': label = t('panel.promote.setTarget'); break;
+		case 'setTarget': label = t('panel.promote.setTarget', { tier: tower.tier + 1 }); break;
 		case 'cancelTarget': label = t('panel.promote.cancelTarget'); break;
 		default: label = t('panel.promote.cost', { cost }); break; // openChoice
 	}
