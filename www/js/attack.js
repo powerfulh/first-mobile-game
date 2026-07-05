@@ -233,6 +233,20 @@ export function updateBeam(b, dt) {
 	if (b.life <= 0) b.dead = true;
 }
 
+// 리솔버 버프 연결선 — 굵은 에너지 링크, 빔보다 오래 남는 잔향(0.55초).
+export function spawnLink(x1, y1, x2, y2, color) {
+	game.effects.links.push({
+		x1, y1, x2, y2,
+		life: 0.55, maxLife: 0.55,
+		color,
+	});
+}
+
+export function updateLink(l, dt) {
+	l.life -= dt;
+	if (l.life <= 0) l.dead = true;
+}
+
 export function updateSplash(s, dt) {
 	s.life -= dt;
 	if (s.life <= 0) s.dead = true;
@@ -374,6 +388,41 @@ export function drawBeam(b) {
 	ctx.moveTo(b.x1, b.y1);
 	ctx.lineTo(b.x2, b.y2);
 	ctx.stroke();
+	ctx.globalAlpha = 1;
+}
+
+// 리솔버 버프 연결선 — 굵은 외곽 광채 + 흰 코어 + 리솔버→타워로 흐르는 에너지 모트.
+export function drawLink(l) {
+	const alpha = Math.max(0, l.life / l.maxLife);
+	const dx = l.x2 - l.x1;
+	const dy = l.y2 - l.y1;
+
+	ctx.globalAlpha = alpha * 0.4;
+	ctx.strokeStyle = l.color;
+	ctx.lineWidth = 9;
+	ctx.beginPath();
+	ctx.moveTo(l.x1, l.y1);
+	ctx.lineTo(l.x2, l.y2);
+	ctx.stroke();
+
+	ctx.globalAlpha = alpha * 0.9;
+	ctx.strokeStyle = '#eaffff';
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.moveTo(l.x1, l.y1);
+	ctx.lineTo(l.x2, l.y2);
+	ctx.stroke();
+
+	// 흐르는 에너지 모트 (리솔버 → 타워)
+	const prog = 1 - alpha;
+	ctx.fillStyle = '#fff';
+	for (let i = 0; i < 3; i++) {
+		const tt = (prog * 1.5 + i / 3) % 1;
+		ctx.globalAlpha = alpha;
+		ctx.beginPath();
+		ctx.arc(l.x1 + dx * tt, l.y1 + dy * tt, 3, 0, Math.PI * 2);
+		ctx.fill();
+	}
 	ctx.globalAlpha = 1;
 }
 

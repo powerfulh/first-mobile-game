@@ -23,6 +23,7 @@ export const game = {
 	// 일시적 시각 효과 — 매 프레임 갱신·필터·그리기되는 단명 객체 (entities와 대칭으로 묶음).
 	effects: {
 		beams: [],
+		links: [], // 리솔버 버프 연결선 (굵고 오래 남는 에너지 링크)
 		splashes: [],
 		zaps: [],
 		barrierSpawnFx: [],
@@ -78,6 +79,7 @@ function maybeShowShortcutIntro() {
 // 일시적 시각 효과(game.effects) 전부 비움 — resetGame/loadGame/jumpToWave 공용.
 export function clearEffects() {
 	game.effects.beams = [];
+	game.effects.links = [];
 	game.effects.splashes = [];
 	game.effects.zaps = [];
 	game.effects.barrierSpawnFx = [];

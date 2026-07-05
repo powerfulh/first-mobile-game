@@ -396,14 +396,52 @@ function drawRadarAntenna(tower) {
 	ctx.restore();
 }
 
+// 에너지 볼 — 방사형 글로우 + 컨테인먼트 링 + 역방향 회전 아크 + 응축 중심. (cx,cy) 중심, 반지름 r.
+// 리솔버 중앙 코어이자, 리솔버 버프받은 타워 주변을 공전하는 마커로 공용.
+export function drawEnergyBall(cx, cy, r) {
+	const time = performance.now();
+	const charge = 0.5 + 0.5 * Math.sin(time / 500); // 축전 펄스 0~1
+
+	// 방사형 글로우
+	const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+	glow.addColorStop(0, `rgba(224, 250, 255, ${0.85 + 0.15 * charge})`);
+	glow.addColorStop(0.5, `rgba(110, 200, 255, ${0.55 + 0.3 * charge})`);
+	glow.addColorStop(1, 'rgba(60, 130, 220, 0)');
+	ctx.fillStyle = glow;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 컨테인먼트 링 + 역방향 회전 아크 2개
+	const ringR = r * 0.78;
+	ctx.strokeStyle = 'rgba(210, 240, 255, 0.35)';
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+	ctx.stroke();
+	for (let k = 0; k < 2; k++) {
+		const dir = k === 0 ? 1 : -1;
+		const base = dir * time / 320 + k * Math.PI;
+		ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 + 0.4 * charge})`;
+		ctx.beginPath();
+		ctx.arc(cx, cy, ringR, base, base + Math.PI * 0.55);
+		ctx.stroke();
+	}
+
+	// 응축 중심
+	ctx.fillStyle = `rgba(255, 255, 255, ${0.75 + 0.25 * charge})`;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * (0.28 + 0.1 * charge), 0, Math.PI * 2);
+	ctx.fill();
+}
+
 // 리솔버(레이더+어쌔신+개틀링) — base 계열 8각 셸 + 중앙 초고에너지 발전기(에너지 저장 느낌). 점선 링 없음.
-// 5티어 전용 고퀄 외형: 리세스 하우징 + 코너 볼트 + 방사형 글로우 코어 + 회전 컨테인먼트 아크.
+// 5티어 전용 고퀄 외형: 리세스 하우징 + 코너 볼트 + 에너지 볼(drawEnergyBall).
 function drawEnergyCoreBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius;
 	const cx = tower.x;
 	const cy = tower.y;
-	const time = performance.now();
 
 	const octagonPath = (radius) => {
 		ctx.beginPath();
@@ -438,41 +476,8 @@ function drawEnergyCoreBody(tower, selected) {
 		ctx.fill();
 	}
 
-	// --- 중앙 에너지 코어 (저장된 에너지 느낌) ---
-	const charge = 0.5 + 0.5 * Math.sin(time / 500); // 축전 펄스 0~1
-	const coreR = r * 0.44;
-
-	// 방사형 글로우
-	const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
-	glow.addColorStop(0, `rgba(224, 250, 255, ${0.85 + 0.15 * charge})`);
-	glow.addColorStop(0.5, `rgba(110, 200, 255, ${0.55 + 0.3 * charge})`);
-	glow.addColorStop(1, 'rgba(60, 130, 220, 0)');
-	ctx.fillStyle = glow;
-	ctx.beginPath();
-	ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
-	ctx.fill();
-
-	// 컨테인먼트 링 + 역방향 회전 아크 2개 — 발전기 가동감
-	const ringR = coreR * 0.78;
-	ctx.strokeStyle = 'rgba(210, 240, 255, 0.35)';
-	ctx.lineWidth = 1;
-	ctx.beginPath();
-	ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-	ctx.stroke();
-	for (let k = 0; k < 2; k++) {
-		const dir = k === 0 ? 1 : -1;
-		const base = dir * time / 320 + k * Math.PI;
-		ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 + 0.4 * charge})`;
-		ctx.beginPath();
-		ctx.arc(cx, cy, ringR, base, base + Math.PI * 0.55);
-		ctx.stroke();
-	}
-
-	// 응축 코어(중심 하이라이트)
-	ctx.fillStyle = `rgba(255, 255, 255, ${0.75 + 0.25 * charge})`;
-	ctx.beginPath();
-	ctx.arc(cx, cy, 1.5 + 0.9 * charge, 0, Math.PI * 2);
-	ctx.fill();
+	// 중앙 에너지 볼 (저장된 에너지)
+	drawEnergyBall(cx, cy, r * 0.44);
 }
 
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.

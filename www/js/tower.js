@@ -8,10 +8,10 @@ import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, hitButton, hasItems, round1, clamp } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
-	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap,
+	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
 } from './attack.js';
 import { isBlockedByBarrier } from './enemy.js';
-import { drawTier4Halo, drawTier5Halo, drawTowerSprite } from './ui/sprite.js';
+import { drawTier4Halo, drawTier5Halo, drawEnergyBall, drawTowerSprite } from './ui/sprite.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
 // ============ Promotion / XP helpers ============
@@ -116,28 +116,38 @@ function getEffectiveRange(tower, visited) {
 	}
 }
 
-// 버프 적용 사거리·데미지를 모든 타워에 캐시. 타워 집합·tier·role이 바뀔 때만 호출.
+// 버프 적용 사거리·데미지·공속을 모든 타워에 캐시. 타워 집합·tier·role 변경 및 리솔버 버프 시작/만료 시 호출.
 // 데미지 계산이 사거리 캐시(other.range)를 읽으므로 반드시 사거리 루프 이후에.
 export function recomputeStats() {
 	for (const tower of game.entities.towers) tower.range = getEffectiveRange(tower);
-	for (const tower of game.entities.towers) tower.damage = getEffectiveDamage(tower);
+	for (const tower of game.entities.towers) {
+		tower.damage = getEffectiveDamage(tower);
+		tower.fireRate = getEffectiveFireRate(tower);
+	}
 }
 
-// 버프 적용 데미지 계산 (비공개) — base는 config(role)에서. 결과는 recomputeStats가 tower.damage에 캐시.
+// 버프 적용 데미지 계산 (비공개) — 위치 버프(base/비콘) × 리솔버 액티브 버프. recomputeStats가 tower.damage에 캐시.
 function getEffectiveDamage(tower) {
-	const base = tower.cfg.damage;
+	let dmg = tower.cfg.damage;
 	const buffRate = TOWER.buffRates[tower.tier];
-	if (buffRate === undefined) return base;
-	for (const other of game.entities.towers) {
-		if (other === tower) continue;
-		const otherCfg = other.cfg;
-		if (!otherCfg.buffsDamage) continue;
-		const d = Math.hypot(tower.x - other.x, tower.y - other.y);
-		if (d <= other.range) {
-			return base * (1 + buffRate);
+	if (buffRate !== undefined) {
+		for (const other of game.entities.towers) {
+			if (other === tower) continue;
+			const otherCfg = other.cfg;
+			if (!otherCfg.buffsDamage) continue;
+			const d = Math.hypot(tower.x - other.x, tower.y - other.y);
+			if (d <= other.range) {
+				dmg *= (1 + buffRate);
+				break;
+			}
 		}
 	}
-	return base;
+	return dmg * resolverBuffMult(tower);
+}
+
+// 버프 적용 공속 계산 (비공개) — 위치 버프는 없고 리솔버 액티브 버프만 반영. recomputeStats가 tower.fireRate에 캐시.
+function getEffectiveFireRate(tower) {
+	return tower.cfg.fireRate * resolverBuffMult(tower);
 }
 
 function getXpGainAtWaveEnd(tower) {
@@ -321,7 +331,7 @@ export function promoteFusion(triggerTower) {
 }
 
 // ============ Update / Fire ============
-// 리솔버 버프(공격력·공속 2배, 10초) 배수 — 미버프면 1.
+// 리솔버 버프(공격력·공속 2배, 10초) 배수 — 미버프면 1. getEffective*가 캐시 계산 시 반영.
 function resolverBuffMult(tower) {
 	return tower.resolverBuff > 0 ? 2 : 1;
 }
@@ -348,7 +358,7 @@ function updateResolver(tower) {
 	const allowed = allowedTypesOf(tower);
 	const sweepBlocked = allowed.includes('air');
 	const hitRange = target.range + 10;
-	const dmg = tower.damage * resolverBuffMult(tower);
+	const dmg = tower.damage;
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
 		if (!allowed.includes(e.ga)) continue;
@@ -357,14 +367,19 @@ function updateResolver(tower) {
 		applyTowerHit(tower, e, dmg);
 	}
 	spawnZap(target.x, target.y, target.range, tower.cfg.color);
+	spawnLink(tower.x, tower.y, target.x, target.y, '#8fd8ff'); // 리솔버→타워 에너지 연결선
 
 	target.resolverBuff = 10; // 초
-	tower.cooldown = 1 / (tower.cfg.fireRate * resolverBuffMult(tower));
+	recomputeStats(); // 대상 버프 반영 → 스탯 캐시 갱신
+	tower.cooldown = 1 / tower.fireRate;
 }
 
 export function updateTower(tower, dt) {
 	tower.cooldown = Math.max(0, tower.cooldown - dt);
-	if (tower.resolverBuff > 0) tower.resolverBuff = Math.max(0, tower.resolverBuff - dt);
+	if (tower.resolverBuff > 0) {
+		tower.resolverBuff = Math.max(0, tower.resolverBuff - dt);
+		if (tower.resolverBuff === 0) recomputeStats(); // 버프 만료 → 스탯 캐시 갱신
+	}
 
 	const cfg = tower.cfg;
 	if (cfg.buffsAllies) { updateResolver(tower); return; } // 리솔버는 아군을 겨냥 — 별도 경로
@@ -425,7 +440,7 @@ export function updateTower(tower, dt) {
 	if (target) {
 		tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
 		if (tower.cooldown <= 0) {
-			const damage = tower.damage * resolverBuffMult(tower);
+			const damage = tower.damage;
 			if (cfg.areaSweep) {
 				// 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer)
 				// areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
@@ -519,7 +534,7 @@ export function updateTower(tower, dt) {
 					attackTypes: allowed,
 				});
 			}
-			tower.cooldown = 1 / (cfg.fireRate * resolverBuffMult(tower));
+			tower.cooldown = 1 / tower.fireRate;
 		}
 	}
 }
@@ -540,13 +555,10 @@ export function drawTower(tower) {
 	}
 
 	if (tower.resolverBuff > 0) {
-		// 리솔버 버프 표시 — 빠른 주황 펄스 링 (공격력·공속 2배 중)
-		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 150);
-		ctx.strokeStyle = `rgba(230, 126, 34, ${0.5 + 0.4 * pulse})`;
-		ctx.lineWidth = 2;
-		ctx.beginPath();
-		ctx.arc(tower.x, tower.y, TOWER.radius + 3, 0, Math.PI * 2);
-		ctx.stroke();
+		// 리솔버 버프 표시 — 에너지 볼 하나가 타워 주변을 공전
+		const a = performance.now() / 400;
+		const orbitR = TOWER.radius + 6;
+		drawEnergyBall(tower.x + Math.cos(a) * orbitR, tower.y + Math.sin(a) * orbitR, 4);
 	}
 
 	if (tower.tier === 4) drawTier4Halo(tower);

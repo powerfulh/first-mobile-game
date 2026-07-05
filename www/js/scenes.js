@@ -23,8 +23,8 @@ import {
 } from './tower.js';
 import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx } from './ui/sprite.js';
 import {
-	updateProjectile, updateBeam, updateSplash, updateZap,
-	drawProjectile, drawBeam, drawSplash, drawZap,
+	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
+	drawProjectile, drawBeam, drawLink, drawSplash, drawZap,
 } from './attack.js';
 import { startNextWave, setupWave, callExtraWave, canCallExtraWave, extraWaveBossBlocked } from './wave.js';
 import { t } from './core/i18n.js';
@@ -468,6 +468,7 @@ scenes.playing = {
 		for (const tower of game.entities.towers) updateTower(tower, dt);
 		for (const p of game.entities.projectiles) updateProjectile(p, dt);
 		for (const b of game.effects.beams) updateBeam(b, dt);
+		for (const l of game.effects.links) updateLink(l, dt);
 		for (const s of game.effects.splashes) updateSplash(s, dt);
 		for (const z of game.effects.zaps) updateZap(z, dt);
 		for (const fx of game.effects.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
@@ -476,6 +477,7 @@ scenes.playing = {
 		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
 		game.entities.projectiles = game.entities.projectiles.filter(p => !p.dead);
 		game.effects.beams = game.effects.beams.filter(b => !b.dead);
+		game.effects.links = game.effects.links.filter(l => !l.dead);
 		game.effects.splashes = game.effects.splashes.filter(s => !s.dead);
 		game.effects.zaps = game.effects.zaps.filter(z => !z.dead);
 		game.effects.barrierSpawnFx = game.effects.barrierSpawnFx.filter(fx => !fx.dead);
@@ -583,6 +585,7 @@ scenes.playing = {
 		}
 		for (const pr of game.entities.projectiles) drawProjectile(pr);
 		for (const b of game.effects.beams) drawBeam(b);
+		for (const l of game.effects.links) drawLink(l);
 		for (const s of game.effects.splashes) drawSplash(s);
 		for (const z of game.effects.zaps) drawZap(z);
 		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);

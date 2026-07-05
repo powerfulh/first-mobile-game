@@ -117,16 +117,17 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('common.none');
 
 	if (hasItems(cfg.attackTypes)) {
-		const effDmg = tower.damage;
+		const effDmg = tower.damage; // 캐시 (위치+리솔버 버프 반영)
+		const effRate = tower.fireRate; // 캐시 (리솔버 버프 반영)
 		const baseDmg = cfg.damage;
 		const dmgBuffPct = effDmg > baseDmg ? Math.round((effDmg / baseDmg - 1) * 100) : 0;
-		const dpsValue = round1(effDmg * cfg.fireRate);
+		const dpsValue = round1(effDmg * effRate);
 		const dmgValue = round1(effDmg);
 		const dmgStr = dmgBuffPct > 0
 			? t('panel.dmgBuffed', { dmg: dmgValue, pct: dmgBuffPct, dps: dpsValue })
 			: t('panel.dmg', { dmg: baseDmg, dps: dpsValue });
 		ctx.fillText(dmgStr, sx, sy);
-		ctx.fillText(t('panel.fireRate', { rate: cfg.fireRate.toFixed(1) }), sx, sy + 18);
+		ctx.fillText(t('panel.fireRate', { rate: effRate.toFixed(1) }), sx, sy + 18);
 	} else {
 		ctx.fillText(t('panel.dmgNone'), sx, sy);
 		ctx.fillText(t('panel.fireRateNone'), sx, sy + 18);
