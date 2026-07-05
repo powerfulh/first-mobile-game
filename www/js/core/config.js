@@ -224,14 +224,18 @@ export const TOWER_ROLES = {
 		buffsAllies: true, // 적이 아닌 아군 타워를 겨냥 — 스윕 + 10초 공격력·공속 2배 버프
 		description: ['tower.resolver.desc1', 'tower.resolver.desc2'],
 	},
-	penta3: {
-		name: 'tower.penta3.name', tagline: 'tower.penta.tmpTagline',
-		color: '#3f80d4', color2: '#2b5991',
-		range: 90, fireRate: 1.2, damage: 1.2,
-		attackTypes: ['ground'], splash: 0,
+	zeus: {
+		name: 'tower.zeus.name', tagline: 'tower.zeus.tagline',
+		color: '#3f80d4', color2: '#2b5991', // (색은 추후)
+		range: 140, minRange: 100, fireRate: 0.2, damage: 60,
+		attackTypes: ['ground'], splash: 200,
 		promotions: [],
 		recipe: ['radar', 'silo', 'gatling'], // 제외: assassin
-		body: 'missileSilo', // 원형 미사일 격납고 (지금은 열린 장전 상태만; 발사·고도·닫힘은 동작과 함께 추후)
+		ballistic: true, // 사일로식 비유도 — 발사 시점 착탄점 고정
+		projectileSpeed: 160,
+		stuns: true, stunDuration: 1, // 피격 적 1초 스턴
+		body: 'missileSilo', // 원형 미사일 격납고
+		description: ['tower.zeus.desc1', 'tower.zeus.desc2'],
 	},
 	dragon: {
 		name: 'tower.dragon.name', tagline: 'tower.dragon.tagline',

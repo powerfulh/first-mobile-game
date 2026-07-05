@@ -303,7 +303,8 @@ export function updateEnemy(e, dt) {
 	if (isBoss(e) && dist > 0) {
 		e.angle = Math.atan2(dy, dx);
 	}
-	const move = e.speed * getEnemySpeedFactor(e) * dt;
+	if (e.stunTimer > 0) e.stunTimer = Math.max(0, e.stunTimer - dt); // 제우스 스턴 감소
+	const move = e.stunTimer > 0 ? 0 : e.speed * getEnemySpeedFactor(e) * dt; // 스턴 중 이동 정지
 	if (move >= dist) {
 		e.x = target.x;
 		e.y = target.y;
@@ -534,11 +535,26 @@ function drawBarrier(e) {
 
 // 본체만 그림. HP바는 호출부(scenes)가 별도 패스로 본체 위에 올림
 // (뭉친 적끼리 나중 적 본체가 먼저 적 HP바를 가리는 문제 방지).
+// 스턴 표시 — 머리 위를 도는 노란 별 3개 (제우스 등 스턴 공격 피격 시).
+function drawStunIndicator(e) {
+	const t = performance.now();
+	const cx = e.x;
+	const cy = e.y - e.radius - 5;
+	ctx.fillStyle = '#ffe066';
+	for (let i = 0; i < 3; i++) {
+		const a = t / 200 + i * (Math.PI * 2 / 3);
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * 5, cy + Math.sin(a) * 2.2, 1.5, 0, Math.PI * 2);
+		ctx.fill();
+	}
+}
+
 export function drawEnemy(e) {
 	if (e.kind === 'barrier') {
 		drawBarrier(e);
 		return;
 	}
+	if (e.stunTimer > 0) drawStunIndicator(e);
 	if (e.kind === 'groundBoss') {
 		drawGroundBoss(e);
 		if (e.marked) drawMarkRing(e);

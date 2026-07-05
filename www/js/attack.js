@@ -34,6 +34,9 @@ export function applyTowerHit(shooter, target, damage) {
 				target.shielded = false;
 				startShieldBreak(target.x, target.y, target.radius); // 방어막이 깨지는 순간 1회 연출
 			}
+			if (shooterCfg.stuns) {
+				target.stunTimer = shooterCfg.stunDuration || 1; // 제우스: 피격 적 스턴
+			}
 		}
 	}
 	// 부동소수점 잔차로 정확히 0이 안 될 수 있어(예: 3.6 - 1.2×3 ≈ 4.4e-16 > 0) 미세 양수도 사망 처리.
