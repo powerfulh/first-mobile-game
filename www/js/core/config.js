@@ -231,10 +231,11 @@ export const TOWER_ROLES = {
 		attackTypes: ['ground'], splash: 0,
 		promotions: [],
 		recipe: ['radar', 'silo', 'gatling'], // 제외: assassin
+		body: 'missileSilo', // 원형 미사일 격납고 (지금은 열린 장전 상태만; 발사·고도·닫힘은 동작과 함께 추후)
 	},
 	dragon: {
 		name: 'tower.dragon.name', tagline: 'tower.dragon.tagline',
-		color: '#29ac66', color2: '#7c3590',
+		color: '#b6c02c', color2: '#83891e',
 		range: 150, fireRate: 16, damage: 3.2,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],

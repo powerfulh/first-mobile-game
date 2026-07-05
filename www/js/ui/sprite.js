@@ -575,6 +575,71 @@ function drawCondenserBody(tower, selected) {
 	ctx.restore();
 }
 
+// penta3(래이다르+개틀링+사일로) — 원형 초장거리 미사일 격납고 (탑뷰). 사일로(사각 격납고)와 별개.
+// 지금은 "장전·열림" 정지 상태만: 열린 원형 보어 + 수직 미사일의 탄두가 위로 살짝 보임.
+// 발사 매연·미사일 고도 상승(크기↑·투명도↑)·눕기·쿨타임 중 닫힘은 동작 구현과 함께 추후.
+function drawMissileSiloBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+
+	// 원형 격납고 본체
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 림 볼트 (기계 디테일)
+	ctx.fillStyle = cfg.color2;
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4;
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * (r - 2.5), cy + Math.sin(a) * (r - 2.5), 1, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	// 열린 개구부(보어) — 어두운 원형 샤프트 + 림
+	const boreR = r * 0.72;
+	ctx.fillStyle = '#20242a';
+	ctx.beginPath();
+	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+	ctx.stroke();
+
+	// 수직 미사일 (탑뷰) — 핀 4개 + 동체 + 노즈콘 + 탄두 팁
+	ctx.strokeStyle = '#5a6472';
+	ctx.lineWidth = 2;
+	for (let i = 0; i < 4; i++) {
+		const a = i * Math.PI / 2 + Math.PI / 4;
+		ctx.beginPath();
+		ctx.moveTo(cx + Math.cos(a) * r * 0.3, cy + Math.sin(a) * r * 0.3);
+		ctx.lineTo(cx + Math.cos(a) * r * 0.62, cy + Math.sin(a) * r * 0.62);
+		ctx.stroke();
+	}
+	ctx.fillStyle = '#9aa4b0';
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * 0.34, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.strokeStyle = '#5a6472';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+	ctx.fillStyle = '#cdd6df';
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = ACCENT_RED;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * 0.07, 0, Math.PI * 2);
+	ctx.fill();
+}
+
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
 // 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
 // angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
@@ -590,6 +655,8 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 		drawEnergyCoreBody(tower, selected);
 	} else if (cfg.body === 'condenser') {
 		drawCondenserBody(tower, selected);
+	} else if (cfg.body === 'missileSilo') {
+		drawMissileSiloBody(tower, selected);
 	} else if (cfg.scatterDeg) {
 		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {
