@@ -549,12 +549,7 @@ function drawStunIndicator(e) {
 	}
 }
 
-export function drawEnemy(e) {
-	if (e.kind === 'barrier') {
-		drawBarrier(e);
-		return;
-	}
-	if (e.stunTimer > 0) drawStunIndicator(e);
+function drawEnemyBody(e) {
 	if (e.kind === 'groundBoss') {
 		drawGroundBoss(e);
 		if (e.marked) drawMarkRing(e);
@@ -574,6 +569,15 @@ export function drawEnemy(e) {
 	const bobY = e.ga === 'air' ? e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3 : e.y;
 	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, { shielded: e.shielded });
 	if (e.marked) drawMarkRing(e);
+}
+
+export function drawEnemy(e) {
+	if (e.kind === 'barrier') {
+		drawBarrier(e);
+		return;
+	}
+	drawEnemyBody(e);
+	if (e.stunTimer > 0) drawStunIndicator(e); // 몸체 위에
 }
 
 // ============ 장벽 차단 헬퍼 ============

@@ -673,41 +673,17 @@ function drawMissileSiloBody(tower, selected) {
 	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
 	ctx.stroke();
 
-	// 발사 연출 — 매연 + 상승 미사일 (크기↑·투명도↓·목표로 기울기)
+	// 발사 매연 — 발사 순간 격납고 주변 퍼프 (미사일 본체는 투사체로 발사되어 arc 연출됨)
 	if (launchP >= 0) {
 		const time = performance.now();
-		// 발사 매연 퍼프
-		ctx.fillStyle = `rgba(160, 160, 165, ${(1 - launchP) * 0.35})`;
+		ctx.fillStyle = `rgba(160, 160, 165, ${(1 - launchP) * 0.4})`;
 		for (let i = 0; i < 5; i++) {
 			const a = i * (Math.PI * 2 / 5) + time / 400;
-			const pr = boreR * (0.5 + launchP * 0.9) * 0.45;
+			const pr = boreR * (0.5 + launchP * 0.9) * 0.5;
 			ctx.beginPath();
 			ctx.arc(cx + Math.cos(a) * boreR * 0.7, cy + Math.sin(a) * boreR * 0.7, pr, 0, Math.PI * 2);
 			ctx.fill();
 		}
-		// 상승 미사일 (위 → 목표로 기울며 커지고 옅어짐)
-		const scale = 0.5 + launchP * 1.7;
-		const mAngle = -Math.PI / 2 + (tower.angle + Math.PI / 2) * launchP;
-		ctx.save();
-		ctx.translate(cx, cy);
-		ctx.rotate(mAngle + Math.PI / 2); // 로컬 -y(노즈)를 진행 방향으로
-		ctx.scale(scale, scale);
-		ctx.globalAlpha = Math.max(0, 1 - launchP); // 고도↑ → 투명↑ (가림 방지)
-		ctx.fillStyle = '#f39c12'; // 화염
-		ctx.beginPath();
-		ctx.moveTo(-2, 5); ctx.lineTo(0, 9); ctx.lineTo(2, 5); ctx.closePath();
-		ctx.fill();
-		ctx.fillStyle = '#9aa4b0'; // 동체
-		ctx.fillRect(-2, -4, 4, 9);
-		ctx.fillStyle = '#cdd6df'; // 노즈콘
-		ctx.beginPath();
-		ctx.moveTo(-2, -4); ctx.lineTo(0, -8); ctx.lineTo(2, -4); ctx.closePath();
-		ctx.fill();
-		ctx.fillStyle = ACCENT_RED; // 탄두 팁
-		ctx.beginPath();
-		ctx.arc(0, -6.5, 1, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.restore();
 	}
 }
 

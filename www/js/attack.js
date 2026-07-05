@@ -322,15 +322,12 @@ export function drawZap(z) {
 	ctx.globalAlpha = 1;
 }
 
-function drawMissile(p) {
-	const angle = Math.atan2(p.vy, p.vx);
-	ctx.save();
-	ctx.translate(p.x, p.y);
-	ctx.rotate(angle);
-
+// 미사일 외형 (원점, +x 방향, 현재 globalAlpha 기준) — drawMissile·drawArcMissile 공용.
+function drawMissileShape() {
+	const baseAlpha = ctx.globalAlpha;
 	// 꼬리 화염 (살짝 깜빡임)
 	const flicker = 0.6 + 0.4 * Math.sin(performance.now() / 50);
-	ctx.globalAlpha = flicker;
+	ctx.globalAlpha = baseAlpha * flicker;
 	ctx.fillStyle = '#f39c12';
 	ctx.beginPath();
 	ctx.moveTo(-7, -2);
@@ -338,7 +335,7 @@ function drawMissile(p) {
 	ctx.lineTo(-7, 2);
 	ctx.closePath();
 	ctx.fill();
-	ctx.globalAlpha = 1;
+	ctx.globalAlpha = baseAlpha;
 
 	// 본체 (캡슐)
 	ctx.fillStyle = SLATE;
@@ -359,13 +356,34 @@ function drawMissile(p) {
 	ctx.beginPath();
 	ctx.arc(5, 0, 1.3, 0, Math.PI * 2);
 	ctx.fill();
+}
 
+function drawMissile(p) {
+	ctx.save();
+	ctx.translate(p.x, p.y);
+	ctx.rotate(Math.atan2(p.vy, p.vx));
+	drawMissileShape();
+	ctx.restore();
+}
+
+// 제우스 등 arcMissile — 비행 진행에 따라 고도 아치(크기↑·고도 반비례 투명도)로 상승·하강.
+function drawArcMissile(p) {
+	const total = Math.hypot(p.tx - p.x0, p.ty - p.y0) || 1;
+	const prog = Math.min(1, Math.hypot(p.x - p.x0, p.y - p.y0) / total);
+	const alt = Math.sin(prog * Math.PI); // 0(발사)→1(정점)→0(착탄) 고도
+	ctx.save();
+	ctx.translate(p.x, p.y);
+	ctx.rotate(Math.atan2(p.vy, p.vx));
+	ctx.scale(1 + alt * 1.8, 1 + alt * 1.8); // 고도↑ → 크게
+	ctx.globalAlpha = 1 - alt * 0.7;         // 고도↑ → 옅게 (가림 방지)
+	drawMissileShape();
 	ctx.restore();
 }
 
 export function drawProjectile(p) {
 	if (p.ballisticMode) {
-		drawMissile(p);
+		if (p.shooter?.cfg?.arcMissile) drawArcMissile(p);
+		else drawMissile(p);
 		return;
 	}
 	ctx.fillStyle = GOLD;

@@ -520,6 +520,7 @@ export function updateTower(tower, dt) {
 				game.entities.projectiles.push({
 					x: tower.x,
 					y: tower.y,
+					x0: tower.x, y0: tower.y, // 발사점 (arcMissile 고도 계산용)
 					vx: (dx / dist) * speed,
 					vy: (dy / dist) * speed,
 					tx, ty,

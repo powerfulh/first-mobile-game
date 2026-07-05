@@ -232,6 +232,7 @@ export const TOWER_ROLES = {
 		promotions: [],
 		recipe: ['radar', 'silo', 'gatling'], // 제외: assassin
 		ballistic: true, // 사일로식 비유도 — 발사 시점 착탄점 고정
+		arcMissile: true, // 투사체가 고도 아치(크기↑·고도 반비례 투명도)로 상승·하강
 		projectileSpeed: 160,
 		stuns: true, stunDuration: 1, // 피격 적 1초 스턴
 		body: 'missileSilo', // 원형 미사일 격납고
