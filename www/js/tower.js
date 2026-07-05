@@ -80,6 +80,16 @@ export function hasReadyTier4Candidate() {
 	return false;
 }
 
+export function hasReadyTier5Candidate() {
+	// 게임 내에 XP 가득 찬 5티어 후보 4티어가 존재하는지 (5티어 안내 모달 트리거)
+	for (const tower of game.entities.towers) {
+		if (tower.tier === 4 && isFusionMaterialRole(tower.role) && tower.xp >= tower.xpMax) {
+			return true;
+		}
+	}
+	return false;
+}
+
 // ============ Buff / range helpers ============
 // 버프 적용 사거리 계산 (비공개) — base는 인스턴스가 아니라 config(role)에서. 결과는 recomputeStats가 tower.range에 캐시.
 function getEffectiveRange(tower, visited) {

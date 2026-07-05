@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -19,7 +19,7 @@ import {
 	promoteTower, updateTower, drawTower,
 	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
-	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, isFusionTriggerContext,
+	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 } from './tower.js';
 import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx } from './ui/sprite.js';
 import {
@@ -545,6 +545,9 @@ scenes.playing = {
 
 		if (!game.modal && !hasSeenIntro(TIER4_INTRO_KEY) && hasReadyTier4Candidate()) {
 			game.modal = { type: 'tier4Intro' };
+		}
+		if (!game.modal && !hasSeenIntro(TIER5_INTRO_KEY) && hasReadyTier5Candidate()) {
+			game.modal = { type: 'tier5Intro' };
 		}
 	},
 	draw() {

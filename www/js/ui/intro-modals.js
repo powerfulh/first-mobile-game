@@ -5,7 +5,7 @@ import { ctx } from '../core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from '../core/config.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
@@ -75,6 +75,29 @@ function drawTier4Icon(cx, cy) {
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	ctx.fillText('+', cx, cy);
+	ctx.textBaseline = 'alphabetic';
+}
+
+function drawTier5Icon(cx, cy) {
+	// 서로 다른 3종(작은 원, 삼각 배치) → 중앙 5티어 결과 코어(금빛, 숫자 5)
+	const colors = ['#3f80d4', '#b04fc9', '#29ac66'];
+	for (let i = 0; i < 3; i++) {
+		const a = -Math.PI / 2 + i * (Math.PI * 2 / 3);
+		ctx.fillStyle = colors[i];
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * 15, cy + Math.sin(a) * 15, 8, 0, Math.PI * 2);
+		ctx.fill();
+	}
+	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+	ctx.fillStyle = GOLD;
+	ctx.beginPath();
+	ctx.arc(cx, cy, 8 + pulse * 1.5, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 13px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('5', cx, cy);
 	ctx.textBaseline = 'alphabetic';
 }
 
@@ -211,6 +234,23 @@ export const INTRO_MODALS = {
 			ctx.fillText(t('intro.tier4.step1'), cx, p.y + 180);
 			ctx.fillText(t('intro.tier4.step2'), cx, p.y + 200);
 			ctx.fillText(t('intro.tier4.step3'), cx, p.y + 220);
+		},
+	}),
+
+	tier5Intro: makeIntro({
+		key: TIER5_INTRO_KEY, accent: '#f5d76e', dimAlpha: 0.7,
+		panel: { x: 20, y: 160, w: 320, h: 320 },
+		confirmBtn: { x: 110, y: 432, w: 140, h: 40 },
+		drawIcon: drawTier5Icon, iconY: 58,
+		title: 'intro.tier5.title', titleColor: '#f5d76e', titleSize: 20, titleY: 104,
+		lines: ['intro.tier5.line1', 'intro.tier5.line2'],
+		lineSize: 13, lineStart: 132, lineGap: 20,
+		drawExtra: (p, cx) => {
+			ctx.fillStyle = '#f5d76e';
+			ctx.font = 'bold 13px sans-serif';
+			ctx.fillText(t('intro.tier5.step1'), cx, p.y + 184);
+			ctx.fillText(t('intro.tier5.step2'), cx, p.y + 204);
+			ctx.fillText(t('intro.tier5.step3'), cx, p.y + 224);
 		},
 	}),
 

@@ -320,6 +320,7 @@ export const BUFF_INTRO_KEY = 'td_seen_buff_intro';
 export const BOSS_INTRO_KEY = 'td_seen_boss_intro';
 export const SHIELD_INTRO_KEY = 'td_seen_shield_intro';
 export const TIER4_INTRO_KEY = 'td_seen_tier4_intro';
+export const TIER5_INTRO_KEY = 'td_seen_tier5_intro'; // 최초로 4티어 XP 만렙 시 안내 모달
 export const REGEN_INTRO_KEY = 'td_seen_regen_intro';
 export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(병렬 호출) 안내 모달
@@ -330,7 +331,7 @@ export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 
 // 새 인트로 추가 시 위 상수 정의와 이 배열에 함께 등록할 것.
 export const INTRO_KEYS = [
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 ];
 
