@@ -480,7 +480,7 @@ function drawEnergyCoreBody(tower, selected) {
 	drawEnergyBall(cx, cy, r * 0.44);
 }
 
-// penta4 응축기 입자 풀 — 랜덤 방향에서 초점으로 연속 유입되는 점들. 렌더 전용 공유 상태.
+// 드래곤 응축기 입자 풀 — 랜덤 방향에서 초점으로 연속 유입되는 점들. 렌더 전용 공유 상태.
 const condenserParticles = [];
 let condenserPrevTime = 0;
 function respawnCondenserParticle(p) {
@@ -503,7 +503,7 @@ function updateCondenserParticles(time) {
 	}
 }
 
-// penta4(어쌔신+개틀링+사일로) — 필더 계열 육각 몸체 + 오목 응축 패널 + 2 집게(전극) + 랜덤 방향 연속 유입 입자 → 시안 응축 코어.
+// 드래곤(어쌔신+개틀링+사일로) — 필더 계열 육각 몸체 + 오목 응축 패널 + 2 집게(전극) + 랜덤 방향 연속 유입 입자 → 시안 응축 코어.
 function drawCondenserBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius;

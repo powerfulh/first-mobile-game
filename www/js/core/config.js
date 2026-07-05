@@ -232,14 +232,18 @@ export const TOWER_ROLES = {
 		promotions: [],
 		recipe: ['radar', 'silo', 'gatling'], // 제외: assassin
 	},
-	penta4: {
-		name: 'tower.penta4.name', tagline: 'tower.penta.tmpTagline',
-		color: '#3f80d4', color2: '#2b5991',
-		range: 90, fireRate: 1.2, damage: 1.2,
-		attackTypes: ['ground'], splash: 0,
+	dragon: {
+		name: 'tower.dragon.name', tagline: 'tower.dragon.tagline',
+		color: '#3f80d4', color2: '#2b5991', // (색은 추후)
+		range: 150, fireRate: 16, damage: 3.2,
+		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
 		recipe: ['assassin', 'silo', 'gatling'], // 제외: radar
-		body: 'condenser', // 육각 몸체 + 오목 응축 패널·집게 + 연속 응축 입자 (외형만; 동작은 추후)
+		instantHit: true, // 딜맨식 관통 일직선 빔
+		pierces: true,
+		scatterDeg: 12, // 개틀링식 공격 각도 난수 (fireLineBeam이 반영)
+		body: 'condenser', // 육각 몸체 + 오목 응축 패널·집게 + 연속 응축 입자
+		description: ['tower.dragon.desc1', 'tower.dragon.desc2'],
 	},
 };
 
