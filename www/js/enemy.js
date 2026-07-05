@@ -7,7 +7,7 @@ import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, round1, clamp } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
-import { getEnemySpeedFactor } from './tower.js';
+import { getEnemySpeedFactor, isRegenBlocked } from './tower.js';
 import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
@@ -284,8 +284,11 @@ export function updateEnemy(e, dt) {
 		// 장벽은 그 자리 고정 — 이동/회복 없음
 		return;
 	}
-	if (e.kind === 'regen' && !e.regenDisabled && e.hp < e.hpMax) {
-		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
+	if (e.kind === 'regen') {
+		e.regenDisabled = isRegenBlocked(e); // 염라 등 사거리 내면 회복·오라 차단
+		if (!e.regenDisabled && e.hp < e.hpMax) {
+			e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
+		}
 	}
 	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {

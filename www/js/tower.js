@@ -188,6 +188,15 @@ export function getEnemySpeedFactor(e) {
 	return factor;
 }
 
+// 재생 적이 회복 차단 타워(blocksRegen, 예: 염라) 사거리 내에 있는지.
+export function isRegenBlocked(e) {
+	for (const tower of game.entities.towers) {
+		if (!tower.cfg.blocksRegen) continue;
+		if (Math.hypot(e.x - tower.x, e.y - tower.y) <= tower.range) return true;
+	}
+	return false;
+}
+
 // ============ 공격 우선순위 ============
 // 타워 인스턴스의 공격 우선순위 상태를 cfg 기본값으로 초기화 (배치/전직 시 호출).
 //  - canGround/canAir: 공격 가능 타입 (cfg.attackTypes 기반)

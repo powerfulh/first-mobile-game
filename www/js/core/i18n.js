@@ -81,7 +81,10 @@ const STRINGS = {
 	'tower.gatling.desc2': { ko: '지상 공격 능력을 잃습니다', ja: '地上攻撃能力を失います', en: 'Loses ground attack' },
 	// 5티어 placeholder (디자인 예정 — 이름/문구 임시)
 	'tower.penta.tmpTagline': { ko: '5티어 · 임시(기본 복제)', ja: 'ティア5 · 仮(ベーシック複製)', en: 'Tier 5 · placeholder (basic clone)' },
-	'tower.penta1.name': { ko: '펜타1', ja: 'ペンタ1', en: 'Penta 1' },
+	'tower.yeomra.name': { ko: '염라', ja: '閻魔', en: 'Yama' },
+	'tower.yeomra.tagline': { ko: '적 감속 + 재생 차단 · 비공격', ja: '敵減速 + 再生阻止 · 非攻撃', en: 'Slow + anti-regen · Non-attacking' },
+	'tower.yeomra.desc1': { ko: '사거리 내 적의 이동 속도를 25%로 늦춥니다', ja: '射程内の敵の移動速度を25%に落とします', en: 'Slows enemies in range to 25% speed' },
+	'tower.yeomra.desc2': { ko: '사거리 내 재생 적의 회복을 차단합니다', ja: '射程内の再生する敵の回復を阻止します', en: 'Blocks regenerating enemies from healing in range' },
 	'tower.resolver.name': { ko: '리솔버', ja: 'リゾルバー', en: 'Resolver' },
 	'tower.resolver.tagline': { ko: '아군 강화 · 지원형', ja: '味方強化 · 支援型', en: 'Ally empower · Support' },
 	'tower.resolver.desc1': { ko: '주변의 타워에게 직접 버프를 전달합니다', ja: '周囲のタワーに直接バフを付与します', en: 'Directly grants a buff to a nearby tower' },
