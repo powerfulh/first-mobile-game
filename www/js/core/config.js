@@ -211,7 +211,7 @@ export const TOWER_ROLES = {
 	},
 	resolver: {
 		name: 'tower.resolver.name', tagline: 'tower.resolver.tagline',
-		color: '#3f80d4', color2: '#2b5991', // (색은 추후 조정 가능)
+		color: '#b6c02c', color2: '#a1332f',
 		range: 80, fireRate: 0.2, damage: 20,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
