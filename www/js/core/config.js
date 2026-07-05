@@ -203,11 +203,12 @@ export const TOWER_ROLES = {
 	// 레시피는 4티어 4종 {radar, assassin, silo, gatling} 중 중복 없는 3종(=4가지 조합, 각각 1종 제외).
 	penta1: {
 		name: 'tower.penta1.name', tagline: 'tower.penta.tmpTagline',
-		color: '#3f80d4', color2: '#2b5991', // a (기본 복제)
+		color: '#3f80d4', color2: '#2b5991', // a 팔레트 (색은 추후 조정 가능)
 		range: 90, fireRate: 1.2, damage: 1.2,
 		attackTypes: ['ground'], splash: 0,
 		promotions: [],
 		recipe: ['radar', 'assassin', 'silo'], // 제외: gatling
+		body: 'energyCore', // 8각 셸 + 중앙 초고에너지 발전기
 	},
 	penta2: {
 		name: 'tower.penta2.name', tagline: 'tower.penta.tmpTagline',

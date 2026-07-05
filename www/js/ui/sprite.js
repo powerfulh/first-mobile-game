@@ -396,6 +396,85 @@ function drawRadarAntenna(tower) {
 	ctx.restore();
 }
 
+// penta1(레이더+어쌔신+사일로) — base 계열 8각 셸 + 중앙 초고에너지 발전기(에너지 저장 느낌). 점선 링 없음.
+// 5티어 전용 고퀄 외형: 리세스 하우징 + 코너 볼트 + 방사형 글로우 코어 + 회전 컨테인먼트 아크.
+function drawEnergyCoreBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+	const time = performance.now();
+
+	const octagonPath = (radius) => {
+		ctx.beginPath();
+		for (let i = 0; i < 8; i++) {
+			const a = i * Math.PI / 4 + Math.PI / 8;
+			const px = cx + radius * Math.cos(a);
+			const py = cy + radius * Math.sin(a);
+			if (i === 0) ctx.moveTo(px, py);
+			else ctx.lineTo(px, py);
+		}
+		ctx.closePath();
+	};
+
+	// 외곽 8각 셸
+	ctx.fillStyle = cfg.color;
+	octagonPath(r);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 발전기 하우징(리세스) — 어두운 8각 플레이트로 깊이감
+	ctx.fillStyle = cfg.color2;
+	octagonPath(r * 0.66);
+	ctx.fill();
+
+	// 코너 볼트 (기계 디테일)
+	ctx.fillStyle = cfg.color2;
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4 + Math.PI / 8;
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * (r - 2.5), cy + Math.sin(a) * (r - 2.5), 1, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	// --- 중앙 에너지 코어 (저장된 에너지 느낌) ---
+	const charge = 0.5 + 0.5 * Math.sin(time / 500); // 축전 펄스 0~1
+	const coreR = r * 0.44;
+
+	// 방사형 글로우
+	const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+	glow.addColorStop(0, `rgba(224, 250, 255, ${0.85 + 0.15 * charge})`);
+	glow.addColorStop(0.5, `rgba(110, 200, 255, ${0.55 + 0.3 * charge})`);
+	glow.addColorStop(1, 'rgba(60, 130, 220, 0)');
+	ctx.fillStyle = glow;
+	ctx.beginPath();
+	ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 컨테인먼트 링 + 역방향 회전 아크 2개 — 발전기 가동감
+	const ringR = coreR * 0.78;
+	ctx.strokeStyle = 'rgba(210, 240, 255, 0.35)';
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+	ctx.stroke();
+	for (let k = 0; k < 2; k++) {
+		const dir = k === 0 ? 1 : -1;
+		const base = dir * time / 320 + k * Math.PI;
+		ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 + 0.4 * charge})`;
+		ctx.beginPath();
+		ctx.arc(cx, cy, ringR, base, base + Math.PI * 0.55);
+		ctx.stroke();
+	}
+
+	// 응축 코어(중심 하이라이트)
+	ctx.fillStyle = `rgba(255, 255, 255, ${0.75 + 0.25 * charge})`;
+	ctx.beginPath();
+	ctx.arc(cx, cy, 1.5 + 0.9 * charge, 0, Math.PI * 2);
+	ctx.fill();
+}
+
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
 // 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
 // angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
@@ -407,7 +486,9 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 	ctx.translate(x, y);
 	if (scale !== 1) ctx.scale(scale, scale);
 
-	if (cfg.scatterDeg) {
+	if (cfg.body === 'energyCore') {
+		drawEnergyCoreBody(tower, selected);
+	} else if (cfg.scatterDeg) {
 		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {
 		drawBeamEmitterBody(tower, selected);
