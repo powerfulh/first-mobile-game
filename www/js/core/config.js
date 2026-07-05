@@ -235,7 +235,7 @@ export const TOWER_ROLES = {
 		projectileSpeed: 160,
 		stuns: true, stunDuration: 1, // 피격 적 1초 스턴
 		body: 'missileSilo', // 원형 미사일 격납고
-		description: ['tower.zeus.desc1', 'tower.zeus.desc2'],
+		description: ['tower.zeus.desc2'],
 	},
 	dragon: {
 		name: 'tower.dragon.name', tagline: 'tower.dragon.tagline',

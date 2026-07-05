@@ -575,45 +575,8 @@ function drawCondenserBody(tower, selected) {
 	ctx.restore();
 }
 
-// 제우스(래이다르+개틀링+사일로) — 원형 초장거리 미사일 격납고 (탑뷰). 사일로(사각 격납고)와 별개.
-// 지금은 "장전·열림" 정지 상태만: 열린 원형 보어 + 수직 미사일의 탄두가 위로 살짝 보임.
-// 발사 매연·미사일 고도 상승(크기↑·투명도↑)·눕기·쿨타임 중 닫힘은 동작 구현과 함께 추후.
-function drawMissileSiloBody(tower, selected) {
-	const cfg = tower.cfg;
-	const r = TOWER.radius;
-	const cx = tower.x;
-	const cy = tower.y;
-
-	// 원형 격납고 본체
-	ctx.fillStyle = cfg.color;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.fill();
-	applyBodyStrokeStyle(selected, cfg.color2);
-	ctx.stroke();
-
-	// 림 볼트 (기계 디테일)
-	ctx.fillStyle = cfg.color2;
-	for (let i = 0; i < 8; i++) {
-		const a = i * Math.PI / 4;
-		ctx.beginPath();
-		ctx.arc(cx + Math.cos(a) * (r - 2.5), cy + Math.sin(a) * (r - 2.5), 1, 0, Math.PI * 2);
-		ctx.fill();
-	}
-
-	// 열린 개구부(보어) — 어두운 원형 샤프트 + 림
-	const boreR = r * 0.72;
-	ctx.fillStyle = '#20242a';
-	ctx.beginPath();
-	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
-	ctx.fill();
-	ctx.strokeStyle = cfg.color2;
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
-	ctx.stroke();
-
-	// 수직 미사일 (탑뷰) — 핀 4개 + 동체 + 노즈콘 + 탄두 팁
+// 로드된 미사일 탑뷰 (핀 4개 + 동체 + 노즈콘 + 빨강 탄두 팁) — 격납고 중앙에 그림.
+function drawLoadedMissileTop(cx, cy, r) {
 	ctx.strokeStyle = '#5a6472';
 	ctx.lineWidth = 2;
 	for (let i = 0; i < 4; i++) {
@@ -627,9 +590,6 @@ function drawMissileSiloBody(tower, selected) {
 	ctx.beginPath();
 	ctx.arc(cx, cy, r * 0.34, 0, Math.PI * 2);
 	ctx.fill();
-	ctx.strokeStyle = '#5a6472';
-	ctx.lineWidth = 1;
-	ctx.stroke();
 	ctx.fillStyle = '#cdd6df';
 	ctx.beginPath();
 	ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
@@ -638,6 +598,117 @@ function drawMissileSiloBody(tower, selected) {
 	ctx.beginPath();
 	ctx.arc(cx, cy, r * 0.07, 0, Math.PI * 2);
 	ctx.fill();
+}
+
+// 제우스(래이다르+개틀링+사일로) — 원형 초장거리 미사일 격납고 (탑뷰). 사일로(사각 격납고)와 별개.
+// 쿨타임 연동: 발사 순간 매연 + 미사일이 상승(크기↑·고도 반비례 투명도)하며 목표로 기울고,
+// 이후 쿨타임 동안 해치가 닫혔다가 쿨타임이 되면 다시 열려 재장전 탄두가 보임.
+function drawMissileSiloBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+	const boreR = r * 0.72;
+
+	// 원형 격납고 본체 + 림 볼트
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+	ctx.fillStyle = cfg.color2;
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4;
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * (r - 2.5), cy + Math.sin(a) * (r - 2.5), 1, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	// 어두운 보어
+	ctx.fillStyle = '#20242a';
+	ctx.beginPath();
+	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 쿨타임 기반 상태 (openness: 0 닫힘~1 열림, launchP: 발사 상승 0~1 또는 -1)
+	const max = 1 / (cfg.fireRate || 1);
+	const cd = tower.cooldown || 0;
+	const sinceFire = max - cd;
+	const LAUNCH_T = 0.5;
+	const REOPEN_T = 0.4;
+	let openness;
+	let launchP = -1;
+	if (cd <= 0) openness = 1;
+	else if (sinceFire < LAUNCH_T) { openness = 1; launchP = sinceFire / LAUNCH_T; }
+	else if (cd < REOPEN_T) openness = 1 - cd / REOPEN_T;
+	else openness = 0;
+
+	// 장전된 미사일 (발사 중이 아닐 때). 닫힌 해치가 덮어 가림.
+	if (launchP < 0) drawLoadedMissileTop(cx, cy, r);
+
+	// 해치 도어 — openness<1이면 두 짝이 벌어지며 보어를 덮음
+	if (openness < 0.98) {
+		const slide = openness * boreR * 1.15;
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+		ctx.clip();
+		ctx.fillStyle = cfg.color2;
+		ctx.fillRect(cx - boreR - slide, cy - boreR, boreR, boreR * 2);
+		ctx.fillRect(cx + slide, cy - boreR, boreR, boreR * 2);
+		ctx.strokeStyle = '#20242a';
+		ctx.lineWidth = 1;
+		ctx.beginPath();
+		ctx.moveTo(cx - slide, cy - boreR); ctx.lineTo(cx - slide, cy + boreR);
+		ctx.moveTo(cx + slide, cy - boreR); ctx.lineTo(cx + slide, cy + boreR);
+		ctx.stroke();
+		ctx.restore();
+	}
+
+	// 보어 림
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+	ctx.stroke();
+
+	// 발사 연출 — 매연 + 상승 미사일 (크기↑·투명도↓·목표로 기울기)
+	if (launchP >= 0) {
+		const time = performance.now();
+		// 발사 매연 퍼프
+		ctx.fillStyle = `rgba(160, 160, 165, ${(1 - launchP) * 0.35})`;
+		for (let i = 0; i < 5; i++) {
+			const a = i * (Math.PI * 2 / 5) + time / 400;
+			const pr = boreR * (0.5 + launchP * 0.9) * 0.45;
+			ctx.beginPath();
+			ctx.arc(cx + Math.cos(a) * boreR * 0.7, cy + Math.sin(a) * boreR * 0.7, pr, 0, Math.PI * 2);
+			ctx.fill();
+		}
+		// 상승 미사일 (위 → 목표로 기울며 커지고 옅어짐)
+		const scale = 0.5 + launchP * 1.7;
+		const mAngle = -Math.PI / 2 + (tower.angle + Math.PI / 2) * launchP;
+		ctx.save();
+		ctx.translate(cx, cy);
+		ctx.rotate(mAngle + Math.PI / 2); // 로컬 -y(노즈)를 진행 방향으로
+		ctx.scale(scale, scale);
+		ctx.globalAlpha = Math.max(0, 1 - launchP); // 고도↑ → 투명↑ (가림 방지)
+		ctx.fillStyle = '#f39c12'; // 화염
+		ctx.beginPath();
+		ctx.moveTo(-2, 5); ctx.lineTo(0, 9); ctx.lineTo(2, 5); ctx.closePath();
+		ctx.fill();
+		ctx.fillStyle = '#9aa4b0'; // 동체
+		ctx.fillRect(-2, -4, 4, 9);
+		ctx.fillStyle = '#cdd6df'; // 노즈콘
+		ctx.beginPath();
+		ctx.moveTo(-2, -4); ctx.lineTo(0, -8); ctx.lineTo(2, -4); ctx.closePath();
+		ctx.fill();
+		ctx.fillStyle = ACCENT_RED; // 탄두 팁
+		ctx.beginPath();
+		ctx.arc(0, -6.5, 1, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.restore();
+	}
 }
 
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.

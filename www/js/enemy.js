@@ -539,7 +539,7 @@ function drawBarrier(e) {
 function drawStunIndicator(e) {
 	const t = performance.now();
 	const cx = e.x;
-	const cy = e.y - e.radius - 5;
+	const cy = e.y - e.radius - 1;
 	ctx.fillStyle = '#ffe066';
 	for (let i = 0; i < 3; i++) {
 		const a = t / 200 + i * (Math.PI * 2 / 3);
