@@ -121,6 +121,11 @@ const STRINGS = {
 	'enemy.barrierSpawner.desc2': { ko: '처치 시 그 자리에 튼튼한 장벽 생성', ja: '撃破時にその場に頑丈なバリアを生成', en: 'On death spawns a tough barrier in place' },
 	'enemy.barrierSpawner.desc3': { ko: '장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지', ja: 'バリアは空中攻撃を防いで代わりにダメージを受け、ウェーブ終了まで維持', en: 'The barrier blocks air attacks (taking the damage) until the wave ends' },
 	'enemy.barrierSpawner.desc4': { ko: '지상 전용 공격은 장벽 영향 없음', ja: '地上専用攻撃はバリアの影響を受けない', en: 'Ground-only attacks ignore barriers' },
+	'enemy.emp.name': { ko: 'EMP 적', ja: 'EMPの敵', en: 'EMP' },
+	'enemy.emp.tagline': { ko: '맵 2 후반 등장 · 처치 시 타워 스턴', ja: 'マップ2終盤登場 · 撃破時にタワーをスタン', en: 'Map 2 late waves · stuns a tower on death' },
+	'enemy.emp.desc1': { ko: '지상 타입, HP는 일반 적의 절반', ja: '地上タイプ、HPは通常の敵の半分', en: 'Ground type; half the HP of normal enemies' },
+	'enemy.emp.desc2': { ko: '처치 시 근처에 타워가 있으면 그 자리에서 EMP 장치로 변환', ja: '撃破時に近くにタワーがあればその場でEMP装置に変換', en: 'On death, turns into an EMP device if a tower is nearby' },
+	'enemy.emp.desc3': { ko: 'EMP 장치는 웨이브 누적 데미지가 가장 높은 타워를 1초간 스턴', ja: 'EMP装置はウェーブ累積ダメージが最も高いタワーを1秒間スタン', en: 'The device stuns the tower with the highest wave damage for 1s' },
 
 	// ---- 타워/적 정보·설정·전직 패널 (ui/panel.js) ----
 	'panel.type': { ko: '타입: {type}', ja: 'タイプ: {type}', en: 'Type: {type}' },
@@ -226,6 +231,7 @@ const STRINGS = {
 	'hint.placeTower': { ko: '빈 곳을 탭하여 타워 배치 ({cost}G)', ja: '空きスペースをタップでタワー配置 ({cost}G)', en: 'Tap empty space to place tower ({cost}G)' },
 	'hint.holdDelete': { ko: '타워를 꾹 눌러 삭제', ja: 'タワーを長押しで削除', en: 'Hold a tower to delete' },
 	'toast.bossParallel': { ko: '보스 웨이브는 병렬로 호출할 수 없습니다', ja: 'ボスウェーブは並列で呼び出せません', en: 'Boss waves cannot be called in parallel' },
+	'toast.towerRefund': { ko: '{g}G 환불', ja: '{g}G払い戻し', en: 'Refunded {g}G' },
 	'toast.sandboxShields': { ko: '방어막 적 {s}', ja: 'シールドの敵 {s}', en: 'Shield enemies {s}' },
 	'sandbox.jumpPrompt': { ko: '이동할 웨이브?', ja: '移動するウェーブ?', en: 'Jump to wave?' },
 	'gameover.defeat': { ko: 'Wave {n}에서 패배', ja: 'Wave {n} 敗北', en: 'Defeated at Wave {n}' },

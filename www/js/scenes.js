@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -12,16 +12,16 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, updateShieldBreakFx, isBoss,
+	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
 	promoteTower, updateTower, drawTower,
-	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion,
-	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
+	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion, getTowerRefund,
+	grantWaveEndXp, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 } from './tower.js';
-import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx } from './ui/sprite.js';
+import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawLink, drawSplash, drawZap,
@@ -342,9 +342,13 @@ function deselectTower() {
 }
 
 // 타워 삭제 공통 — 홀드 삭제 완료와 설정 패널 삭제 버튼이 공유. 선택·전직 대상 참조도 정리.
+// 투입 골드 10% 환불(재료 타워 투입분 제외) + 토스트 안내.
 function deleteTower(dead) {
 	game.entities.towers = game.entities.towers.filter(x => x !== dead);
 	recomputeStats();
+	const refund = getTowerRefund(dead);
+	game.gold += refund;
+	setToast(t('toast.towerRefund', { g: refund }));
 	if (game.selectedTower === dead) {
 		game.selectedTower = null;
 		game.towerPanel = TOWER_PANEL.INFO;
@@ -465,6 +469,8 @@ scenes.playing = {
 		}
 
 		for (const e of game.entities.enemies) updateEnemy(e, dt);
+		// 패시브 오라(감속·회복차단) 리셋 — 아래 updateTower들이 다시 push, 적은 다음 프레임 소비
+		for (const e of game.entities.enemies) { e.slowFactor = 1; e.regenDisabled = false; }
 		for (const tower of game.entities.towers) updateTower(tower, dt);
 		for (const p of game.entities.projectiles) updateProjectile(p, dt);
 		for (const b of game.effects.beams) updateBeam(b, dt);
@@ -473,6 +479,7 @@ scenes.playing = {
 		for (const z of game.effects.zaps) updateZap(z, dt);
 		for (const fx of game.effects.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
 		for (const fx of game.effects.shieldBreakFx) updateShieldBreakFx(fx, dt);
+		for (const d of game.effects.empDevices) updateEmpDevice(d, dt);
 
 		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
 		game.entities.projectiles = game.entities.projectiles.filter(p => !p.dead);
@@ -482,6 +489,7 @@ scenes.playing = {
 		game.effects.zaps = game.effects.zaps.filter(z => !z.dead);
 		game.effects.barrierSpawnFx = game.effects.barrierSpawnFx.filter(fx => !fx.dead);
 		game.effects.shieldBreakFx = game.effects.shieldBreakFx.filter(fx => !fx.dead);
+		game.effects.empDevices = game.effects.empDevices.filter(d => !d.dead);
 
 		// 게임오버 판정을 웨이브 완료·저장보다 먼저 — 마지막 적이 골인하며 hp가 0이 된 프레임에
 		// 다음 웨이브가 setup·저장되면 hp 0 상태가 저장돼 불러올 때 즉시 게임오버가 됨.
@@ -526,6 +534,7 @@ scenes.playing = {
 			// 잔여 장벽 정리 (배치 종료 시 사라짐) + 대기 중이던 생성 fx도 폐기(다음 웨이브에 장벽 새어나옴 방지)
 			game.entities.enemies = game.entities.enemies.filter(e => e.kind !== 'barrier');
 			game.effects.barrierSpawnFx = [];
+			game.effects.empDevices = []; // EMP 장치도 웨이브 종료 시 소멸
 			// 진행 기준을 이번 배치 최고 호출 웨이브로 (다음은 +1)
 			game.wave = game.waveFrontier;
 			if (game.wave > game.bestWaveReached) game.bestWaveReached = game.wave;
@@ -566,6 +575,11 @@ scenes.playing = {
 		if (game.selectedTower) {
 			drawTowerRange(game.selectedTower, 0.18, 0.5);
 		}
+		// EMP 적 선택 시 처치 지점 기준 장치 대상 탐색 반경 표시 — 타워 사거리와 동일한 원반
+		if (game.selectedEnemy?.kind === 'emp') {
+			const se = game.selectedEnemy;
+			drawTowerRange({ x: se.x, y: se.y, range: EMP_STUN_RANGE, cfg: {} }, 0.18, 0.5);
+		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
 		for (const e of game.entities.enemies) drawEnemy(e);
@@ -590,6 +604,7 @@ scenes.playing = {
 		for (const z of game.effects.zaps) drawZap(z);
 		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);
 		for (const fx of game.effects.shieldBreakFx) drawShieldBreakFx(fx);
+		for (const d of game.effects.empDevices) drawEmpDevice(d);
 
 		drawBossHpBar();
 		drawWaveSpawnSummary(game.waveSpawnCounts);
@@ -625,7 +640,7 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower, getPromotionState(game.selectedTower));
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(game.selectedEnemy, getEnemySpeedFactor(game.selectedEnemy), !isBoss(game.selectedEnemy));
+			drawEnemyInfoPanel(game.selectedEnemy, game.selectedEnemy.slowFactor ?? 1, !isBoss(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
@@ -644,6 +659,7 @@ scenes.playing = {
 			drawNextWaveButton({
 				enabled: canCallExtraWave(),
 				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
+				triple: game.waves.length >= 2,
 			});
 			drawPauseButton(game.paused);
 		}

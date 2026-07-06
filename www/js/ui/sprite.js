@@ -43,6 +43,38 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+	} else if (type === 'emp') {
+		// 신규 지상 적(emp) — 일반 적(빨강 원)이 4등분으로 쪼개져
+		// 살짝 벌어진 채 뭉쳐 있고, 중앙의 에너지가 조각들을 간신히 붙들고 있는 연출.
+		const gap = r * 0.16; // 조각이 중심에서 벌어진 거리
+		const pieceR = r * 0.88;
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		for (let i = 0; i < 4; i++) {
+			const start = i * Math.PI / 2;
+			const mid = start + Math.PI / 4; // 조각 중심 방향 — 이 방향으로 벌어짐
+			const ox = cx + Math.cos(mid) * gap;
+			const oy = cy + Math.sin(mid) * gap;
+			ctx.fillStyle = ACCENT_RED;
+			ctx.beginPath();
+			ctx.moveTo(ox, oy);
+			ctx.arc(ox, oy, pieceR, start, start + Math.PI / 2);
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+		}
+		// 중앙 결속 에너지 (짙은 파랑) — 맥동하며 조각을 미세하게 붙듦
+		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
+		ctx.fillStyle = '#1a5276';
+		ctx.globalAlpha = 0.55 + 0.35 * pulse;
+		ctx.beginPath();
+		ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = '#2874a6';
+		ctx.beginPath();
+		ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
+		ctx.fill();
 	} else if (type === 'barrierSpawner') {
 		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();
@@ -100,13 +132,16 @@ function drawCannonBody(tower, selected) {
 	ctx.restore();
 }
 
+// 지면 고정 다리 공용색 — 대공포 계열이 공유하는 밝은 회색 (타워 고유색과 무관한 기계 부품 톤).
+const ANCHOR_LEG_COLOR = '#b8bfc7';
+
 // 공중 전용 대공포(개틀링 제외) 공용 외형 — 작은 몸체 + 얇은 배럴 + 지면 고정 장치 4개.
 function drawAirGunBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius - 2; // 약간 작은 몸체
 
 	// 지면 고정 장치 4개 — 대각선 방향, 배럴 회전과 무관하게 고정 (시즈모드식 앵커). 몸체보다 먼저 그려 안쪽 끝이 가려짐.
-	ctx.strokeStyle = cfg.color2;
+	ctx.strokeStyle = ANCHOR_LEG_COLOR;
 	ctx.lineWidth = 4;
 	for (let i = 0; i < 4; i++) {
 		const a = Math.PI / 4 + i * Math.PI / 2; // 45°·135°·225°·315°
@@ -968,4 +1003,49 @@ export function drawBookIcon(cx, cy) {
 	ctx.moveTo(cx, cy - 4);
 	ctx.lineTo(cx, cy + 5);
 	ctx.stroke();
+}
+
+// EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.
+// 상태 관리·수명은 enemy.js. 지터는 매 프레임 재생성 → 전기 플리커.
+export function drawEmpDevice(d) {
+	const alpha = Math.min(1, d.life / 0.25); // 소멸 직전 페이드아웃
+	const target = d.target;
+
+	// 지그재그 충격파 — 장치 → 대상 타워
+	const dx = target.x - d.x;
+	const dy = target.y - d.y;
+	const dist = Math.hypot(dx, dy);
+	const perpX = dist > 0 ? -dy / dist : 0;
+	const perpY = dist > 0 ? dx / dist : 0;
+	const segments = 6;
+	ctx.beginPath();
+	ctx.moveTo(d.x, d.y);
+	for (let s = 1; s <= segments; s++) {
+		const t = s / segments;
+		const offset = s === segments ? 0 : (Math.random() - 0.5) * 14;
+		ctx.lineTo(d.x + dx * t + perpX * offset, d.y + dy * t + perpY * offset);
+	}
+	ctx.lineJoin = 'round';
+	ctx.globalAlpha = alpha * 0.5; // 외곽 광채 (짙은 파랑)
+	ctx.strokeStyle = '#2874a6';
+	ctx.lineWidth = 4;
+	ctx.stroke();
+	ctx.globalAlpha = alpha; // 내부 코어 (흰색)
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1.5;
+	ctx.stroke();
+
+	// 장치 코어 — 적 스프라이트의 결속 에너지와 같은 계열 (짙은 파랑 글로우 + 흰 점)
+	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 120);
+	ctx.globalAlpha = alpha * (0.5 + 0.4 * pulse);
+	ctx.fillStyle = '#1a5276';
+	ctx.beginPath();
+	ctx.arc(d.x, d.y, 6, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = alpha;
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = 1;
 }

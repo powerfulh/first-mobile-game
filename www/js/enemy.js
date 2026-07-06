@@ -1,13 +1,12 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
+	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, round1, clamp } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
-import { getEnemySpeedFactor, isRegenBlocked } from './tower.js';
 import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
@@ -18,6 +17,7 @@ const DEFAULT_WAVE = {
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
+	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
@@ -70,6 +70,13 @@ export function getRegenHealRate(wave) {
 	return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
 
+// 신규 적(emp) 출현 확률 — 시작 웨이브에 step, 이후 +step/wave 누적 (cap까지). 기본(맵1)은 미출현.
+export function getEmpChance(wave) {
+	const p = wparams();
+	if (wave < p.empStartWave) return 0;
+	return Math.min(p.empChanceCap, (wave - p.empStartWave + 1) * p.empChanceStep);
+}
+
 export function getBarrierSpawnerChance(wave) {
 	const p = wparams();
 	if (wave < p.barrierStartWave) return 0;
@@ -99,10 +106,10 @@ export function getShieldChance(wave, spawnInterval) {
 }
 
 // 방어막 적이 피격당 받는 피해 감소량 (flat). applyTowerHit·적 정보 패널 공용.
-// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 131~150: 추가 +0.1/wave (+2.0).
+// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 130~145: 추가 +0.1/wave (+1.5, 최종 4.5).
 export function getShieldReduction(wave) {
 	return clamp(1 + (wave - 50) * 0.1, 1, 3)
-		+ clamp((wave - 130) * 0.1, 0, 2);
+		+ clamp((wave - 130) * 0.1, 0, 1.5);
 }
 
 // ============ Boss wave helpers ============
@@ -154,14 +161,16 @@ export function spawnEnemy(spawner) {
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
 	let kind, spriteType, ga;
-	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
+	if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; } // 임시 — 메커니즘은 일반 적과 동일
+	else if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
 	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
 	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
 	else { kind = 'basic'; spriteType = 'ground'; ga = 'ground'; }
 	const isAir = ga === 'air';
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	const hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
+	let hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
+	if (kind === 'emp') hp = round1(baseHp * 0.5); // EMP 적 — 일반 적의 절반
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
 	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
@@ -241,6 +250,33 @@ export function updateBarrierSpawnFx(fx, dt) {
 	}
 }
 
+// EMP 적 처치 지점에 EMP 장치 생성 — 탐색 반경 내 웨이브 누적 데미지 최고 타워를 유지 시간 동안 스턴.
+// 대상 타워가 없으면 장치 미생성. 장치는 공격 대상이 아니고 게임 오브젝트가 아닌 effect로 존재.
+export function spawnEmpDevice(x, y) {
+	let target = null;
+	let bestWaveDamage = -1;
+	for (const tower of game.entities.towers) {
+		if (Math.hypot(tower.x - x, tower.y - y) > EMP_STUN_RANGE) continue;
+		if (tower.waveDamage > bestWaveDamage) {
+			bestWaveDamage = tower.waveDamage;
+			target = tower;
+		}
+	}
+	if (!target) return;
+	game.effects.empDevices.push({ x, y, target, life: EMP_STUN_SECONDS });
+}
+
+// 소멸 조건: 유지 시간 경과 / 대상 타워 소멸. (웨이브 종료 시 일괄 제거는 scenes 배치 종료 처리)
+export function updateEmpDevice(d, dt) {
+	d.life -= dt;
+	if (d.life <= 0 || !game.entities.towers.includes(d.target)) d.dead = true;
+}
+
+// tower가 활성 EMP 장치의 스턴 대상인지 — updateTower가 행동 정지 판정에 사용.
+export function isEmpStunned(tower) {
+	return game.effects.empDevices.some(d => !d.dead && d.target === tower);
+}
+
 // 방어막 무력화 순간의 파쇄 연출 — 관통 공격(disablesModifiers)이 방어막을 깰 때 그 자리에 1회.
 export function startShieldBreak(x, y, radius) {
 	game.effects.shieldBreakFx.push({ x, y, radius, life: 0.35, maxLife: 0.35 });
@@ -284,11 +320,9 @@ export function updateEnemy(e, dt) {
 		// 장벽은 그 자리 고정 — 이동/회복 없음
 		return;
 	}
-	if (e.kind === 'regen') {
-		e.regenDisabled = isRegenBlocked(e); // 염라 등 사거리 내면 회복·오라 차단
-		if (!e.regenDisabled && e.hp < e.hpMax) {
-			e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
-		}
+	// e.regenDisabled/e.slowFactor는 지난 프레임 오라 타워들(updateTower)이 push한 값 (scenes가 매 프레임 리셋)
+	if (e.kind === 'regen' && !e.regenDisabled && e.hp < e.hpMax) {
+		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
 	}
 	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
@@ -304,7 +338,7 @@ export function updateEnemy(e, dt) {
 		e.angle = Math.atan2(dy, dx);
 	}
 	if (e.stunTimer > 0) e.stunTimer = Math.max(0, e.stunTimer - dt); // 제우스 스턴 감소
-	const move = e.stunTimer > 0 ? 0 : e.speed * getEnemySpeedFactor(e) * dt; // 스턴 중 이동 정지
+	const move = e.stunTimer > 0 ? 0 : e.speed * (e.slowFactor ?? 1) * dt; // 스턴 중 이동 정지
 	if (move >= dist) {
 		e.x = target.x;
 		e.y = target.y;
@@ -460,6 +494,7 @@ function enemyName(kind) {
 		case 'airBoss': return t('enemy.boss');
 		case 'barrier': return t('enemy.barrier');
 		case 'barrierSpawner': return t('enemy.barrierSpawner.name');
+		case 'emp': return t('enemy.emp.name');
 		case 'regen': return t('enemy.regen.name');
 		case 'air': return t('enemy.air.name');
 		default: return t('enemy.ground.name'); // basic

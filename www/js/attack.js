@@ -6,7 +6,7 @@ import {
 	allowedTypesOf,
 } from './tower.js';
 import {
-	getBossReward, startBarrierSpawn, startShieldBreak,
+	getBossReward, startBarrierSpawn, startShieldBreak, spawnEmpDevice,
 	findBarrierBlockDist, projectileHitsBarrier, isBoss,
 } from './enemy.js';
 
@@ -52,6 +52,10 @@ export function applyTowerHit(shooter, target, damage) {
 		// 장벽 적 처치 시 그 자리에 장벽 생성 (짧은 애니메이션 후). 장벽 HP는 그 적의 웨이브 기준.
 		if (target.kind === 'barrierSpawner') {
 			startBarrierSpawn(target.x, target.y, target.waveNum);
+		}
+		// EMP 적 처치 시 그 자리에 EMP 장치 생성 (반경 내 타워 없으면 미생성)
+		if (target.kind === 'emp') {
+			spawnEmpDevice(target.x, target.y);
 		}
 	}
 }

@@ -41,11 +41,10 @@ export function drawPath(map, alpha = 1) {
 
 // ============ 웨이브 적 출현 요약 ============
 // HUD 웨이브 아래(우측 상단)에 작게 — 적 스프라이트 + 누적 개수.
-// 아직 출현하지 않은 종류는 표시 안 함 (count>0 만, 순서: 일반·공중·재생·장벽).
-const SPAWN_SUMMARY_ORDER = ['ground', 'air', 'regen', 'barrierSpawner'];
-
+// 아직 출현하지 않은 종류는 표시 안 함 — counts에 쌓인 키 그대로 사용 (순서 = 그 웨이브 첫 출현 순).
+// 종 목록을 따로 두지 않아 새 종 추가 시 동기화 필요 없음.
 export function drawWaveSpawnSummary(counts = {}) {
-	const entries = SPAWN_SUMMARY_ORDER.filter(t => counts[t] > 0);
+	const entries = Object.keys(counts).filter(t => counts[t] > 0);
 	if (entries.length === 0) return;
 
 	const iconBox = 16; // 스프라이트가 차지할 가로 폭
@@ -119,27 +118,30 @@ export function drawPauseButton(paused) {
 // 일시정지 버튼 바로 위.
 export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
 
-// enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부 — 둘 다 호출부(scenes)에서 계산해 전달.
-export function drawNextWaveButton({ enabled, showBadge }) {
+// enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부, triple: 삼각형 3개 표시(병렬 2개 이상 진행 중)
+// — 모두 호출부(scenes)에서 계산해 전달.
+export function drawNextWaveButton({ enabled, showBadge, triple }) {
 	// 호출 불가(보스·인터미션·최대 병렬 수)일 때 흐리게
 	ctx.globalAlpha = enabled ? 1 : 0.35;
 	drawHudButtonBg(nextWaveButton);
 
 	// ⏩ 빨리감기 (260629 헬퍼 후보, 모양이 달라서 별개의 함수로 있을 필요가 있는지?)
+	// 삼각형 2개(기본) / 3개(triple) — 버튼 중앙 기준 대칭 배치.
 	ctx.fillStyle = '#fff';
 	const x = nextWaveButton.x, y = nextWaveButton.y;
-	ctx.beginPath();
-	ctx.moveTo(x + 10, y + 13);
-	ctx.lineTo(x + 10, y + 31);
-	ctx.lineTo(x + 21, y + 22);
-	ctx.closePath();
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x + 22, y + 13);
-	ctx.lineTo(x + 22, y + 31);
-	ctx.lineTo(x + 33, y + 22);
-	ctx.closePath();
-	ctx.fill();
+	const n = triple ? 3 : 2;
+	const tw = triple ? 8 : 11; // 삼각형 폭
+	const step = triple ? 9 : 12; // 삼각형 간 시작점 간격
+	const startX = x + (triple ? 9 : 10);
+	for (let i = 0; i < n; i++) {
+		const tx = startX + i * step;
+		ctx.beginPath();
+		ctx.moveTo(tx, y + 13);
+		ctx.lineTo(tx, y + 31);
+		ctx.lineTo(tx + tw, y + 22);
+		ctx.closePath();
+		ctx.fill();
+	}
 	ctx.globalAlpha = 1;
 
 	// 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)

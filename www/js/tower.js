@@ -10,7 +10,7 @@ import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
 } from './attack.js';
-import { isBlockedByBarrier } from './enemy.js';
+import { isBlockedByBarrier, isEmpStunned } from './enemy.js';
 import { drawTier4Halo, drawTier5Halo, drawEnergyBall, drawTowerSprite } from './ui/sprite.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
@@ -46,6 +46,14 @@ function isPromotionReady(tower) {
 
 export function canAffordPromotion(tower) {
 	return game.gold >= tower.promotionCost;
+}
+
+// 삭제 환불액 — 이 타워 자체에 투입된 골드(배치비 + 자기 경로의 전직 비용 합)의 10%.
+// 합체(4티어 이상)에서 소모된 재료 타워의 투입분은 포함하지 않음.
+export function getTowerRefund(tower) {
+	let spent = TOWER.cost;
+	for (let t = 0; t < tower.tier; t++) spent += TOWER.promotionCosts[t] || 0;
+	return Math.floor(spent * 0.1);
 }
 
 // ============ Tier 4 helpers ============
@@ -171,30 +179,6 @@ export function grantWaveEndXp() {
 		const gain = getXpGainAtWaveEnd(tower);
 		tower.xp = Math.min(round1(tower.xp + gain), tower.xpMax);
 	}
-}
-
-export function getEnemySpeedFactor(e) {
-	let factor = 1;
-	for (const tower of game.entities.towers) {
-		const cfg = tower.cfg;
-		if (!cfg.slowsEnemies) continue;
-		const range = tower.range;
-		const d = Math.hypot(e.x - tower.x, e.y - tower.y);
-		if (d <= range) {
-			const slow = cfg.slowFactor !== undefined ? cfg.slowFactor : 0.5;
-			if (slow < factor) factor = slow;
-		}
-	}
-	return factor;
-}
-
-// 재생 적이 회복 차단 타워(blocksRegen, 예: 염라) 사거리 내에 있는지.
-export function isRegenBlocked(e) {
-	for (const tower of game.entities.towers) {
-		if (!tower.cfg.blocksRegen) continue;
-		if (Math.hypot(e.x - tower.x, e.y - tower.y) <= tower.range) return true;
-	}
-	return false;
 }
 
 // ============ 공격 우선순위 ============
@@ -390,7 +374,22 @@ export function updateTower(tower, dt) {
 		if (tower.resolverBuff === 0) recomputeStats(); // 버프 만료 → 스탯 캐시 갱신
 	}
 
+	// EMP 스턴 — 활성 EMP 장치의 대상이면 행동 정지 (쿨다운·버프 타이머는 진행, 오라 push도 정지)
+	if (isEmpStunned(tower)) return;
+
 	const cfg = tower.cfg;
+
+	// 패시브 오라 push (데몬 감속·염라 감속/회복차단) — 사거리 내 적에게 기록.
+	// scenes가 매 프레임 리셋 → 타워가 다시 기록 → 적은 다음 프레임 소비 (1프레임 지연 허용).
+	if (cfg.slowsEnemies || cfg.blocksRegen) {
+		const slow = cfg.slowFactor !== undefined ? cfg.slowFactor : 0.5;
+		for (const e of game.entities.enemies) {
+			if (e.dead) continue;
+			if (Math.hypot(e.x - tower.x, e.y - tower.y) > tower.range) continue;
+			if (cfg.slowsEnemies && slow < e.slowFactor) e.slowFactor = slow;
+			if (cfg.blocksRegen) e.regenDisabled = true;
+		}
+	}
 	if (cfg.buffsAllies) { updateResolver(tower); return; } // 리솔버는 아군을 겨냥 — 별도 경로
 
 	const allowed = allowedTypesOf(tower);

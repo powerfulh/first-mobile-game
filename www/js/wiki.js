@@ -77,6 +77,17 @@ const ENEMY_ENTRIES = [
 			'enemy.barrierSpawner.desc4',
 		],
 	},
+	{
+		key: 'emp',
+		name: 'enemy.emp.name',
+		tagline: 'enemy.emp.tagline',
+		description: [
+			'enemy.common.spawnRises',
+			'enemy.emp.desc1',
+			'enemy.emp.desc2',
+			'enemy.emp.desc3',
+		],
+	},
 ];
 
 // 위키 표시 텍스트 다국어화 — i18n 키를 정의 직후 1회 표시 문자열로 변환. (타워 텍스트는 config.js에서, 그룹 라벨은 파생 시 변환됨)
