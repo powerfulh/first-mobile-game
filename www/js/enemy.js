@@ -162,8 +162,8 @@ export function spawnEnemy(spawner) {
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
 	let kind, spriteType, ga;
-	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
-	else if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; } // 임시 — 메커니즘은 일반 적과 동일
+	if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; } // 임시 — 메커니즘은 일반 적과 동일
+	else if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
 	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
 	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
 	else { kind = 'basic'; spriteType = 'ground'; ga = 'ground'; }

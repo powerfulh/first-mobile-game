@@ -41,11 +41,10 @@ export function drawPath(map, alpha = 1) {
 
 // ============ 웨이브 적 출현 요약 ============
 // HUD 웨이브 아래(우측 상단)에 작게 — 적 스프라이트 + 누적 개수.
-// 아직 출현하지 않은 종류는 표시 안 함 (count>0 만, 순서: 일반·공중·재생·장벽·신규(emp)).
-const SPAWN_SUMMARY_ORDER = ['ground', 'air', 'regen', 'barrierSpawner', 'emp'];
-
+// 아직 출현하지 않은 종류는 표시 안 함 — counts에 쌓인 키 그대로 사용 (순서 = 그 웨이브 첫 출현 순).
+// 종 목록을 따로 두지 않아 새 종 추가 시 동기화 필요 없음.
 export function drawWaveSpawnSummary(counts = {}) {
-	const entries = SPAWN_SUMMARY_ORDER.filter(t => counts[t] > 0);
+	const entries = Object.keys(counts).filter(t => counts[t] > 0);
 	if (entries.length === 0) return;
 
 	const iconBox = 16; // 스프라이트가 차지할 가로 폭
