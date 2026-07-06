@@ -121,10 +121,12 @@ const STRINGS = {
 	'enemy.barrierSpawner.desc2': { ko: '처치 시 그 자리에 튼튼한 장벽 생성', ja: '撃破時にその場に頑丈なバリアを生成', en: 'On death spawns a tough barrier in place' },
 	'enemy.barrierSpawner.desc3': { ko: '장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지', ja: 'バリアは空中攻撃を防いで代わりにダメージを受け、ウェーブ終了まで維持', en: 'The barrier blocks air attacks (taking the damage) until the wave ends' },
 	'enemy.barrierSpawner.desc4': { ko: '지상 전용 공격은 장벽 영향 없음', ja: '地上専用攻撃はバリアの影響を受けない', en: 'Ground-only attacks ignore barriers' },
-	// 신규 적(emp) — 메커니즘 확정 시 문구 확정
-	'enemy.emp.name': { ko: '신규 적 (임시)', ja: '新しい敵 (仮)', en: 'New enemy (WIP)' },
-	'enemy.emp.tagline': { ko: '맵 2 후반 등장 · 메커니즘 확정 예정', ja: 'マップ2終盤登場 · メカニズムは未定', en: 'Map 2 late waves · mechanism TBD' },
-	'enemy.emp.desc1': { ko: '지상 타입 · 메커니즘은 확정 예정', ja: '地上タイプ · メカニズムは未定', en: 'Ground type · mechanism TBD' },
+	'enemy.emp.name': { ko: 'EMP 적', ja: 'EMPの敵', en: 'EMP' },
+	'enemy.emp.tagline': { ko: '맵 2 후반 등장 · 처치 시 타워 스턴', ja: 'マップ2終盤登場 · 撃破時にタワーをスタン', en: 'Map 2 late waves · stuns a tower on death' },
+	'enemy.emp.desc1': { ko: '지상 타입, HP는 일반 적의 절반', ja: '地上タイプ、HPは通常の敵の半分', en: 'Ground type; half the HP of normal enemies' },
+	'enemy.emp.desc2': { ko: '처치 시 근처에 타워가 있으면 그 자리에서 EMP 장치로 변환', ja: '撃破時に近くにタワーがあればその場でEMP装置に変換', en: 'On death, turns into an EMP device if a tower is nearby' },
+	'enemy.emp.desc3': { ko: 'EMP 장치는 웨이브 누적 데미지가 가장 높은 타워를 1초간 스턴', ja: 'EMP装置はウェーブ累積ダメージが最も高いタワーを1秒間スタン', en: 'The device stuns the tower with the highest wave damage for 1s' },
+	'enemy.emp.desc4': { ko: 'EMP 장치는 공격 대상이 아님', ja: 'EMP装置は攻撃対象ではない', en: 'The device cannot be targeted' },
 
 	// ---- 타워/적 정보·설정·전직 패널 (ui/panel.js) ----
 	'panel.type': { ko: '타입: {type}', ja: 'タイプ: {type}', en: 'Type: {type}' },
