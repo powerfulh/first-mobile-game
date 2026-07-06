@@ -26,7 +26,7 @@ export function getNarrowRange(wave) {
 }
 
 // 동시에 진행 가능한 최대 웨이브 수 (기존 + 추가 웨이브).
-export const MAX_CONCURRENT_WAVES = 2;
+const MAX_CONCURRENT_WAVES = 2;
 
 // 단일 웨이브 스포너 구성 — 스폰 간격/총 적 수/보스 여부 계산.
 // 보스 적 자체는 호출자(setupWave)가 spawnBoss로 추가.
