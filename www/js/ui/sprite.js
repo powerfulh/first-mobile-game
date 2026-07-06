@@ -1001,3 +1001,48 @@ export function drawBookIcon(cx, cy) {
 	ctx.lineTo(cx, cy + 5);
 	ctx.stroke();
 }
+
+// EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.
+// 상태 관리·수명은 enemy.js. 지터는 매 프레임 재생성 → 전기 플리커.
+export function drawEmpDevice(d) {
+	const alpha = Math.min(1, d.life / 0.25); // 소멸 직전 페이드아웃
+	const target = d.target;
+
+	// 지그재그 충격파 — 장치 → 대상 타워
+	const dx = target.x - d.x;
+	const dy = target.y - d.y;
+	const dist = Math.hypot(dx, dy);
+	const perpX = dist > 0 ? -dy / dist : 0;
+	const perpY = dist > 0 ? dx / dist : 0;
+	const segments = 6;
+	ctx.beginPath();
+	ctx.moveTo(d.x, d.y);
+	for (let s = 1; s <= segments; s++) {
+		const t = s / segments;
+		const offset = s === segments ? 0 : (Math.random() - 0.5) * 14;
+		ctx.lineTo(d.x + dx * t + perpX * offset, d.y + dy * t + perpY * offset);
+	}
+	ctx.lineJoin = 'round';
+	ctx.globalAlpha = alpha * 0.5; // 외곽 광채 (짙은 파랑)
+	ctx.strokeStyle = '#2874a6';
+	ctx.lineWidth = 4;
+	ctx.stroke();
+	ctx.globalAlpha = alpha; // 내부 코어 (흰색)
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1.5;
+	ctx.stroke();
+
+	// 장치 코어 — 적 스프라이트의 결속 에너지와 같은 계열 (짙은 파랑 글로우 + 흰 점)
+	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 120);
+	ctx.globalAlpha = alpha * (0.5 + 0.4 * pulse);
+	ctx.fillStyle = '#1a5276';
+	ctx.beginPath();
+	ctx.arc(d.x, d.y, 6, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = alpha;
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+}
