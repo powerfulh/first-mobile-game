@@ -63,15 +63,15 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 			ctx.fill();
 			ctx.stroke();
 		}
-		// 중앙 결속 에너지 — 밝은 코어가 맥동하며 조각을 미세하게 붙듦
+		// 중앙 결속 에너지 (짙은 파랑) — 맥동하며 조각을 미세하게 붙듦
 		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
-		ctx.fillStyle = GOLD;
-		ctx.globalAlpha = 0.35 + 0.35 * pulse;
+		ctx.fillStyle = '#1a5276';
+		ctx.globalAlpha = 0.55 + 0.35 * pulse;
 		ctx.beginPath();
 		ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.globalAlpha = 1;
-		ctx.fillStyle = '#fff';
+		ctx.fillStyle = '#2874a6';
 		ctx.beginPath();
 		ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
 		ctx.fill();

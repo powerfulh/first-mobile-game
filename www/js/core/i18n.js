@@ -115,16 +115,16 @@ const STRINGS = {
 	'enemy.regen.desc1': { ko: 'HP는 일반 지상과 같고 이동 속도가 느림', ja: 'HPは通常の地上と同じで移動速度が遅い', en: 'Same HP as normal ground, slower movement' },
 	'enemy.regen.desc2': { ko: 'HP가 가득 차지 않으면 매초 스스로 회복', ja: 'HPが満タンでなければ毎秒自己回復', en: 'Heals itself each second while not full' },
 	'enemy.regen.desc3': { ko: '후반으로 갈수록 회복량 증가', ja: '終盤に進むほど回復量が増加', en: 'Heal rate increases in later waves' },
-	// 신규 적 placeholder (그래픽 검증용 — 메커니즘 확정 시 문구 확정)
-	'enemy.hex.name': { ko: '신규 적 (임시)', ja: '新しい敵 (仮)', en: 'New enemy (WIP)' },
-	'enemy.hex.tagline': { ko: '그래픽 검증용 임시 항목', ja: 'グラフィック検証用の仮項目', en: 'Placeholder for graphic review' },
-	'enemy.hex.desc1': { ko: '지상 타입 · 메커니즘은 확정 예정', ja: '地上タイプ · メカニズムは未定', en: 'Ground type · mechanism TBD' },
 	'enemy.barrierSpawner.name': { ko: '장벽 적', ja: 'バリアの敵', en: 'Barrier' },
 	'enemy.barrierSpawner.tagline': { ko: '후반 등장 · 처치 시 장벽 생성', ja: '終盤登場 · 撃破時にバリア生成', en: 'Appears late · spawns a barrier on death' },
 	'enemy.barrierSpawner.desc1': { ko: '공중 타입, HP/속도는 일반 적과 동일', ja: '空中タイプ、HP/速度は通常の敵と同じ', en: 'Air type; HP/speed same as normal enemies' },
 	'enemy.barrierSpawner.desc2': { ko: '처치 시 그 자리에 튼튼한 장벽 생성', ja: '撃破時にその場に頑丈なバリアを生成', en: 'On death spawns a tough barrier in place' },
 	'enemy.barrierSpawner.desc3': { ko: '장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지', ja: 'バリアは空中攻撃を防いで代わりにダメージを受け、ウェーブ終了まで維持', en: 'The barrier blocks air attacks (taking the damage) until the wave ends' },
 	'enemy.barrierSpawner.desc4': { ko: '지상 전용 공격은 장벽 영향 없음', ja: '地上専用攻撃はバリアの影響を受けない', en: 'Ground-only attacks ignore barriers' },
+	// 신규 적 placeholder (그래픽 검증용 — 메커니즘 확정 시 문구 확정)
+	'enemy.hex.name': { ko: '신규 적 (임시)', ja: '新しい敵 (仮)', en: 'New enemy (WIP)' },
+	'enemy.hex.tagline': { ko: '그래픽 검증용 임시 항목', ja: 'グラフィック検証用の仮項目', en: 'Placeholder for graphic review' },
+	'enemy.hex.desc1': { ko: '지상 타입 · 메커니즘은 확정 예정', ja: '地上タイプ · メカニズムは未定', en: 'Ground type · mechanism TBD' },
 
 	// ---- 타워/적 정보·설정·전직 패널 (ui/panel.js) ----
 	'panel.type': { ko: '타입: {type}', ja: 'タイプ: {type}', en: 'Type: {type}' },
