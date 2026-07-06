@@ -126,7 +126,6 @@ const STRINGS = {
 	'enemy.emp.desc1': { ko: '지상 타입, HP는 일반 적의 절반', ja: '地上タイプ、HPは通常の敵の半分', en: 'Ground type; half the HP of normal enemies' },
 	'enemy.emp.desc2': { ko: '처치 시 근처에 타워가 있으면 그 자리에서 EMP 장치로 변환', ja: '撃破時に近くにタワーがあればその場でEMP装置に変換', en: 'On death, turns into an EMP device if a tower is nearby' },
 	'enemy.emp.desc3': { ko: 'EMP 장치는 웨이브 누적 데미지가 가장 높은 타워를 1초간 스턴', ja: 'EMP装置はウェーブ累積ダメージが最も高いタワーを1秒間スタン', en: 'The device stuns the tower with the highest wave damage for 1s' },
-	'enemy.emp.desc4': { ko: 'EMP 장치는 공격 대상이 아님', ja: 'EMP装置は攻撃対象ではない', en: 'The device cannot be targeted' },
 
 	// ---- 타워/적 정보·설정·전직 패널 (ui/panel.js) ----
 	'panel.type': { ko: '타입: {type}', ja: 'タイプ: {type}', en: 'Type: {type}' },

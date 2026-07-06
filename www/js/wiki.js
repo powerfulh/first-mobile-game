@@ -78,11 +78,15 @@ const ENEMY_ENTRIES = [
 		],
 	},
 	{
-		// 신규 적(emp) — 메커니즘 확정 시 문구 확정 (2단계).
 		key: 'emp',
 		name: 'enemy.emp.name',
 		tagline: 'enemy.emp.tagline',
-		description: ['enemy.emp.desc1'],
+		description: [
+			'enemy.common.spawnRises',
+			'enemy.emp.desc1',
+			'enemy.emp.desc2',
+			'enemy.emp.desc3',
+		],
 	},
 ];
 
