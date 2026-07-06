@@ -2,12 +2,12 @@ import { canvas, getLogicalPoint } from './core/canvas.js';
 import { TOWER } from './core/config.js';
 import { game } from './state.js';
 import { changeScene, getCurrentScene } from './scenes.js';
-// import { spawnTestTowers } from './test.js';
+import { spawnTestTowers } from './test.js';
 
 // 디버그용 — 브라우저 콘솔에서 접근 / 수정.
 // (모듈 스코프 안에 갇혀 있어서 명시적으로 window에 노출.)
 if (typeof window !== 'undefined') {
-	window.td = { game };
+	window.td = { game, spawnTestTowers };
 }
 
 // ============ Input ============
