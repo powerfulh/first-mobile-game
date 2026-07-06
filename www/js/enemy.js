@@ -170,7 +170,7 @@ export function spawnEnemy(spawner) {
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
 	let hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
-	if (kind === 'emp') hp = round1(baseHp * 0.05); // EMP 적 — 일반 적의 절반
+	if (kind === 'emp') hp = round1(baseHp * 0.5); // EMP 적 — 일반 적의 절반
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
 	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
