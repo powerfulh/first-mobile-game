@@ -1,13 +1,12 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
+	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, round1, clamp } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
-import { getEnemySpeedFactor, isRegenBlocked } from './tower.js';
 import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
@@ -170,7 +169,8 @@ export function spawnEnemy(spawner) {
 	const isAir = ga === 'air';
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
-	const hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
+	let hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
+	if (kind === 'emp') hp = round1(baseHp * 0.05); // EMP 적 — 일반 적의 절반
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
 	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
@@ -250,6 +250,33 @@ export function updateBarrierSpawnFx(fx, dt) {
 	}
 }
 
+// EMP 적 처치 지점에 EMP 장치 생성 — 탐색 반경 내 웨이브 누적 데미지 최고 타워를 유지 시간 동안 스턴.
+// 대상 타워가 없으면 장치 미생성. 장치는 공격 대상이 아니고 게임 오브젝트가 아닌 effect로 존재.
+export function spawnEmpDevice(x, y) {
+	let target = null;
+	let bestWaveDamage = -1;
+	for (const tower of game.entities.towers) {
+		if (Math.hypot(tower.x - x, tower.y - y) > EMP_STUN_RANGE) continue;
+		if (tower.waveDamage > bestWaveDamage) {
+			bestWaveDamage = tower.waveDamage;
+			target = tower;
+		}
+	}
+	if (!target) return;
+	game.effects.empDevices.push({ x, y, target, life: EMP_STUN_SECONDS });
+}
+
+// 소멸 조건: 유지 시간 경과 / 대상 타워 소멸. (웨이브 종료 시 일괄 제거는 scenes 배치 종료 처리)
+export function updateEmpDevice(d, dt) {
+	d.life -= dt;
+	if (d.life <= 0 || !game.entities.towers.includes(d.target)) d.dead = true;
+}
+
+// tower가 활성 EMP 장치의 스턴 대상인지 — updateTower가 행동 정지 판정에 사용.
+export function isEmpStunned(tower) {
+	return game.effects.empDevices.some(d => !d.dead && d.target === tower);
+}
+
 // 방어막 무력화 순간의 파쇄 연출 — 관통 공격(disablesModifiers)이 방어막을 깰 때 그 자리에 1회.
 export function startShieldBreak(x, y, radius) {
 	game.effects.shieldBreakFx.push({ x, y, radius, life: 0.35, maxLife: 0.35 });
@@ -293,11 +320,9 @@ export function updateEnemy(e, dt) {
 		// 장벽은 그 자리 고정 — 이동/회복 없음
 		return;
 	}
-	if (e.kind === 'regen') {
-		e.regenDisabled = isRegenBlocked(e); // 염라 등 사거리 내면 회복·오라 차단
-		if (!e.regenDisabled && e.hp < e.hpMax) {
-			e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
-		}
+	// e.regenDisabled/e.slowFactor는 지난 프레임 오라 타워들(updateTower)이 push한 값 (scenes가 매 프레임 리셋)
+	if (e.kind === 'regen' && !e.regenDisabled && e.hp < e.hpMax) {
+		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
 	}
 	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
@@ -313,7 +338,7 @@ export function updateEnemy(e, dt) {
 		e.angle = Math.atan2(dy, dx);
 	}
 	if (e.stunTimer > 0) e.stunTimer = Math.max(0, e.stunTimer - dt); // 제우스 스턴 감소
-	const move = e.stunTimer > 0 ? 0 : e.speed * getEnemySpeedFactor(e) * dt; // 스턴 중 이동 정지
+	const move = e.stunTimer > 0 ? 0 : e.speed * (e.slowFactor ?? 1) * dt; // 스턴 중 이동 정지
 	if (move >= dist) {
 		e.x = target.x;
 		e.y = target.y;
