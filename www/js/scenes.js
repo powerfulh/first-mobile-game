@@ -1,6 +1,6 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
+	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
 	PARALLEL_INTRO_KEY, TOWER_PANEL, ACCENT_RED, GOLD,
 } from './core/config.js';
 import {
@@ -574,6 +574,11 @@ scenes.playing = {
 		}
 		if (game.selectedTower) {
 			drawTowerRange(game.selectedTower, 0.18, 0.5);
+		}
+		// EMP 적 선택 시 처치 지점 기준 장치 대상 탐색 반경 표시 — 타워 사거리와 동일한 원반
+		if (game.selectedEnemy?.kind === 'emp') {
+			const se = game.selectedEnemy;
+			drawTowerRange({ x: se.x, y: se.y, range: EMP_STUN_RANGE, cfg: {} }, 0.18, 0.5);
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
