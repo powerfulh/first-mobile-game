@@ -644,6 +644,7 @@ scenes.playing = {
 			drawNextWaveButton({
 				enabled: canCallExtraWave(),
 				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
+				triple: game.waves.length >= 2,
 			});
 			drawPauseButton(game.paused);
 		}

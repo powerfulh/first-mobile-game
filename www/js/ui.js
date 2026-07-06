@@ -119,27 +119,30 @@ export function drawPauseButton(paused) {
 // 일시정지 버튼 바로 위.
 export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
 
-// enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부 — 둘 다 호출부(scenes)에서 계산해 전달.
-export function drawNextWaveButton({ enabled, showBadge }) {
+// enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부, triple: 삼각형 3개 표시(병렬 2개 이상 진행 중)
+// — 모두 호출부(scenes)에서 계산해 전달.
+export function drawNextWaveButton({ enabled, showBadge, triple }) {
 	// 호출 불가(보스·인터미션·최대 병렬 수)일 때 흐리게
 	ctx.globalAlpha = enabled ? 1 : 0.35;
 	drawHudButtonBg(nextWaveButton);
 
 	// ⏩ 빨리감기 (260629 헬퍼 후보, 모양이 달라서 별개의 함수로 있을 필요가 있는지?)
+	// 삼각형 2개(기본) / 3개(triple) — 버튼 중앙 기준 대칭 배치.
 	ctx.fillStyle = '#fff';
 	const x = nextWaveButton.x, y = nextWaveButton.y;
-	ctx.beginPath();
-	ctx.moveTo(x + 10, y + 13);
-	ctx.lineTo(x + 10, y + 31);
-	ctx.lineTo(x + 21, y + 22);
-	ctx.closePath();
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x + 22, y + 13);
-	ctx.lineTo(x + 22, y + 31);
-	ctx.lineTo(x + 33, y + 22);
-	ctx.closePath();
-	ctx.fill();
+	const n = triple ? 3 : 2;
+	const tw = triple ? 8 : 11; // 삼각형 폭
+	const step = triple ? 9 : 12; // 삼각형 간 시작점 간격
+	const startX = x + (triple ? 9 : 10);
+	for (let i = 0; i < n; i++) {
+		const tx = startX + i * step;
+		ctx.beginPath();
+		ctx.moveTo(tx, y + 13);
+		ctx.lineTo(tx, y + 31);
+		ctx.lineTo(tx + tw, y + 22);
+		ctx.closePath();
+		ctx.fill();
+	}
 	ctx.globalAlpha = 1;
 
 	// 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)
