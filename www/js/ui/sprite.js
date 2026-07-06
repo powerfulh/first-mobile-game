@@ -132,13 +132,16 @@ function drawCannonBody(tower, selected) {
 	ctx.restore();
 }
 
+// 지면 고정 다리 공용색 — 대공포 계열이 공유하는 밝은 회색 (타워 고유색과 무관한 기계 부품 톤).
+const ANCHOR_LEG_COLOR = '#b8bfc7';
+
 // 공중 전용 대공포(개틀링 제외) 공용 외형 — 작은 몸체 + 얇은 배럴 + 지면 고정 장치 4개.
 function drawAirGunBody(tower, selected) {
 	const cfg = tower.cfg;
 	const r = TOWER.radius - 2; // 약간 작은 몸체
 
 	// 지면 고정 장치 4개 — 대각선 방향, 배럴 회전과 무관하게 고정 (시즈모드식 앵커). 몸체보다 먼저 그려 안쪽 끝이 가려짐.
-	ctx.strokeStyle = cfg.color2;
+	ctx.strokeStyle = ANCHOR_LEG_COLOR;
 	ctx.lineWidth = 4;
 	for (let i = 0; i < 4; i++) {
 		const a = Math.PI / 4 + i * Math.PI / 2; // 45°·135°·225°·315°
