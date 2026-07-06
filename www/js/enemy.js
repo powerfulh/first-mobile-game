@@ -106,10 +106,10 @@ export function getShieldChance(wave, spawnInterval) {
 }
 
 // 방어막 적이 피격당 받는 피해 감소량 (flat). applyTowerHit·적 정보 패널 공용.
-// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 131~150: 추가 +0.1/wave (+2.0).
+// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 130~145: 추가 +0.1/wave (+1.5, 최종 4.5).
 export function getShieldReduction(wave) {
 	return clamp(1 + (wave - 50) * 0.1, 1, 3)
-		+ clamp((wave - 130) * 0.1, 0, 2);
+		+ clamp((wave - 130) * 0.1, 0, 1.5);
 }
 
 // ============ Boss wave helpers ============
