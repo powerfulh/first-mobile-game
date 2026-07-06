@@ -203,7 +203,7 @@ export const TOWER_ROLES = {
 	// 레시피는 4티어 4종 {radar, assassin, silo, gatling} 중 중복 없는 3종(=4가지 조합, 각각 1종 제외).
 	yeomra: {
 		name: 'tower.yeomra.name', tagline: 'tower.yeomra.tagline',
-		color: '#3f80d4', color2: '#1c7a48',
+		color: '#b04fc9', color2: '#1c7a48',
 		range: 90, fireRate: 0, damage: 0,
 		attackTypes: [], splash: 0,
 		promotions: [],
