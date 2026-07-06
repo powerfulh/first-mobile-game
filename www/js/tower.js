@@ -48,6 +48,14 @@ export function canAffordPromotion(tower) {
 	return game.gold >= tower.promotionCost;
 }
 
+// 삭제 환불액 — 이 타워 자체에 투입된 골드(배치비 + 자기 경로의 전직 비용 합)의 10%.
+// 합체(4티어 이상)에서 소모된 재료 타워의 투입분은 포함하지 않음.
+export function getTowerRefund(tower) {
+	let spent = TOWER.cost;
+	for (let t = 0; t < tower.tier; t++) spent += TOWER.promotionCosts[t] || 0;
+	return Math.floor(spent * 0.1);
+}
+
 // ============ Tier 4 helpers ============
 // tower를 지금 탭하면 합체가 완성되는 분기인지 — 지정된 재료들 + tower가 정확히 한 레시피를 이룸(같은 티어·역할 중복 없음).
 export function isFusionTriggerContext(tower) {

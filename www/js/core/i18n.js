@@ -226,6 +226,7 @@ const STRINGS = {
 	'hint.placeTower': { ko: '빈 곳을 탭하여 타워 배치 ({cost}G)', ja: '空きスペースをタップでタワー配置 ({cost}G)', en: 'Tap empty space to place tower ({cost}G)' },
 	'hint.holdDelete': { ko: '타워를 꾹 눌러 삭제', ja: 'タワーを長押しで削除', en: 'Hold a tower to delete' },
 	'toast.bossParallel': { ko: '보스 웨이브는 병렬로 호출할 수 없습니다', ja: 'ボスウェーブは並列で呼び出せません', en: 'Boss waves cannot be called in parallel' },
+	'toast.towerRefund': { ko: '{g}G 환불', ja: '{g}G払い戻し', en: 'Refunded {g}G' },
 	'toast.sandboxShields': { ko: '방어막 적 {s}', ja: 'シールドの敵 {s}', en: 'Shield enemies {s}' },
 	'sandbox.jumpPrompt': { ko: '이동할 웨이브?', ja: '移動するウェーブ?', en: 'Jump to wave?' },
 	'gameover.defeat': { ko: 'Wave {n}에서 패배', ja: 'Wave {n} 敗北', en: 'Defeated at Wave {n}' },

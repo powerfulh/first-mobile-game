@@ -17,7 +17,7 @@ import {
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
 	promoteTower, updateTower, drawTower,
-	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion,
+	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion, getTowerRefund,
 	grantWaveEndXp, getEnemySpeedFactor, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 } from './tower.js';
@@ -342,9 +342,13 @@ function deselectTower() {
 }
 
 // 타워 삭제 공통 — 홀드 삭제 완료와 설정 패널 삭제 버튼이 공유. 선택·전직 대상 참조도 정리.
+// 투입 골드 10% 환불(재료 타워 투입분 제외) + 토스트 안내.
 function deleteTower(dead) {
 	game.entities.towers = game.entities.towers.filter(x => x !== dead);
 	recomputeStats();
+	const refund = getTowerRefund(dead);
+	game.gold += refund;
+	setToast(t('toast.towerRefund', { g: refund }));
 	if (game.selectedTower === dead) {
 		game.selectedTower = null;
 		game.towerPanel = TOWER_PANEL.INFO;
