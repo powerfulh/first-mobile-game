@@ -5,7 +5,7 @@ import { ctx } from '../core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, PARALLEL_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, PARALLEL_INTRO_KEY,
 	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from '../core/config.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
@@ -266,6 +266,13 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawEnemySprite('regen', cx, cy, 13),
 		title: 'intro.regen.title',
 		lines: ['intro.regen.line1', 'intro.regen.line2', 'intro.regen.line3'],
+	}),
+
+	empIntro: makeIntro({
+		key: EMP_INTRO_KEY, accent: '#2874a6',
+		drawIcon: (cx, cy) => drawEnemySprite('emp', cx, cy, 14),
+		title: 'intro.emp.title',
+		lines: ['intro.emp.line1', 'intro.emp.line2', 'intro.emp.line3'],
 	}),
 
 	parallelIntro: makeIntro({
