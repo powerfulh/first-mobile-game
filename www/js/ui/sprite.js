@@ -43,8 +43,8 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
-	} else if (type === 'hex') {
-		// 신규 지상 적 (임시 키 — 메커니즘 확정 시 개명) — 일반 적(빨강 원)이 4등분으로 쪼개져
+	} else if (type === 'emp') {
+		// 신규 지상 적(emp) — 일반 적(빨강 원)이 4등분으로 쪼개져
 		// 살짝 벌어진 채 뭉쳐 있고, 중앙의 에너지가 조각들을 간신히 붙들고 있는 연출.
 		const gap = r * 0.16; // 조각이 중심에서 벌어진 거리
 		const pieceR = r * 0.88;

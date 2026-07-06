@@ -78,11 +78,11 @@ const ENEMY_ENTRIES = [
 		],
 	},
 	{
-		// 신규 적 placeholder — 그래픽 검증용. 메커니즘 확정 시 키·문구 확정 (2단계).
-		key: 'hex',
-		name: 'enemy.hex.name',
-		tagline: 'enemy.hex.tagline',
-		description: ['enemy.hex.desc1'],
+		// 신규 적(emp) — 메커니즘 확정 시 문구 확정 (2단계).
+		key: 'emp',
+		name: 'enemy.emp.name',
+		tagline: 'enemy.emp.tagline',
+		description: ['enemy.emp.desc1'],
 	},
 ];
 

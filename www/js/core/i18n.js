@@ -121,10 +121,10 @@ const STRINGS = {
 	'enemy.barrierSpawner.desc2': { ko: '처치 시 그 자리에 튼튼한 장벽 생성', ja: '撃破時にその場に頑丈なバリアを生成', en: 'On death spawns a tough barrier in place' },
 	'enemy.barrierSpawner.desc3': { ko: '장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지', ja: 'バリアは空中攻撃を防いで代わりにダメージを受け、ウェーブ終了まで維持', en: 'The barrier blocks air attacks (taking the damage) until the wave ends' },
 	'enemy.barrierSpawner.desc4': { ko: '지상 전용 공격은 장벽 영향 없음', ja: '地上専用攻撃はバリアの影響を受けない', en: 'Ground-only attacks ignore barriers' },
-	// 신규 적 placeholder (그래픽 검증용 — 메커니즘 확정 시 문구 확정)
-	'enemy.hex.name': { ko: '신규 적 (임시)', ja: '新しい敵 (仮)', en: 'New enemy (WIP)' },
-	'enemy.hex.tagline': { ko: '그래픽 검증용 임시 항목', ja: 'グラフィック検証用の仮項目', en: 'Placeholder for graphic review' },
-	'enemy.hex.desc1': { ko: '지상 타입 · 메커니즘은 확정 예정', ja: '地上タイプ · メカニズムは未定', en: 'Ground type · mechanism TBD' },
+	// 신규 적(emp) — 메커니즘 확정 시 문구 확정
+	'enemy.emp.name': { ko: '신규 적 (임시)', ja: '新しい敵 (仮)', en: 'New enemy (WIP)' },
+	'enemy.emp.tagline': { ko: '맵 2 후반 등장 · 메커니즘 확정 예정', ja: 'マップ2終盤登場 · メカニズムは未定', en: 'Map 2 late waves · mechanism TBD' },
+	'enemy.emp.desc1': { ko: '지상 타입 · 메커니즘은 확정 예정', ja: '地上タイプ · メカニズムは未定', en: 'Ground type · mechanism TBD' },
 
 	// ---- 타워/적 정보·설정·전직 패널 (ui/panel.js) ----
 	'panel.type': { ko: '타입: {type}', ja: 'タイプ: {type}', en: 'Type: {type}' },

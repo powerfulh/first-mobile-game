@@ -18,7 +18,7 @@ const DEFAULT_WAVE = {
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
-	hexStartWave: 131, hexChanceStep: 0.002, hexChanceCap: 0.04, // 신규 적(hex) — 임시 수치 (스펙 확정 시 조정)
+	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
@@ -71,11 +71,11 @@ export function getRegenHealRate(wave) {
 	return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
 
-// 신규 적(hex) 출현 확률 — 시작 웨이브부터 +step/wave 누적 (cap까지). 임시 — 스펙 확정 시 조정.
-export function getHexChance(wave) {
+// 신규 적(emp) 출현 확률 — 시작 웨이브에 step, 이후 +step/wave 누적 (cap까지). 기본(맵1)은 미출현.
+export function getEmpChance(wave) {
 	const p = wparams();
-	if (wave < p.hexStartWave) return 0;
-	return Math.min(p.hexChanceCap, (wave - p.hexStartWave + 1) * p.hexChanceStep);
+	if (wave < p.empStartWave) return 0;
+	return Math.min(p.empChanceCap, (wave - p.empStartWave + 1) * p.empChanceStep);
 }
 
 export function getBarrierSpawnerChance(wave) {
@@ -163,7 +163,7 @@ export function spawnEnemy(spawner) {
 	//  barrierSpawner/air=공중, regen/basic=지상.
 	let kind, spriteType, ga;
 	if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
-	else if (Math.random() < getHexChance(wave)) { kind = 'hex'; spriteType = 'hex'; ga = 'ground'; } // 임시 — 메커니즘은 일반 적과 동일
+	else if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; } // 임시 — 메커니즘은 일반 적과 동일
 	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
 	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
 	else { kind = 'basic'; spriteType = 'ground'; ga = 'ground'; }
@@ -469,7 +469,7 @@ function enemyName(kind) {
 		case 'airBoss': return t('enemy.boss');
 		case 'barrier': return t('enemy.barrier');
 		case 'barrierSpawner': return t('enemy.barrierSpawner.name');
-		case 'hex': return t('enemy.hex.name');
+		case 'emp': return t('enemy.emp.name');
 		case 'regen': return t('enemy.regen.name');
 		case 'air': return t('enemy.air.name');
 		default: return t('enemy.ground.name'); // basic
