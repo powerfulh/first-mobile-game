@@ -77,6 +77,13 @@ const ENEMY_ENTRIES = [
 			'enemy.barrierSpawner.desc4',
 		],
 	},
+	{
+		// 신규 적 placeholder — 그래픽 검증용. 메커니즘 확정 시 키·문구 확정 (2단계).
+		key: 'hex',
+		name: 'enemy.hex.name',
+		tagline: 'enemy.hex.tagline',
+		description: ['enemy.hex.desc1'],
+	},
 ];
 
 // 위키 표시 텍스트 다국어화 — i18n 키를 정의 직후 1회 표시 문자열로 변환. (타워 텍스트는 config.js에서, 그룹 라벨은 파생 시 변환됨)

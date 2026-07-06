@@ -43,6 +43,38 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+	} else if (type === 'hex') {
+		// 신규 지상 적 (임시 키 — 메커니즘 확정 시 개명) — 일반 적(빨강 원)이 4등분으로 쪼개져
+		// 살짝 벌어진 채 뭉쳐 있고, 중앙의 에너지가 조각들을 간신히 붙들고 있는 연출.
+		const gap = r * 0.16; // 조각이 중심에서 벌어진 거리
+		const pieceR = r * 0.88;
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		for (let i = 0; i < 4; i++) {
+			const start = i * Math.PI / 2;
+			const mid = start + Math.PI / 4; // 조각 중심 방향 — 이 방향으로 벌어짐
+			const ox = cx + Math.cos(mid) * gap;
+			const oy = cy + Math.sin(mid) * gap;
+			ctx.fillStyle = ACCENT_RED;
+			ctx.beginPath();
+			ctx.moveTo(ox, oy);
+			ctx.arc(ox, oy, pieceR, start, start + Math.PI / 2);
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+		}
+		// 중앙 결속 에너지 — 밝은 코어가 맥동하며 조각을 미세하게 붙듦
+		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
+		ctx.fillStyle = GOLD;
+		ctx.globalAlpha = 0.35 + 0.35 * pulse;
+		ctx.beginPath();
+		ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = '#fff';
+		ctx.beginPath();
+		ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
+		ctx.fill();
 	} else if (type === 'barrierSpawner') {
 		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();
