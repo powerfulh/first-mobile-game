@@ -241,7 +241,7 @@ export const TOWER_ROLES = {
 	dragon: {
 		name: 'tower.dragon.name', tagline: 'tower.dragon.tagline',
 		color: '#b6c02c', color2: '#83891e',
-		range: 150, fireRate: 16, damage: 3.2,
+		range: 150, fireRate: 16, damage: 3.6,
 		attackTypes: ['ground', 'air'], splash: 0,
 		promotions: [],
 		recipe: ['assassin', 'silo', 'gatling'], // 제외: radar
