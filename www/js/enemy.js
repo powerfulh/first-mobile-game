@@ -173,20 +173,23 @@ export function spawnEnemy(spawner) {
 	if (kind === 'emp') hp = round1(baseHp * 0.5); // EMP 적 — 일반 적의 절반
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
-	// 공중 적 지름길 — airShortcut 맵에서 정규↔지름길 교대 (보스는 spawnBoss라 항상 정규)
-	let enemyPath = map.path;
-	if (isAir && map.airShortcutPath) {
-		if (game.airShortcutNext) enemyPath = map.airShortcutPath;
+	// 공중 적 지름길 — 경로에 shortcut 마커가 있는 맵에서 '처음 만나는 숏컷 탑승 여부'를 교대 등록.
+	// undefined면 숏컷 규칙 비적용 (지상·마커 없는 맵·보스). 이동 분기는 updateEnemy.
+	let shortcutReady;
+	if (isAir && map.path.some(p => p.shortcut)) {
+		shortcutReady = game.airShortcutNext;
 		game.airShortcutNext = !game.airShortcutNext;
 	}
 	game.entities.enemies.push({
-		x: enemyPath[0].x,
-		y: enemyPath[0].y,
+		x: map.path[0].x,
+		y: map.path[0].y,
 		kind,
 		spriteType,
 		ga,
 		name: enemyName(kind),
-		path: enemyPath,
+		path: map.path,
+		shortcutReady,
+		onShortcut: false, // 지름길 가로지르기 중인지 (점프 착지 시 재분기 억제 + 상태 판별용)
 		speed,
 		segment: 0,
 		radius: 10,
@@ -355,10 +358,32 @@ export function updateEnemy(e, dt) {
 		e.x = target.x;
 		e.y = target.y;
 		e.segment++;
+		if (target.shortcut && e.shortcutReady !== undefined) {
+			if (e.onShortcut) {
+				e.onShortcut = false; // 점프 착지 — 재분기 없음, 이후 일반 진행
+			} else if (!e.shortcutReady) {
+				e.shortcutReady = true; // 처음 만나는 숏컷은 지나침 — 이후 만나는 숏컷부터 탑승
+			} else {
+				// 걸어서 도달한 숏컷 → 남은 경로의 다음 숏컷으로 직선 가로지르기. 더 없으면 일반 진행.
+				const next = nextShortcutIndex(path, e.segment + 1);
+				if (next !== -1) {
+					e.segment = next - 1; // 다음 이동 목표 = path[next]
+					e.onShortcut = true;
+				}
+			}
+		}
 	} else {
 		e.x += (dx / dist) * move;
 		e.y += (dy / dist) * move;
 	}
+}
+
+// from부터 경로 뒤쪽에서 가장 가까운 shortcut 마커 인덱스 — 없으면 -1
+function nextShortcutIndex(path, from) {
+	for (let i = from; i < path.length; i++) {
+		if (path[i].shortcut) return i;
+	}
+	return -1;
 }
 
 // ============ Draw ============
