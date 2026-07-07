@@ -4,110 +4,6 @@ import { ctx } from '../core/canvas.js';
 import { AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, TOWER, BARRIER_RADIUS } from '../core/config.js';
 import { roundRect, hasItems } from '../core/helpers.js';
 
-export function drawEnemySprite(type, cx, cy, r, opts = {}) {
-	const stroke = opts.shielded ? INFO_BLUE : '#000';
-	const strokeW = opts.shielded ? 2 : 1;
-
-	if (type === 'ground') {
-		ctx.fillStyle = ACCENT_RED;
-		ctx.beginPath();
-		ctx.arc(cx, cy, r, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-	} else if (type === 'air') {
-		ctx.fillStyle = AIR_COLOR;
-		ctx.beginPath();
-		ctx.moveTo(cx, cy - r);
-		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
-		ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
-		ctx.closePath();
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-	} else if (type === 'regen') {
-		const w = r * 1.8;
-		const x = cx - w / 2;
-		const y = cy - w / 2;
-		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
-		ctx.globalAlpha = 0.25 + 0.25 * pulse;
-		ctx.fillStyle = '#2ecc71';
-		roundRect(x - 3, y - 3, w + 6, w + 6, 5);
-		ctx.fill();
-		ctx.globalAlpha = 1;
-		ctx.fillStyle = '#1e8449';
-		roundRect(x, y, w, w, 3);
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-	} else if (type === 'emp') {
-		// 신규 지상 적(emp) — 일반 적(빨강 원)이 4등분으로 쪼개져
-		// 살짝 벌어진 채 뭉쳐 있고, 중앙의 에너지가 조각들을 간신히 붙들고 있는 연출.
-		const gap = r * 0.16; // 조각이 중심에서 벌어진 거리
-		const pieceR = r * 0.88;
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		for (let i = 0; i < 4; i++) {
-			const start = i * Math.PI / 2;
-			const mid = start + Math.PI / 4; // 조각 중심 방향 — 이 방향으로 벌어짐
-			const ox = cx + Math.cos(mid) * gap;
-			const oy = cy + Math.sin(mid) * gap;
-			ctx.fillStyle = ACCENT_RED;
-			ctx.beginPath();
-			ctx.moveTo(ox, oy);
-			ctx.arc(ox, oy, pieceR, start, start + Math.PI / 2);
-			ctx.closePath();
-			ctx.fill();
-			ctx.stroke();
-		}
-		// 중앙 결속 에너지 (짙은 파랑) — 맥동하며 조각을 미세하게 붙듦
-		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
-		ctx.fillStyle = '#1a5276';
-		ctx.globalAlpha = 0.55 + 0.35 * pulse;
-		ctx.beginPath();
-		ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.globalAlpha = 1;
-		ctx.fillStyle = '#2874a6';
-		ctx.beginPath();
-		ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
-		ctx.fill();
-	} else if (type === 'barrierSpawner') {
-		ctx.fillStyle = AIR_COLOR;
-		ctx.beginPath();
-		ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
-		ctx.lineTo(cx + r * 0.9, cy - r * 0.6);
-		ctx.lineTo(cx, cy + r);
-		ctx.closePath();
-		ctx.fill();
-		ctx.strokeStyle = stroke;
-		ctx.lineWidth = strokeW;
-		ctx.stroke();
-
-		// 내부 장벽 미니어처 (반투명 디스크 + 십자)
-		const inY = cy - r * 0.15;
-		const inR = 5;
-		ctx.globalAlpha = 0.55;
-		ctx.fillStyle = '#aab7c4';
-		ctx.beginPath();
-		ctx.arc(cx, inY, inR, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.globalAlpha = 1;
-		ctx.strokeStyle = '#d5dbdb';
-		ctx.lineWidth = 1;
-		ctx.stroke();
-		ctx.beginPath();
-		ctx.moveTo(cx - inR, inY);
-		ctx.lineTo(cx + inR, inY);
-		ctx.moveTo(cx, inY - inR);
-		ctx.lineTo(cx, inY + inR);
-		ctx.stroke();
-	}
-}
-
 // ============ Draw — 본체 ============
 // 본체 선택 테두리 스타일 — 선택 시 흰색 굵게, 평소 cfg.color2. stroke()/strokeRect()는 호출부에서.
 function applyBodyStrokeStyle(selected, color) {
@@ -873,6 +769,110 @@ export function drawTowerRangesUnion(towers, fillAlpha, strokeAlpha) {
 	ctx.restore();
 
 	for (const tower of towers) drawTowerRange(tower, 0, strokeAlpha); // 테두리만
+}
+
+export function drawEnemySprite(type, cx, cy, r, opts = {}) {
+	const stroke = opts.shielded ? INFO_BLUE : '#000';
+	const strokeW = opts.shielded ? 2 : 1;
+
+	if (type === 'ground') {
+		ctx.fillStyle = ACCENT_RED;
+		ctx.beginPath();
+		ctx.arc(cx, cy, r, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
+	} else if (type === 'air') {
+		ctx.fillStyle = AIR_COLOR;
+		ctx.beginPath();
+		ctx.moveTo(cx, cy - r);
+		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
+		ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
+	} else if (type === 'regen') {
+		const w = r * 1.8;
+		const x = cx - w / 2;
+		const y = cy - w / 2;
+		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
+		ctx.globalAlpha = 0.25 + 0.25 * pulse;
+		ctx.fillStyle = '#2ecc71';
+		roundRect(x - 3, y - 3, w + 6, w + 6, 5);
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = '#1e8449';
+		roundRect(x, y, w, w, 3);
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
+	} else if (type === 'emp') {
+		// 신규 지상 적(emp) — 일반 적(빨강 원)이 4등분으로 쪼개져
+		// 살짝 벌어진 채 뭉쳐 있고, 중앙의 에너지가 조각들을 간신히 붙들고 있는 연출.
+		const gap = r * 0.16; // 조각이 중심에서 벌어진 거리
+		const pieceR = r * 0.88;
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		for (let i = 0; i < 4; i++) {
+			const start = i * Math.PI / 2;
+			const mid = start + Math.PI / 4; // 조각 중심 방향 — 이 방향으로 벌어짐
+			const ox = cx + Math.cos(mid) * gap;
+			const oy = cy + Math.sin(mid) * gap;
+			ctx.fillStyle = ACCENT_RED;
+			ctx.beginPath();
+			ctx.moveTo(ox, oy);
+			ctx.arc(ox, oy, pieceR, start, start + Math.PI / 2);
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+		}
+		// 중앙 결속 에너지 (짙은 파랑) — 맥동하며 조각을 미세하게 붙듦
+		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
+		ctx.fillStyle = '#1a5276';
+		ctx.globalAlpha = 0.55 + 0.35 * pulse;
+		ctx.beginPath();
+		ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = '#2874a6';
+		ctx.beginPath();
+		ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
+		ctx.fill();
+	} else if (type === 'barrierSpawner') {
+		ctx.fillStyle = AIR_COLOR;
+		ctx.beginPath();
+		ctx.moveTo(cx - r * 0.9, cy - r * 0.6);
+		ctx.lineTo(cx + r * 0.9, cy - r * 0.6);
+		ctx.lineTo(cx, cy + r);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
+
+		// 내부 장벽 미니어처 (반투명 디스크 + 십자)
+		const inY = cy - r * 0.15;
+		const inR = 5;
+		ctx.globalAlpha = 0.55;
+		ctx.fillStyle = '#aab7c4';
+		ctx.beginPath();
+		ctx.arc(cx, inY, inR, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		ctx.strokeStyle = '#d5dbdb';
+		ctx.lineWidth = 1;
+		ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(cx - inR, inY);
+		ctx.lineTo(cx + inR, inY);
+		ctx.moveTo(cx, inY - inR);
+		ctx.lineTo(cx, inY + inR);
+		ctx.stroke();
+	}
 }
 
 // 장벽 생성 연출 — 장벽 적 처치 후 장벽이 나타나기까지의 fx. 상태 관리·수명은 enemy.js.
