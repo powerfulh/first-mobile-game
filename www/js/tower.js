@@ -5,7 +5,7 @@ import {
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, hitButton, hasItems, round1, clamp } from './core/helpers.js';
+import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
@@ -229,8 +229,14 @@ function distanceToPolyline(x, y, poly) {
 	return min;
 }
 const distanceToPath = (x, y) => distanceToPolyline(x, y, getActiveMap().path);
-// 지름길(airShortcutCut)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화.
-const distanceToShortcut = (x, y) => distanceToPolyline(x, y, getActiveMap().airShortcutCut);
+// 지름길 가로지르기 선분(shortcut 마커 파생)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화.
+function distanceToShortcut(x, y) {
+	let min = Infinity;
+	for (const cut of shortcutCutSegments(getActiveMap())) {
+		min = Math.min(min, pointToSegmentDist(x, y, cut.a.x, cut.a.y, cut.b.x, cut.b.y));
+	}
+	return min;
+}
 
 export function canPlaceTower(x, y) {
 	if (game.gold < TOWER.cost) return false;
