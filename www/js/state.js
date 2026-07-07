@@ -52,6 +52,7 @@ export const game = {
 	bestWaveReached: 0,
 	waveSpawnCounts: {}, // 현재 웨이브 적 타입별 출현 누적 (HUD 요약용)
 	airShortcutNext: false, // 다음 공중 적이 지름길 차례인지 (정규↔지름길 교대; airShortcut 맵 전용)
+	gameOverKiller: null, // 마지막 골인으로 게임 오버를 유발한 적 — 게임 오버 화면에서 하이라이트용
 	ghostTower: null, // 2단계 배치 미리보기 { x, y, role, tier, dragging, range }
 };
 
@@ -118,6 +119,7 @@ export function resetGame(mapId = 'map1') {
 	game.waveSpawnCounts = {};
 	game.airShortcutNext = false;
 	game.ghostTower = null;
+	game.gameOverKiller = null;
 	maybeShowShortcutIntro();
 }
 
@@ -198,6 +200,7 @@ export function loadGame(data) {
 	game.waveSpawnCounts = {};
 	game.airShortcutNext = false;
 	game.ghostTower = null;
+	game.gameOverKiller = null;
 	game.bestWaveReached = Math.max(loadBestWave(), game.wave);
 	game.entities.towers = (data.towers || [])
 		.filter(td => TOWER_ROLES[td.role])

@@ -915,6 +915,18 @@ scenes.gameOver = {
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 
+		// 마지막 골인으로 게임 오버를 유발한 적 — 오버레이 위에 다시 그려 하이라이트 (맥동 링)
+		if (game.gameOverKiller) {
+			const k = game.gameOverKiller;
+			drawEnemy(k);
+			const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
+			ctx.strokeStyle = `rgba(231, 76, 60, ${0.5 + 0.5 * pulse})`;
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(k.x, k.y, k.radius + 6, 0, Math.PI * 2);
+			ctx.stroke();
+		}
+
 		ctx.textAlign = 'center';
 		ctx.fillStyle = '#e74c3c';
 		ctx.font = 'bold 42px sans-serif';

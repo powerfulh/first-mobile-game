@@ -339,6 +339,7 @@ export function updateEnemy(e, dt) {
 	if (e.segment >= path.length - 1) {
 		game.hp -= 1;
 		e.dead = true;
+		if (game.hp <= 0) game.gameOverKiller = e; // 게임 오버 유발 적 — 게임 오버 화면에서 하이라이트
 		return;
 	}
 	const target = path[e.segment + 1];
