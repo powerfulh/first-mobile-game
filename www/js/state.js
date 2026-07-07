@@ -71,9 +71,9 @@ function persistBestWave(wave) {
 	} catch (e) {}
 }
 
-// airShortcut 특성 맵 최초 진입 시 지름길 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
+// 공중 지름길(path에 shortcut 마커 보유) 맵 최초 진입 시 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
 function maybeShowShortcutIntro() {
-	if (!game.modal && getActiveMap().traits?.includes('airShortcut') && !hasSeenIntro(SHORTCUT_INTRO_KEY)) {
+	if (!game.modal && getActiveMap().path?.some(p => p.shortcut) && !hasSeenIntro(SHORTCUT_INTRO_KEY)) {
 		game.modal = { type: 'shortcutIntro' };
 	}
 }
