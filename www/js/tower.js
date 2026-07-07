@@ -11,7 +11,8 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
 } from './attack.js';
 import { isBlockedByBarrier, isEmpStunned } from './enemy.js';
-import { drawTier4Halo, drawTier5Halo, drawEnergyBall, drawTowerSprite } from './ui/sprite.js';
+import { drawTier4Halo, drawTier5Halo } from './ui/sprite.js';
+import { drawEnergyBall, drawTowerSprite } from './ui/sprite/tower.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
 // ============ Promotion / XP helpers ============

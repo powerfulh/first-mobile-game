@@ -1,0 +1,655 @@
+// 타워 본체 스프라이트 — drawTowerSprite(유일한 타워 외형 렌더 진입점)와 외형별 본체 함수들.
+// 게임/위키/전직 카드/고스트가 공유하는 순수 렌더 프리미티브 (인스턴스 연출은 tower.drawTower).
+import { ctx } from '../../core/canvas.js';
+import { ACCENT_RED, GOLD, TOWER } from '../../core/config.js';
+import { hasItems } from '../../core/helpers.js';
+
+// 본체 선택 테두리 스타일 — 선택 시 흰색 굵게, 평소 cfg.color2. stroke()/strokeRect()는 호출부에서.
+function applyBodyStrokeStyle(selected, color) {
+	ctx.strokeStyle = selected ? '#fff' : color;
+	ctx.lineWidth = selected ? 3 : 2;
+}
+
+function drawCannonBody(tower, selected) {
+	const cfg = tower.cfg;
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, TOWER.radius, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	ctx.save();
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
+	ctx.fillStyle = cfg.color2;
+	ctx.fillRect(0, -3, TOWER.radius + 4, 6);
+	ctx.restore();
+}
+
+// 지면 고정 다리 공용색 — 대공포 계열이 공유하는 밝은 회색 (타워 고유색과 무관한 기계 부품 톤).
+const ANCHOR_LEG_COLOR = '#b8bfc7';
+
+// 공중 전용 대공포(개틀링 제외) 공용 외형 — 작은 몸체 + 얇은 배럴 + 지면 고정 장치 4개.
+function drawAirGunBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius - 2; // 약간 작은 몸체
+
+	// 지면 고정 장치 4개 — 대각선 방향, 배럴 회전과 무관하게 고정 (시즈모드식 앵커). 몸체보다 먼저 그려 안쪽 끝이 가려짐.
+	ctx.strokeStyle = ANCHOR_LEG_COLOR;
+	ctx.lineWidth = 4;
+	for (let i = 0; i < 4; i++) {
+		const a = Math.PI / 4 + i * Math.PI / 2; // 45°·135°·225°·315°
+		ctx.beginPath();
+		ctx.moveTo(tower.x + Math.cos(a) * (r - 1), tower.y + Math.sin(a) * (r - 1));
+		ctx.lineTo(tower.x + Math.cos(a) * (r + 7), tower.y + Math.sin(a) * (r + 7));
+		ctx.stroke();
+	}
+
+	// 몸체 원
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 배럴 — 기본 외형과 같은 길이, 얇게만 (높이 4)
+	ctx.save();
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
+	ctx.fillStyle = cfg.color2;
+	ctx.fillRect(0, -2, TOWER.radius + 4, 4);
+	ctx.restore();
+}
+
+function drawBeamEmitterBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	for (let i = 0; i < 6; i++) {
+		const a = i * Math.PI / 3 - Math.PI / 2;
+		const px = tower.x + r * Math.cos(a);
+		const py = tower.y + r * Math.sin(a);
+		if (i === 0) ctx.moveTo(px, py);
+		else ctx.lineTo(px, py);
+	}
+	ctx.closePath();
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 350);
+	ctx.fillStyle = '#fff';
+	ctx.globalAlpha = 0.4 + 0.25 * pulse;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, r * 0.42, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+}
+
+function drawAreaSweepBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.moveTo(tower.x, tower.y - r);
+	ctx.lineTo(tower.x + r, tower.y);
+	ctx.lineTo(tower.x, tower.y + r);
+	ctx.lineTo(tower.x - r, tower.y);
+	ctx.closePath();
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	ctx.fillStyle = '#fff';
+	ctx.globalAlpha = 0.55;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, 3, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+}
+
+function drawSupportBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4 + Math.PI / 8;
+		const px = tower.x + r * Math.cos(a);
+		const py = tower.y + r * Math.sin(a);
+		if (i === 0) ctx.moveTo(px, py);
+		else ctx.lineTo(px, py);
+	}
+	ctx.closePath();
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 배럴 (공격 가능 시)
+	if (hasItems(cfg.attackTypes)) {
+		ctx.save();
+		ctx.translate(tower.x, tower.y);
+		ctx.rotate(tower.angle);
+		ctx.fillStyle = cfg.color2;
+		ctx.fillRect(0, -3, r + 4, 6);
+		ctx.restore();
+	}
+
+	// 외곽 점선 펄스링
+	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 700);
+	ctx.globalAlpha = 0.35 + 0.3 * pulse;
+	ctx.strokeStyle = cfg.color;
+	ctx.lineWidth = 2;
+	ctx.setLineDash([4, 3]);
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, r + 7, 0, Math.PI * 2);
+	ctx.stroke();
+
+	// 두 번째 링 — 비콘 전용
+	if (cfg.buffsDamage) {
+		const pulse2 = 0.5 + 0.5 * Math.sin(performance.now() / 700 + Math.PI);
+		ctx.globalAlpha = 0.35 + 0.3 * pulse2;
+		ctx.beginPath();
+		ctx.arc(tower.x, tower.y, r + 12, 0, Math.PI * 2);
+		ctx.stroke();
+	}
+
+	ctx.setLineDash([]);
+	ctx.globalAlpha = 1;
+}
+
+// 개틀링 반동 배럴 사이클 — 모든 개틀링이 공유하는 렌더 전용 상태(발사 로직과 무관).
+// 시간 기반으로 배럴을 순번 전환하고, 각 배럴은 전환 직후 최대로 킥백했다가 다음 전환까지 복귀.
+// 애니메이션 전용 간격 — 실제 발사(50ms/20연사)보다 조금 느리게 두어 순차 반동이 눈에 띄게.
+const GATLING_BARREL_INTERVAL_MS = 100;
+let gatlingBarrel = 0;      // 현재 킥 중인 배럴 (0,1,2)
+let gatlingBarrelAt = 0;    // 마지막 전환 시각(ms)
+
+// { barrel, kick } 반환 — 애니메이션 간격마다 배럴을 전환. kick은 -5→0 감쇠.
+function gatlingRecoil() {
+	const now = performance.now();
+	if (now - gatlingBarrelAt >= GATLING_BARREL_INTERVAL_MS) {
+		gatlingBarrel = (gatlingBarrel + 1) % 3;
+		gatlingBarrelAt = now;
+	}
+	const frac = Math.max(0, 1 - (now - gatlingBarrelAt) / GATLING_BARREL_INTERVAL_MS); // 1(직후)→0(전환 직전)
+	return { barrel: gatlingBarrel, kick: -5 * frac };
+}
+
+function drawGatlingBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+
+	// 본체 원
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 다발 배럴 (3개 평행, tower.angle 방향)
+	ctx.save();
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(tower.angle);
+
+	// 발사 반동 — 공유 사이클로 총구 하나씩 순번대로 킥백. 발사 중(cooldown>0)에만 표시해
+	// 유휴·프리뷰 타워는 정지 상태로 그려짐.
+	const { barrel, kick } = gatlingRecoil();
+	const firing = tower.cooldown > 0;
+	const barrelOffset = (barrelNum) => (firing && barrelNum === barrel ? kick : 0);
+
+	// i=-1,0,1 → 배럴 번호 0,1,2 (위→중앙→아래)
+	ctx.fillStyle = cfg.color2;
+	for (let i = -1; i <= 1; i++) {
+		const offY = i * 3.5;
+		ctx.fillRect(barrelOffset(i + 1), offY - 1.2, r + 4, 2.4);
+	}
+
+	// 배럴 끝 강조
+	ctx.fillStyle = cfg.color;
+	for (let i = -1; i <= 1; i++) {
+		const offY = i * 3.5;
+		ctx.fillRect(r + barrelOffset(i + 1) + 2, offY - 1.2, 2, 2.4);
+	}
+
+	ctx.restore();
+
+	// 중심 캡(회전축 표시)
+	ctx.fillStyle = cfg.color2;
+	ctx.beginPath();
+	ctx.arc(tower.x, tower.y, 2, 0, Math.PI * 2);
+	ctx.fill();
+}
+
+function drawSiloBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const x = tower.x - r;
+	const y = tower.y - r;
+	const w = r * 2;
+
+	// 본체 - 사각형 격납고
+	ctx.fillStyle = cfg.color;
+	ctx.fillRect(x, y, w, w);
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.strokeRect(x, y, w, w);
+
+	// 격납고 도어 분할 라인 (십자)
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.moveTo(x, tower.y);
+	ctx.lineTo(x + w, tower.y);
+	ctx.moveTo(tower.x, y);
+	ctx.lineTo(tower.x, y + w);
+	ctx.stroke();
+
+	// 모서리 리벳
+	ctx.fillStyle = cfg.color2;
+	const rivetR = 1.5;
+	const off = 3;
+	ctx.beginPath();
+	ctx.arc(x + off, y + off, rivetR, 0, Math.PI * 2);
+	ctx.arc(x + w - off, y + off, rivetR, 0, Math.PI * 2);
+	ctx.arc(x + off, y + w - off, rivetR, 0, Math.PI * 2);
+	ctx.arc(x + w - off, y + w - off, rivetR, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 미사일 (angle 방향, 발사 직후 잠시 숨김)
+	const ready = tower.cooldown < (1 / cfg.fireRate) * 0.7;
+	if (ready) {
+		ctx.save();
+		ctx.translate(tower.x, tower.y);
+		ctx.rotate(tower.angle);
+
+		ctx.fillStyle = '#bdc3c7';
+		ctx.beginPath();
+		ctx.moveTo(-4, -2);
+		ctx.lineTo(4, -2);
+		ctx.lineTo(8, 0);
+		ctx.lineTo(4, 2);
+		ctx.lineTo(-4, 2);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = '#34495e';
+		ctx.lineWidth = 1;
+		ctx.stroke();
+
+		// 헤드 붉은 점
+		ctx.fillStyle = ACCENT_RED;
+		ctx.beginPath();
+		ctx.arc(5, 0, 1.2, 0, Math.PI * 2);
+		ctx.fill();
+
+		ctx.restore();
+	}
+
+	// 좌상단 작동 LED (깜빡임)
+	const blink = (performance.now() % 900) < 450;
+	ctx.fillStyle = blink ? GOLD : 'rgba(241, 196, 15, 0.25)';
+	ctx.beginPath();
+	ctx.arc(x + 3, y + 3, 1.6, 0, Math.PI * 2);
+	ctx.fill();
+}
+
+function drawRadarAntenna(tower) {
+	// 회전 안테나(디시) — 본체 위에 별도 디시 + sweeping 빔
+	const cfg = tower.cfg;
+	const sweep = (performance.now() / 600) % (Math.PI * 2);
+	ctx.save();
+	ctx.translate(tower.x, tower.y);
+	ctx.rotate(sweep);
+
+	// 디시 윤곽
+	ctx.fillStyle = cfg.color2;
+	ctx.beginPath();
+	ctx.arc(0, 0, 6, -Math.PI * 0.4, Math.PI * 0.4);
+	ctx.lineTo(0, 0);
+	ctx.closePath();
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1;
+	ctx.stroke();
+
+	// 스윕 라인 (옅게 길게) — 알파는 restore가 복원
+	ctx.globalAlpha = 0.45;
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.moveTo(0, 0);
+	ctx.lineTo(TOWER.radius + 10, 0);
+	ctx.stroke();
+	ctx.restore();
+}
+
+// 에너지 볼 — 방사형 글로우 + 컨테인먼트 링 + 역방향 회전 아크 + 응축 중심. (cx,cy) 중심, 반지름 r.
+// 리솔버 중앙 코어이자, 리솔버 버프받은 타워 주변을 공전하는 마커로 공용.
+export function drawEnergyBall(cx, cy, r) {
+	const time = performance.now();
+	const charge = 0.5 + 0.5 * Math.sin(time / 500); // 축전 펄스 0~1
+
+	// 방사형 글로우
+	const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+	glow.addColorStop(0, `rgba(224, 250, 255, ${0.85 + 0.15 * charge})`);
+	glow.addColorStop(0.5, `rgba(110, 200, 255, ${0.55 + 0.3 * charge})`);
+	glow.addColorStop(1, 'rgba(60, 130, 220, 0)');
+	ctx.fillStyle = glow;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 컨테인먼트 링 + 역방향 회전 아크 2개
+	const ringR = r * 0.78;
+	ctx.strokeStyle = 'rgba(210, 240, 255, 0.35)';
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+	ctx.stroke();
+	for (let k = 0; k < 2; k++) {
+		const dir = k === 0 ? 1 : -1;
+		const base = dir * time / 320 + k * Math.PI;
+		ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 + 0.4 * charge})`;
+		ctx.beginPath();
+		ctx.arc(cx, cy, ringR, base, base + Math.PI * 0.55);
+		ctx.stroke();
+	}
+
+	// 응축 중심
+	ctx.fillStyle = `rgba(255, 255, 255, ${0.75 + 0.25 * charge})`;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * (0.28 + 0.1 * charge), 0, Math.PI * 2);
+	ctx.fill();
+}
+
+// 리솔버(레이더+어쌔신+개틀링) — base 계열 8각 셸 + 중앙 초고에너지 발전기(에너지 저장 느낌). 점선 링 없음.
+// 5티어 전용 고퀄 외형: 리세스 하우징 + 코너 볼트 + 에너지 볼(drawEnergyBall).
+function drawEnergyCoreBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+
+	const octagonPath = (radius) => {
+		ctx.beginPath();
+		for (let i = 0; i < 8; i++) {
+			const a = i * Math.PI / 4 + Math.PI / 8;
+			const px = cx + radius * Math.cos(a);
+			const py = cy + radius * Math.sin(a);
+			if (i === 0) ctx.moveTo(px, py);
+			else ctx.lineTo(px, py);
+		}
+		ctx.closePath();
+	};
+
+	// 외곽 8각 셸
+	ctx.fillStyle = cfg.color;
+	octagonPath(r);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 발전기 하우징(리세스) — 어두운 8각 플레이트로 깊이감
+	ctx.fillStyle = cfg.color2;
+	octagonPath(r * 0.66);
+	ctx.fill();
+
+	// 코너 볼트 (기계 디테일)
+	ctx.fillStyle = cfg.color2;
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4 + Math.PI / 8;
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * (r - 2.5), cy + Math.sin(a) * (r - 2.5), 1, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	// 중앙 에너지 볼 (저장된 에너지)
+	drawEnergyBall(cx, cy, r * 0.44);
+}
+
+// 드래곤 응축기 입자 풀 — 랜덤 방향에서 초점으로 연속 유입되는 점들. 렌더 전용 공유 상태.
+const condenserParticles = [];
+let condenserPrevTime = 0;
+function respawnCondenserParticle(p) {
+	p.ang = Math.random() * Math.PI * 2;                 // 랜덤 방향
+	p.dist = TOWER.radius * (0.6 + Math.random() * 0.6);
+	p.t = 1;                                             // 1(바깥)→0(초점)
+	p.speed = 0.7 + Math.random() * 0.9;                 // 초당 t 감소량
+}
+function updateCondenserParticles(time) {
+	if (condenserParticles.length === 0) {
+		for (let i = 0; i < 16; i++) { const p = {}; respawnCondenserParticle(p); p.t = Math.random(); condenserParticles.push(p); }
+	}
+	let dt = (time - condenserPrevTime) / 1000;
+	condenserPrevTime = time;
+	if (dt > 0.1) dt = 0.016; // 첫 프레임·탭 복귀 보호
+	if (dt < 0) dt = 0;       // 같은 프레임 재호출(다중 타워) → 이중 전진 방지
+	for (const p of condenserParticles) {
+		p.t -= p.speed * dt;
+		if (p.t <= 0) respawnCondenserParticle(p);
+	}
+}
+
+// 드래곤(어쌔신+개틀링+사일로) — 필더 계열 육각 몸체 + 오목 응축 패널 + 2 집게(전극) + 랜덤 방향 연속 유입 입자 → 시안 응축 코어.
+function drawCondenserBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+	const time = performance.now();
+
+	// 육각 몸체 (필더 계열) — 고정
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	for (let i = 0; i < 6; i++) {
+		const a = i * Math.PI / 3 - Math.PI / 2;
+		const px = cx + r * Math.cos(a);
+		const py = cy + r * Math.sin(a);
+		if (i === 0) ctx.moveTo(px, py);
+		else ctx.lineTo(px, py);
+	}
+	ctx.closePath();
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+
+	// 응축 이미터 — 조준(tower.angle) 방향으로 회전 (로컬 -y가 전방)
+	ctx.save();
+	ctx.translate(cx, cy);
+	ctx.rotate(tower.angle + Math.PI / 2);
+
+	const fy = -r * 0.3; // 초점 (로컬 전방)
+
+	// 오목 응축 패널 — 후방의 얕은 접시(⌣)
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.arc(0, r * 0.15, r * 0.62, Math.PI * 0.15, Math.PI * 0.85);
+	ctx.stroke();
+
+	// 2 응축 집게(전극) — 패널에서 초점으로 굽어 나감
+	ctx.lineWidth = 2.5;
+	for (const side of [-1, 1]) {
+		ctx.beginPath();
+		ctx.moveTo(side * r * 0.5, r * 0.28);
+		ctx.lineTo(side * r * 0.62, -r * 0.05);
+		ctx.lineTo(side * r * 0.2, fy + r * 0.08);
+		ctx.stroke();
+	}
+
+	// 연속 응축 입자 — 랜덤 방향에서 초점으로 (초점에 가까울수록 진해짐)
+	updateCondenserParticles(time);
+	ctx.fillStyle = '#bdf0ff';
+	for (const p of condenserParticles) {
+		ctx.globalAlpha = 0.85 * (1 - p.t);
+		ctx.beginPath();
+		ctx.arc(Math.cos(p.ang) * p.dist * p.t, fy + Math.sin(p.ang) * p.dist * p.t, 1.2, 0, Math.PI * 2);
+		ctx.fill();
+	}
+	ctx.globalAlpha = 1;
+
+	// 응축 코어 (초점) — 시안 백색 발광, 맥동
+	const pulse = 0.5 + 0.5 * Math.sin(time / 300);
+	const glow = ctx.createRadialGradient(0, fy, 0, 0, fy, 5 + pulse);
+	glow.addColorStop(0, `rgba(235, 252, 255, ${0.8 + 0.2 * pulse})`);
+	glow.addColorStop(0.5, `rgba(120, 210, 255, ${0.45 + 0.3 * pulse})`);
+	glow.addColorStop(1, 'rgba(60, 150, 240, 0)');
+	ctx.fillStyle = glow;
+	ctx.beginPath();
+	ctx.arc(0, fy, 3.5 + 1.5 * pulse, 0, Math.PI * 2);
+	ctx.fill();
+
+	ctx.restore();
+}
+
+// 로드된 미사일 탑뷰 (핀 4개 + 동체 + 노즈콘 + 빨강 탄두 팁) — 격납고 중앙에 그림.
+function drawLoadedMissileTop(cx, cy, r) {
+	ctx.strokeStyle = '#5a6472';
+	ctx.lineWidth = 2;
+	for (let i = 0; i < 4; i++) {
+		const a = i * Math.PI / 2 + Math.PI / 4;
+		ctx.beginPath();
+		ctx.moveTo(cx + Math.cos(a) * r * 0.3, cy + Math.sin(a) * r * 0.3);
+		ctx.lineTo(cx + Math.cos(a) * r * 0.62, cy + Math.sin(a) * r * 0.62);
+		ctx.stroke();
+	}
+	ctx.fillStyle = '#9aa4b0';
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * 0.34, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = '#cdd6df';
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = ACCENT_RED;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r * 0.07, 0, Math.PI * 2);
+	ctx.fill();
+}
+
+// 제우스(래이다르+개틀링+사일로) — 원형 초장거리 미사일 격납고 (탑뷰). 사일로(사각 격납고)와 별개.
+// 쿨타임 연동: 발사 순간 매연 + 미사일이 상승(크기↑·고도 반비례 투명도)하며 목표로 기울고,
+// 이후 쿨타임 동안 해치가 닫혔다가 쿨타임이 되면 다시 열려 재장전 탄두가 보임.
+function drawMissileSiloBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	const cx = tower.x;
+	const cy = tower.y;
+	const boreR = r * 0.72;
+
+	// 원형 격납고 본체 + 림 볼트
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+	ctx.fillStyle = cfg.color2;
+	for (let i = 0; i < 8; i++) {
+		const a = i * Math.PI / 4;
+		ctx.beginPath();
+		ctx.arc(cx + Math.cos(a) * (r - 2.5), cy + Math.sin(a) * (r - 2.5), 1, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	// 어두운 보어
+	ctx.fillStyle = '#20242a';
+	ctx.beginPath();
+	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 쿨타임 기반 상태 (openness: 0 닫힘~1 열림, launchP: 발사 상승 0~1 또는 -1)
+	const max = 1 / (cfg.fireRate || 1);
+	const cd = tower.cooldown || 0;
+	const sinceFire = max - cd;
+	const LAUNCH_T = 0.5;
+	const REOPEN_T = 0.4;
+	let openness;
+	let launchP = -1;
+	if (cd <= 0) openness = 1;
+	else if (sinceFire < LAUNCH_T) { openness = 1; launchP = sinceFire / LAUNCH_T; }
+	else if (cd < REOPEN_T) openness = 1 - cd / REOPEN_T;
+	else openness = 0;
+
+	// 장전된 미사일 (발사 중이 아닐 때). 닫힌 해치가 덮어 가림.
+	if (launchP < 0) drawLoadedMissileTop(cx, cy, r);
+
+	// 해치 도어 — openness<1이면 두 짝이 벌어지며 보어를 덮음
+	if (openness < 0.98) {
+		const slide = openness * boreR * 1.15;
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+		ctx.clip();
+		ctx.fillStyle = cfg.color2;
+		ctx.fillRect(cx - boreR - slide, cy - boreR, boreR, boreR * 2);
+		ctx.fillRect(cx + slide, cy - boreR, boreR, boreR * 2);
+		ctx.strokeStyle = '#20242a';
+		ctx.lineWidth = 1;
+		ctx.beginPath();
+		ctx.moveTo(cx - slide, cy - boreR); ctx.lineTo(cx - slide, cy + boreR);
+		ctx.moveTo(cx + slide, cy - boreR); ctx.lineTo(cx + slide, cy + boreR);
+		ctx.stroke();
+		ctx.restore();
+	}
+
+	// 보어 림
+	ctx.strokeStyle = cfg.color2;
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx, cy, boreR, 0, Math.PI * 2);
+	ctx.stroke();
+
+	// 발사 매연 — 발사 순간 격납고 주변 퍼프 (미사일 본체는 투사체로 발사되어 arc 연출됨)
+	if (launchP >= 0) {
+		const time = performance.now();
+		ctx.fillStyle = `rgba(160, 160, 165, ${(1 - launchP) * 0.4})`;
+		for (let i = 0; i < 5; i++) {
+			const a = i * (Math.PI * 2 / 5) + time / 400;
+			const pr = boreR * (0.5 + launchP * 0.9) * 0.5;
+			ctx.beginPath();
+			ctx.arc(cx + Math.cos(a) * boreR * 0.7, cy + Math.sin(a) * boreR * 0.7, pr, 0, Math.PI * 2);
+			ctx.fill();
+		}
+	}
+}
+
+// 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
+// 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
+// angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
+export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Math.PI / 2, cooldown = 0, selected = false } = {}) {
+	const tower = { x: 0, y: 0, cfg, angle, cooldown }; // 본체 함수 공용 인자 묶음 (내부 구현)
+	// 본체는 원점에 TOWER.radius 기준으로 그려짐 → 원하는 반지름이면 비율만큼 확대/축소.
+	const scale = radius / TOWER.radius;
+	ctx.save();
+	ctx.translate(x, y);
+	if (scale !== 1) ctx.scale(scale, scale);
+
+	if (cfg.body === 'energyCore') {
+		drawEnergyCoreBody(tower, selected);
+	} else if (cfg.body === 'condenser') {
+		drawCondenserBody(tower, selected);
+	} else if (cfg.body === 'missileSilo') {
+		drawMissileSiloBody(tower, selected);
+	} else if (cfg.scatterDeg) {
+		drawGatlingBody(tower, selected);
+	} else if (cfg.instantHit) {
+		drawBeamEmitterBody(tower, selected);
+	} else if (cfg.buffsRange) {
+		drawSupportBody(tower, selected);
+	} else if (cfg.areaSweep) {
+		drawAreaSweepBody(tower, selected);
+	} else if (cfg.ballistic) {
+		drawSiloBody(tower, selected);
+	} else if ((cfg.attackTypes || []).length === 1 && cfg.attackTypes[0] === 'air') {
+		drawAirGunBody(tower, selected); // 공중 전용(개틀링 제외 — 위 scatterDeg 분기가 선점)
+	} else {
+		drawCannonBody(tower, selected);
+	}
+
+	if (cfg.marksEnemies) drawRadarAntenna(tower);
+	ctx.restore();
+}

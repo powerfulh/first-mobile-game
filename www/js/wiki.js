@@ -2,7 +2,8 @@ import { ctx } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, fusionRecipesWithMaterial, ACCENT_RED, INFO_BLUE, SLATE } from './core/config.js';
 import { roundRect, hitButton, clamp } from './core/helpers.js';
 import { changeScene } from './scenes.js';
-import { drawEnemySprite, drawTowerSprite } from './ui/sprite.js';
+import { drawEnemySprite } from './ui/sprite.js';
+import { drawTowerSprite } from './ui/sprite/tower.js';
 import { playButton } from './sfx.js';
 import { t } from './core/i18n.js';
 

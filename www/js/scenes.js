@@ -21,7 +21,8 @@ import {
 	grantWaveEndXp, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 } from './tower.js';
-import { drawTowerRange, drawTowerRangesUnion, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerSprite } from './ui/sprite/tower.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawLink, drawSplash, drawZap,

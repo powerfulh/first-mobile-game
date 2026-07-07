@@ -2,7 +2,8 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition, drawTowerSprite, drawGearIcon, drawBookIcon, drawTrashIcon } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon } from './sprite.js';
+import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
