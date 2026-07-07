@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, AIR_COLOR, ACCENT_RED,
+	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, ENEMY_SLOW_SPEED_FLOOR, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
@@ -318,6 +318,14 @@ export function spawnBoss() {
 }
 
 // ============ Update ============
+// 감속 디버프 반영 유효 이동 속도 — 하한 ENEMY_SLOW_SPEED_FLOOR(자연 속도가 그보다 낮으면 자연 속도 유지).
+// 이동 계산·적 정보 패널(둔화 표시)이 공용.
+export function getEffectiveSpeed(e) {
+	const factor = e.slowFactor ?? 1;
+	if (factor >= 1) return e.speed;
+	return Math.max(Math.min(e.speed, ENEMY_SLOW_SPEED_FLOOR), e.speed * factor);
+}
+
 export function updateEnemy(e, dt) {
 	if (e.kind === 'barrier') {
 		// 장벽은 그 자리 고정 — 이동/회복 없음
@@ -341,7 +349,7 @@ export function updateEnemy(e, dt) {
 		e.angle = Math.atan2(dy, dx);
 	}
 	if (e.stunTimer > 0) e.stunTimer = Math.max(0, e.stunTimer - dt); // 제우스 스턴 감소
-	const move = e.stunTimer > 0 ? 0 : e.speed * (e.slowFactor ?? 1) * dt; // 스턴 중 이동 정지
+	const move = e.stunTimer > 0 ? 0 : getEffectiveSpeed(e) * dt; // 스턴 중 이동 정지
 	if (move >= dist) {
 		e.x = target.x;
 		e.y = target.y;

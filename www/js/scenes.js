@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss,
+	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss, getEffectiveSpeed,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -638,7 +638,8 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower, getPromotionState(game.selectedTower));
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(game.selectedEnemy, game.selectedEnemy.slowFactor ?? 1, !isBoss(game.selectedEnemy));
+			// 둔화 표시 배율 — 속도 하한이 반영된 유효 속도 기준 (enemy.getEffectiveSpeed와 단일 기준)
+			drawEnemyInfoPanel(game.selectedEnemy, getEffectiveSpeed(game.selectedEnemy) / game.selectedEnemy.speed, !isBoss(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
