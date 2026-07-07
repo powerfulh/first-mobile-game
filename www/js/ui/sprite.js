@@ -835,6 +835,46 @@ export function drawTowerRange(tower, fillAlpha, strokeAlpha) {
 	ctx.globalAlpha = 1;
 }
 
+// 사거리 합집합 채움용 오프스크린 레이어 — 메인 캔버스 해상도에 맞춰 (재)생성.
+let rangeLayer = null;
+function getRangeLayer(main) {
+	if (!rangeLayer || rangeLayer.width !== main.width || rangeLayer.height !== main.height) {
+		rangeLayer = document.createElement('canvas');
+		rangeLayer.width = main.width;
+		rangeLayer.height = main.height;
+	}
+	return rangeLayer;
+}
+
+// 여러 타워의 사거리를 한 번에 — 오프스크린에 불투명하게 합쳐 그린 뒤 1회 반투명 합성.
+// 사거리가 겹쳐도 채움 농도가 진해지지 않음 (합집합). minRange 구멍도 다른 타워가 덮으면 채워짐.
+// 테두리는 기존 per-타워 방식 그대로.
+export function drawTowerRangesUnion(towers, fillAlpha, strokeAlpha) {
+	if (towers.length === 0) return;
+
+	const layer = getRangeLayer(ctx.canvas);
+	const lctx = layer.getContext('2d');
+	lctx.setTransform(1, 0, 0, 1, 0, 0);
+	lctx.clearRect(0, 0, layer.width, layer.height);
+	lctx.setTransform(ctx.getTransform()); // 메인과 동일한 논리 좌표계로 그림
+	lctx.fillStyle = '#3498db';
+	for (const tower of towers) {
+		const minRange = tower.cfg.minRange || 0;
+		lctx.beginPath();
+		lctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
+		if (minRange > 0) lctx.arc(tower.x, tower.y, minRange, 0, Math.PI * 2, true);
+		lctx.fill('evenodd');
+	}
+
+	ctx.save();
+	ctx.setTransform(1, 0, 0, 1, 0, 0); // 디바이스 픽셀 1:1 합성
+	ctx.globalAlpha = fillAlpha;
+	ctx.drawImage(layer, 0, 0);
+	ctx.restore();
+
+	for (const tower of towers) drawTowerRange(tower, 0, strokeAlpha); // 테두리만
+}
+
 // 장벽 생성 연출 — 장벽 적 처치 후 장벽이 나타나기까지의 fx. 상태 관리·수명은 enemy.js.
 export function drawBarrierSpawnFx(fx) {
 	const t = 1 - fx.life / fx.maxLife; // 0 → 1

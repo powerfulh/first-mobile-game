@@ -21,7 +21,7 @@ import {
 	grantWaveEndXp, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 } from './tower.js';
-import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerRange, drawTowerRangesUnion, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawLink, drawSplash, drawZap,
@@ -568,10 +568,8 @@ scenes.playing = {
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 		drawPath(getActiveMap());
 
-		for (const tower of game.entities.towers) {
-			if (tower === game.selectedTower) continue;
-			drawTowerRange(tower, 0.05, 0.12);
-		}
+		// 비선택 타워 사거리는 합집합으로 한 번에 — 겹쳐도 채움이 진해지지 않음
+		drawTowerRangesUnion(game.entities.towers.filter(t => t !== game.selectedTower), 0.05, 0.12);
 		if (game.selectedTower) {
 			drawTowerRange(game.selectedTower, 0.18, 0.5);
 		}
