@@ -1,7 +1,7 @@
 // 적 스프라이트·공용 렌더 프리미티브 (HP바·마크링·재생 오라 등 게임 오버레이는 제외).
 // 게임/위키/인트로/정보패널/HUD 요약이 공유. 타워 본체 스프라이트는 ./sprite/tower.js.
 import { ctx } from '../core/canvas.js';
-import { AIR_COLOR, ACCENT_RED, INFO_BLUE, TOWER, BARRIER_RADIUS } from '../core/config.js';
+import { AIR_COLOR, ACCENT_RED, INFO_BLUE, TOWER, BARRIER_RADIUS, EMP_COLOR } from '../core/config.js';
 import { roundRect } from '../core/helpers.js';
 
 // 4티어 공통 후광 — 회전하는 6개 점. 타워 참조만 받아 본체 반지름 바깥에 그림.
@@ -181,7 +181,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		}
 		// 중앙 결속 에너지 (짙은 파랑) — 맥동하며 조각을 미세하게 붙듦
 		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
-		ctx.fillStyle = '#1a5276';
+		ctx.fillStyle = EMP_COLOR;
 		ctx.globalAlpha = 0.55 + 0.35 * pulse;
 		ctx.beginPath();
 		ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
@@ -427,7 +427,7 @@ export function drawEmpDevice(d) {
 	// 장치 코어 — 적 스프라이트의 결속 에너지와 같은 계열 (짙은 파랑 글로우 + 흰 점)
 	const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 120);
 	ctx.globalAlpha = alpha * (0.5 + 0.4 * pulse);
-	ctx.fillStyle = '#1a5276';
+	ctx.fillStyle = EMP_COLOR;
 	ctx.beginPath();
 	ctx.arc(d.x, d.y, 6, 0, Math.PI * 2);
 	ctx.fill();

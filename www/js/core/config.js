@@ -330,6 +330,7 @@ export const WAVE_END_XP_MULTIPLIER = 5;
 export const REGEN_HEAL_RATE = 0.12; // hpMax 기준 초당 회복 비율
 export const BARRIER_RADIUS = 60;
 export const EMP_STUN_RANGE = 80; // EMP 적 처치 지점 기준 장치 대상 탐색 반경
+export const EMP_COLOR = '#1a5276'; // EMP 테마색 (짙은 파랑) — 적 결속 에너지·장치 글로우·스턴 타워 본체 공용
 export const EMP_STUN_SECONDS = 1; // EMP 장치 유지 = 대상 타워 스턴 시간
 
 export const SAVE_KEY = 'td_save_v1';

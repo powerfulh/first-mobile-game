@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR,
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
@@ -573,7 +573,9 @@ export function drawTower(tower) {
 
 	if (tower.tier === 4) drawTier4Halo(tower);
 	else if (tower.tier === 5) drawTier5Halo(tower);
-	drawTowerSprite(tower.cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
+	// EMP 스턴 중엔 본체 메인 컬러를 EMP 테마색으로 대체 — 무력화 상태가 본체 색으로 드러남
+	const cfg = isEmpStunned(tower) ? { ...tower.cfg, color: EMP_COLOR } : tower.cfg;
+	drawTowerSprite(cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
