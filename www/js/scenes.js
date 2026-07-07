@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { roundRect, drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss,
+	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss, getEffectiveSpeed,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -21,7 +21,8 @@ import {
 	grantWaveEndXp, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 } from './tower.js';
-import { drawTowerRange, drawTowerSprite, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerSprite } from './ui/sprite/tower.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
 	drawProjectile, drawBeam, drawLink, drawSplash, drawZap,
@@ -568,10 +569,8 @@ scenes.playing = {
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 		drawPath(getActiveMap());
 
-		for (const tower of game.entities.towers) {
-			if (tower === game.selectedTower) continue;
-			drawTowerRange(tower, 0.05, 0.12);
-		}
+		// 비선택 타워 사거리는 합집합으로 한 번에 — 겹쳐도 채움이 진해지지 않음
+		drawTowerRangesUnion(game.entities.towers.filter(t => t !== game.selectedTower), 0.05, 0.12);
 		if (game.selectedTower) {
 			drawTowerRange(game.selectedTower, 0.18, 0.5);
 		}
@@ -640,7 +639,8 @@ scenes.playing = {
 				drawTowerInfoPanel(game.selectedTower, getPromotionState(game.selectedTower));
 			}
 		} else if (game.selectedEnemy) {
-			drawEnemyInfoPanel(game.selectedEnemy, game.selectedEnemy.slowFactor ?? 1, !isBoss(game.selectedEnemy));
+			// 둔화 표시 배율 — 속도 하한이 반영된 유효 속도 기준 (enemy.getEffectiveSpeed와 단일 기준)
+			drawEnemyInfoPanel(game.selectedEnemy, getEffectiveSpeed(game.selectedEnemy) / game.selectedEnemy.speed, !isBoss(game.selectedEnemy));
 		} else if (game.ghostTower) {
 			ctx.textAlign = 'center';
 			ctx.font = '12px sans-serif';
@@ -914,6 +914,18 @@ scenes.gameOver = {
 
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+		// 마지막 골인으로 게임 오버를 유발한 적 — 오버레이 위에 다시 그려 하이라이트 (맥동 링)
+		if (game.gameOverKiller) {
+			const k = game.gameOverKiller;
+			drawEnemy(k);
+			const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
+			ctx.strokeStyle = `rgba(231, 76, 60, ${0.5 + 0.5 * pulse})`;
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(k.x, k.y, k.radius + 6, 0, Math.PI * 2);
+			ctx.stroke();
+		}
 
 		ctx.textAlign = 'center';
 		ctx.fillStyle = '#e74c3c';

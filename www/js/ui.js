@@ -1,6 +1,6 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, GOLD, INFO_BLUE, SLATE } from './core/config.js';
-import { roundRect, drawButton, drawPanel } from './core/helpers.js';
+import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
 import { drawEnemySprite } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
@@ -17,20 +17,19 @@ export function drawPath(map, alpha = 1) {
 	for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
 	ctx.stroke();
 
-	// 공중 지름길 — 정규 경로와 구분되게 공중색 점선
-	const cut = map.airShortcutCut;
-	if (cut) {
+	// 공중 지름길 — 정규 경로와 구분되게 공중색 점선. 구간은 path의 shortcut 마커에서 파생.
+	for (const cut of shortcutCutSegments(map)) {
 		ctx.strokeStyle = AIR_COLOR;
 		ctx.lineWidth = PATH_WIDTH * 0.55;
 		ctx.setLineDash([6, 5]);
 		ctx.beginPath();
-		ctx.moveTo(cut[0].x, cut[0].y);
-		for (let i = 1; i < cut.length; i++) ctx.lineTo(cut[i].x, cut[i].y);
+		ctx.moveTo(cut.a.x, cut.a.y);
+		ctx.lineTo(cut.b.x, cut.b.y);
 		ctx.stroke();
 		ctx.setLineDash([]);
 		// 양 끝 접합부를 점선 위상과 무관하게 동일하게 — 정규 경로와 맞닿는 지점에 둥근 조인트
 		ctx.fillStyle = AIR_COLOR;
-		for (const pt of cut) {
+		for (const pt of [cut.a, cut.b]) {
 			ctx.beginPath();
 			ctx.arc(pt.x, pt.y, PATH_WIDTH * 0.55 / 2, 0, Math.PI * 2);
 			ctx.fill();

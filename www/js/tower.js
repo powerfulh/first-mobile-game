@@ -1,17 +1,18 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR,
 	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, hitButton, hasItems, round1, clamp } from './core/helpers.js';
+import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
 } from './attack.js';
 import { isBlockedByBarrier, isEmpStunned } from './enemy.js';
-import { drawTier4Halo, drawTier5Halo, drawEnergyBall, drawTowerSprite } from './ui/sprite.js';
+import { drawTier4Halo, drawTier5Halo } from './ui/sprite.js';
+import { drawEnergyBall, drawTowerSprite } from './ui/sprite/tower.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
 // ============ Promotion / XP helpers ============
@@ -228,8 +229,14 @@ function distanceToPolyline(x, y, poly) {
 	return min;
 }
 const distanceToPath = (x, y) => distanceToPolyline(x, y, getActiveMap().path);
-// 지름길(airShortcutCut)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화.
-const distanceToShortcut = (x, y) => distanceToPolyline(x, y, getActiveMap().airShortcutCut);
+// 지름길 가로지르기 선분(shortcut 마커 파생)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화.
+function distanceToShortcut(x, y) {
+	let min = Infinity;
+	for (const cut of shortcutCutSegments(getActiveMap())) {
+		min = Math.min(min, pointToSegmentDist(x, y, cut.a.x, cut.a.y, cut.b.x, cut.b.y));
+	}
+	return min;
+}
 
 export function canPlaceTower(x, y) {
 	if (game.gold < TOWER.cost) return false;
@@ -572,7 +579,9 @@ export function drawTower(tower) {
 
 	if (tower.tier === 4) drawTier4Halo(tower);
 	else if (tower.tier === 5) drawTier5Halo(tower);
-	drawTowerSprite(tower.cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
+	// EMP 스턴 중엔 본체 메인 컬러를 EMP 테마색으로 대체 — 무력화 상태가 본체 색으로 드러남
+	const cfg = isEmpStunned(tower) ? { ...tower.cfg, color: EMP_COLOR } : tower.cfg;
+	drawTowerSprite(cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;

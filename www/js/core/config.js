@@ -322,13 +322,15 @@ export const SLATE = '#2c3e50';      // 어두운 패널/비활성 배경
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
 export const ENEMY_SPEED_CAP_WAVE = 100; // 이 웨이브 이후 적 기본 이동 속도 고정
+export const ENEMY_SLOW_SPEED_FLOOR = 20; // 감속 디버프 적용 시 이동 속도 하한
 export const HUD_RESERVED_TOP = 16;
 export const HOLD_DELETE_SECONDS = 1.0;
 export const WAVE_END_XP_MULTIPLIER = 5;
 
 export const REGEN_HEAL_RATE = 0.12; // hpMax 기준 초당 회복 비율
 export const BARRIER_RADIUS = 60;
-export const EMP_STUN_RANGE = 60; // EMP 적 처치 지점 기준 장치 대상 탐색 반경
+export const EMP_STUN_RANGE = 80; // EMP 적 처치 지점 기준 장치 대상 탐색 반경
+export const EMP_COLOR = '#1a5276'; // EMP 테마색 (짙은 파랑) — 적 결속 에너지·장치 글로우·스턴 타워 본체 공용
 export const EMP_STUN_SECONDS = 1; // EMP 장치 유지 = 대상 타워 스턴 시간
 
 export const SAVE_KEY = 'td_save_v1';

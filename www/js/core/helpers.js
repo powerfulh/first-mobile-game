@@ -1,5 +1,5 @@
 import { ctx } from './canvas.js';
-import { ACCENT_RED } from './config.js';
+import { ACCENT_RED, PATH_WIDTH } from './config.js';
 
 // ============ 일반 유틸 ============
 // 배열이 비어있지 않은지 (null/undefined 안전).
@@ -19,6 +19,28 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 	const cx = ax + t * dx;
 	const cy = ay + t * dy;
 	return Math.hypot(px - cx, py - cy);
+}
+
+// 지름길 가로지르기 선분 목록 — path의 인접 shortcut 마커 쌍마다 { a, b } 선분을 파생.
+// 양끝 인셋 = PATH_WIDTH/2 - 2: 컬럼 안쪽 모서리보다 2px 더 들어가 정규길과 살짝만 걸치게.
+// 그리기(ui.drawPath)·배치 판정(tower.canPlaceTower) 공용 — 이동 규칙(모든 인접 마커 쌍이 비행 구간)과 자동 동기화.
+export function shortcutCutSegments(map) {
+	const markers = map.path.filter(p => p.shortcut);
+	const inset = PATH_WIDTH / 2 - 2;
+	const segments = [];
+	for (let i = 0; i + 1 < markers.length; i++) {
+		const m = markers[i];
+		const n = markers[i + 1];
+		const d = Math.hypot(n.x - m.x, n.y - m.y);
+		if (d <= inset * 2) continue; // 인셋 후 선분이 뒤집히는 초근접 쌍 가드
+		const ux = (n.x - m.x) / d;
+		const uy = (n.y - m.y) / d;
+		segments.push({
+			a: { x: m.x + ux * inset, y: m.y + uy * inset },
+			b: { x: n.x - ux * inset, y: n.y - uy * inset },
+		});
+	}
+	return segments;
 }
 
 // ============ Drawing helpers ============
