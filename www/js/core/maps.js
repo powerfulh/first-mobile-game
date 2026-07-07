@@ -20,7 +20,7 @@ export const MAPS = {
 		],
 		startGold: 100,             // 시작 돈 (HP는 전역 INITIAL.hp)
 		bgm: 'normal',              // audio 트랙 id — 타이틀과 공용(bgm.mp3)이라 진입 시 끊김 없음
-		traits: [],                 // 맵 특성 (맵1 없음; 추후 도메인 코드가 해석)
+		traits: [],                 // 이 필드 삭제 todo
 		waveComposition: 'default', // 웨이브 적 구성 전략 id (맵1 = 현재 enemy.js 기본 로직)
 		unlock: { type: 'default' },// 해금 조건 (맵1은 기본 제공)
 	},
