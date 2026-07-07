@@ -460,7 +460,7 @@ function drawTowerDetail(y, role, cfg, measure = false) {
 	} else {
 		statLines.push(t('wiki.dmgRateNone'));
 	}
-	statLines.push(t('panel.targets', { types: atkText }) + (cfg.splash ? t('wiki.splash', { n: cfg.splash }) : ''));
+	statLines.push(t('panel.targets', { types: atkText })); // 광역 반경은 태그라인에 표기 — 중복 회피
 
 	for (const line of statLines) {
 		if (!measure) ctx.fillText(line, 18, cy);
