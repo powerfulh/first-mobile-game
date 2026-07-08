@@ -13,8 +13,6 @@ const infoTopBtn = {
 }
 export const infoWikiButton = { x: 276, ...infoTopBtn };
 export const infoSettingsButton = { x: 308, ...infoTopBtn };
-// 설정 패널의 삭제 버튼 — 의도적으로 위키 버튼 자리 재사용 (정보 ↔ 설정 패널에서 같은 슬롯)
-export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
@@ -169,6 +167,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
 
+export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
 export const SETTINGS_GA = {
 	ground: { x: 96, y: 556, w: 48, h: 32 },
 	sign: { x: 156, y: 556, w: 48, h: 32 },
