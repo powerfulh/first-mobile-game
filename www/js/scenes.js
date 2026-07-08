@@ -41,6 +41,7 @@ import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
 	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoWikiButton, SETTINGS_DELETE_BTN, infoPanel, infoPromotionButton,
 	drawPromotionPanel, promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
+	infoQueueButton,
 } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
@@ -775,6 +776,12 @@ scenes.playing = {
 		}
 
 		if (game.selectedTower) {
+			// 3개에서 하나 더 늘어나면 나열 중복 리팩트 고려하자
+			if (hitButton(infoQueueButton, p)) {
+				playButton();
+				game.selectedTower.panel = 'settings';
+				return;
+			}
 			if (hitButton(infoWikiButton, p)) {
 				playButton();
 				openWikiAtTower(game.selectedTower.role, 'playing');
