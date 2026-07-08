@@ -2,7 +2,7 @@ import {
 	SAVE_KEY, BEST_WAVE_KEY,
 	INTRO_KEYS, MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
-	TOWER_ROLES, INITIAL, TOWER_PANEL, UNLOCKED_MAPS_KEY,
+	TOWER_ROLES, INITIAL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
 import { getActiveMap, setActiveMap, MAPS } from './core/maps.js';
 import { spawnBoss } from './enemy.js';
@@ -38,9 +38,8 @@ export const game = {
 	waveState: 'spawning',
 	intermissionTimer: 0,
 	bossActive: false,
-	selectedTower: null,
+	selectedTower: null, // 선택된 타워 — 열린 패널은 인스턴스의 panel 필드('settings'|'promotion', 없으면 정보 카드)
 	selectedEnemy: null,
-	towerPanel: TOWER_PANEL.INFO,
 	fusionMaterials: [], // 합체 재료로 지정된 타워들. 티어4는 최대 1개(트리거 전까지).
 	modal: null,
 	paused: false,
@@ -106,7 +105,6 @@ export function resetGame(mapId = 'map1') {
 	game.bossActive = false;
 	game.selectedTower = null;
 	game.selectedEnemy = null;
-	game.towerPanel = TOWER_PANEL.INFO;
 	game.fusionMaterials = [];
 	game.modal = null;
 	game.paused = false;
@@ -190,7 +188,6 @@ export function loadGame(data) {
 	game.bossActive = false;
 	game.selectedTower = null;
 	game.selectedEnemy = null;
-	game.towerPanel = TOWER_PANEL.INFO;
 	game.fusionMaterials = [];
 	game.modal = null;
 	game.paused = false;

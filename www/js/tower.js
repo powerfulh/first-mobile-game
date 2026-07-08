@@ -2,7 +2,6 @@ import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR,
-	TOWER_PANEL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments } from './core/helpers.js';
@@ -623,7 +622,7 @@ export function getPromotionChoices(tower) {
 export function handlePromotionButton(tower) {
 	switch (getPromotionState(tower)) {
 		case 'openChoice':
-			game.towerPanel = TOWER_PANEL.PROMOTION;
+			tower.panel = 'promotion';
 			return true;
 		case 'setTarget':
 			// 확장 가능하면 재료 추가, 아니면 새 합체 시작(리셋). arity 2는 재료 최대 1개라 두 분기 결과가 [tower]로 동일.
