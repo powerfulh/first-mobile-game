@@ -105,6 +105,10 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.font = 'bold 11px sans-serif';
 	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + 14 + nameWidth + 8, infoPanel.y + 22);
 
+	drawTopIconButton(infoQueueButton, drawHourglassIcon);
+	drawTopIconButton(infoWikiButton, drawBookIcon);
+	drawTopIconButton(infoSettingsButton, drawGearIcon);
+
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
 	const sx = infoPanel.x + 14;
@@ -163,10 +167,6 @@ export function drawTowerInfoPanel(tower, promotionState) {
 
 		drawPromotionButton(tower, promotionState);
 	}
-
-	drawTopIconButton(infoQueueButton, drawHourglassIcon);
-	drawTopIconButton(infoWikiButton, drawBookIcon);
-	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
 
 export function drawTowerQueuePanel(tower) {
