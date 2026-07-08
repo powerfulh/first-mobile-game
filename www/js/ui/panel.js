@@ -34,13 +34,14 @@ export function drawCloseX(btn) {
 }
 
 // 패널 헤더 텍스트 (흰색 bold 14px, 좌측 정렬) — 기본 위치는 정보 패널 좌상단.
-// 호출 후 폰트가 그대로 남으므로 이어지는 measureText는 헤더 폰트 기준.
+// 헤더 폰트 기준 TextMetrics를 반환 — 헤더 옆에 이어 그리는 요소의 배치 계산용.
 function drawPanelHeader(text, x = infoPanel.x + 14, y = infoPanel.y + 22) {
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
 	ctx.fillText(text, x, y);
+	return ctx.measureText(text);
 }
 
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
@@ -105,8 +106,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const cfg = tower.cfg;
 	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
-	drawPanelHeader(cfg.name);
-	const nameWidth = ctx.measureText(cfg.name).width;
+	const nameWidth = drawPanelHeader(cfg.name).width;
 
 	ctx.font = 'bold 11px sans-serif';
 	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + 14 + nameWidth + 8, infoPanel.y + 22);
