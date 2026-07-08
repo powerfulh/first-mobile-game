@@ -394,6 +394,36 @@ export function drawBookIcon(cx, cy) {
 	ctx.stroke();
 }
 
+// 모래시계 아이콘 — 위/아래 가로대 + 중앙이 잘록한 몸통 + 아래에 쌓인 모래
+export function drawHourglassIcon(cx, cy) {
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 1.5;
+	// 위·아래 가로대
+	ctx.beginPath();
+	ctx.moveTo(cx - 5, cy - 6);
+	ctx.lineTo(cx + 5, cy - 6);
+	ctx.moveTo(cx - 5, cy + 6);
+	ctx.lineTo(cx + 5, cy + 6);
+	ctx.stroke();
+	// 몸통 — 좌우 곡선이 중앙에서 잘록하게 만남
+	ctx.beginPath();
+	ctx.moveTo(cx - 4, cy - 6);
+	ctx.quadraticCurveTo(cx - 4, cy - 2, cx, cy);
+	ctx.quadraticCurveTo(cx - 4, cy + 2, cx - 4, cy + 6);
+	ctx.moveTo(cx + 4, cy - 6);
+	ctx.quadraticCurveTo(cx + 4, cy - 2, cx, cy);
+	ctx.quadraticCurveTo(cx + 4, cy + 2, cx + 4, cy + 6);
+	ctx.stroke();
+	// 아래쪽에 쌓인 모래
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	ctx.moveTo(cx, cy + 1);
+	ctx.lineTo(cx + 2.5, cy + 5);
+	ctx.lineTo(cx - 2.5, cy + 5);
+	ctx.closePath();
+	ctx.fill();
+}
+
 // EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.
 // 상태 관리·수명은 enemy.js. 지터는 매 프레임 재생성 → 전기 플리커.
 export function drawEmpDevice(d) {

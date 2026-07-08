@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon } from './sprite.js';
 import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
@@ -164,7 +164,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		drawPromotionButton(tower, promotionState);
 	}
 
-	drawTopIconButton(infoQueueButton, drawBookIcon);
+	drawTopIconButton(infoQueueButton, drawHourglassIcon);
 	drawTopIconButton(infoWikiButton, drawBookIcon);
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
