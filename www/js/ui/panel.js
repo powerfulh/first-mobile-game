@@ -33,6 +33,16 @@ export function drawCloseX(btn) {
 	ctx.textBaseline = 'alphabetic';
 }
 
+// 패널 헤더 텍스트 (흰색 bold 14px, 좌측 정렬) — 기본 위치는 정보 패널 좌상단.
+// 호출 후 폰트가 그대로 남으므로 이어지는 measureText는 헤더 폰트 기준.
+function drawPanelHeader(text, x = infoPanel.x + 14, y = infoPanel.y + 22) {
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.fillText(text, x, y);
+}
+
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
 function drawBar(x, y, w, h, ratio, fillColor) {
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -95,11 +105,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const cfg = tower.cfg;
 	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
+	drawPanelHeader(cfg.name);
 	const nameWidth = ctx.measureText(cfg.name).width;
 
 	ctx.font = 'bold 11px sans-serif';
@@ -174,11 +180,7 @@ export function drawTowerQueuePanel(tower) {
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText('예약 전직', p.x + 14, p.y + 22); // 다국어 처리 todo
+	drawPanelHeader('예약 전직'); // 다국어 처리 todo
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
@@ -213,11 +215,7 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(t('panel.settingsTitle', { name: cfg.name }), p.x + 14, p.y + 22);
+	drawPanelHeader(t('panel.settingsTitle', { name: cfg.name }));
 
 	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
@@ -417,11 +415,7 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 
 	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(e.name, p.x + 42, p.y + 27);
+	drawPanelHeader(e.name, p.x + 42, p.y + 27); // 좌측 스프라이트 옆
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
