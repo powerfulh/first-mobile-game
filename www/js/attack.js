@@ -34,9 +34,6 @@ export function applyTowerHit(shooter, target, damage) {
 				target.shielded = false;
 				startShieldBreak(target.x, target.y, target.radius); // 방어막이 깨지는 순간 1회 연출
 			}
-			if (shooterCfg.stuns) {
-				target.stunTimer = shooterCfg.stunDuration || 1; // 제우스: 피격 적 스턴
-			}
 		}
 	}
 	// 부동소수점 잔차로 정확히 0이 안 될 수 있어(예: 3.6 - 1.2×3 ≈ 4.4e-16 > 0) 미세 양수도 사망 처리.
@@ -61,13 +58,16 @@ export function applyTowerHit(shooter, target, damage) {
 }
 
 export function applySplashHit(shooter, impactX, impactY, damage, radius, attackTypes) {
+	const stuns = shooter?.cfg?.stuns; // 제우스: 스턴은 공격 가능 타입과 무관하게 범위 내 전체 (장벽 제외)
 	for (const e of game.entities.enemies) {
 		if (e.dead) continue;
-		if (attackTypes && !attackTypes.includes(e.ga)) continue;
 		const d = Math.hypot(e.x - impactX, e.y - impactY);
-		if (d <= radius) {
-			applyTowerHit(shooter, e, damage);
+		if (d > radius) continue;
+		if (stuns && e.kind !== 'barrier') {
+			e.stunTimer = shooter.cfg.stunDuration || 1;
 		}
+		if (attackTypes && !attackTypes.includes(e.ga)) continue; // 데미지는 타입 필터 유지
+		applyTowerHit(shooter, e, damage);
 	}
 }
 

@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon } from './sprite.js';
 import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
@@ -11,10 +11,9 @@ export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
 const infoTopBtn = {
 	y: 504, w: 28, h: 28
 }
+export const infoQueueButton = { x: 244, ...infoTopBtn };
 export const infoWikiButton = { x: 276, ...infoTopBtn };
 export const infoSettingsButton = { x: 308, ...infoTopBtn };
-// 설정 패널의 삭제 버튼 — 의도적으로 위키 버튼 자리 재사용 (정보 ↔ 설정 패널에서 같은 슬롯)
-export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
 export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
 
@@ -32,6 +31,17 @@ export function drawCloseX(btn) {
 	ctx.textBaseline = 'middle';
 	ctx.fillText('×', btn.x + btn.w / 2, btn.y + btn.h / 2);
 	ctx.textBaseline = 'alphabetic';
+}
+
+// 패널 헤더 텍스트 (흰색 bold 14px, 좌측 정렬) — 기본 위치는 정보 패널 좌상단.
+// 헤더 폰트 기준 TextMetrics를 반환 — 헤더 옆에 이어 그리는 요소의 배치 계산용.
+function drawPanelHeader(text, x = infoPanel.x + 14, y = infoPanel.y + 22) {
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.fillText(text, x, y);
+	return ctx.measureText(text);
 }
 
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
@@ -96,15 +106,14 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const cfg = tower.cfg;
 	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(cfg.name, infoPanel.x + 14, infoPanel.y + 22);
-	const nameWidth = ctx.measureText(cfg.name).width;
+	const nameWidth = drawPanelHeader(cfg.name).width;
 
 	ctx.font = 'bold 11px sans-serif';
 	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + 14 + nameWidth + 8, infoPanel.y + 22);
+
+	if (tower.canPromote) drawTopIconButton(infoQueueButton, drawHourglassIcon);
+	drawTopIconButton(infoWikiButton, drawBookIcon);
+	drawTopIconButton(infoSettingsButton, drawGearIcon);
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
@@ -164,11 +173,17 @@ export function drawTowerInfoPanel(tower, promotionState) {
 
 		drawPromotionButton(tower, promotionState);
 	}
-
-	drawTopIconButton(infoWikiButton, drawBookIcon);
-	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
 
+export function drawTowerQueuePanel(tower) {
+	const p = infoPanel;
+	const cfg = tower.cfg;
+	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
+
+	drawPanelHeader(t('panel.queueTitle'));
+}
+
+export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
 export const SETTINGS_GA = {
 	ground: { x: 96, y: 556, w: 48, h: 32 },
 	sign: { x: 156, y: 556, w: 48, h: 32 },
@@ -200,11 +215,7 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 	const p = infoPanel;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(t('panel.settingsTitle', { name: cfg.name }), p.x + 14, p.y + 22);
+	drawPanelHeader(t('panel.settingsTitle', { name: cfg.name }));
 
 	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
@@ -404,11 +415,7 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 
 	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(e.name, p.x + 42, p.y + 27);
+	drawPanelHeader(e.name, p.x + 42, p.y + 27); // 좌측 스프라이트 옆
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';

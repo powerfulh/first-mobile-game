@@ -305,9 +305,6 @@ export function fusionRecipesWithMaterial(role) {
 	}));
 }
 
-// 선택된 타워 위에 뜨는 패널 (selectedTower 있을 때만 의미). 기본 INFO.
-export const TOWER_PANEL = { INFO: 'info', SETTINGS: 'settings', PROMOTION: 'promotion' };
-
 // 공중 테마색 — 공중 적/보스, 공중 인트로 액센트, 공중 지름길 공용.
 export const AIR_COLOR = '#a569bd';
 
