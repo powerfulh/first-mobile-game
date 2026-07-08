@@ -173,6 +173,12 @@ export function drawTowerQueuePanel(tower) {
 	const p = infoPanel;
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
+
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = '#fff';
+	ctx.font = 'bold 14px sans-serif';
+	ctx.fillText('예약 전직', p.x + 14, p.y + 22); // 다국어 처리 todo
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };

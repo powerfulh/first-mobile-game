@@ -779,11 +779,17 @@ scenes.playing = {
 		}
 
 		if (game.selectedTower) {
-			// 3개에서 하나 더 늘어나면 나열 중복 리팩트 고려하자
-			if (hitButton(infoQueueButton, p)) {
-				playButton();
-				game.selectedTower.panel = 'queue';
-				return;
+			if(game.selectedTower.canPromote) {
+				// info 버튼 3개에서 하나 더 늘어나면 나열 중복 리팩트 고려하자
+				if (hitButton(infoQueueButton, p)) {
+					playButton();
+					game.selectedTower.panel = 'queue';
+					return;
+				}
+				if (hitButton(infoPromotionButton, p)) {
+					if (handlePromotionButton(game.selectedTower)) playButton();
+					return;
+				}
 			}
 			if (hitButton(infoWikiButton, p)) {
 				playButton();
@@ -793,10 +799,6 @@ scenes.playing = {
 			if (hitButton(infoSettingsButton, p)) {
 				playButton();
 				game.selectedTower.panel = 'settings';
-				return;
-			}
-			if (game.selectedTower.canPromote && hitButton(infoPromotionButton, p)) {
-				if (handlePromotionButton(game.selectedTower)) playButton();
 				return;
 			}
 		}
