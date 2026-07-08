@@ -181,6 +181,20 @@ export function drawTowerQueuePanel(tower) {
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
 	drawPanelHeader(t('panel.queueTitle'));
+
+	// 전직 영역
+	ctx.fillStyle = '#9ab';
+	ctx.font = 'bold 11px sans-serif';
+	ctx.fillText(t('전직'), p.x + 14, p.y + 46); // 다국어 todo
+
+	const ax = p.x + 14; // 이것들을 절대 말고 부모의 패딩기반으로 해보자 todo
+	const ay = p.y + 54;
+	const aw = p.w - 28;
+	const ah = p.y + p.h - 14 - ay;
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+	ctx.lineWidth = 1;
+	roundRect(ax, ay, aw, ah, 6);
+	ctx.stroke();
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
