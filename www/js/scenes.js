@@ -42,6 +42,7 @@ import {
 	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoWikiButton, SETTINGS_DELETE_BTN, infoPanel, infoPromotionButton,
 	drawPromotionPanel, promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	infoQueueButton,
+	drawTowerQueuePanel,
 } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
@@ -629,6 +630,8 @@ scenes.playing = {
 			const sel = game.selectedTower;
 			if (sel.panel === 'promotion') {
 				drawPromotionPanel(sel, canAffordPromotion(sel), getPromotionChoices(sel));
+			} else if (sel.panel === 'queue') {
+				drawTowerQueuePanel(sel);
 			} else if (sel.panel === 'settings') {
 				drawTowerSettingsCard(sel, towerDualCapable(sel.cfg));
 			} else {
@@ -779,7 +782,7 @@ scenes.playing = {
 			// 3개에서 하나 더 늘어나면 나열 중복 리팩트 고려하자
 			if (hitButton(infoQueueButton, p)) {
 				playButton();
-				game.selectedTower.panel = 'settings';
+				game.selectedTower.panel = 'queue';
 				return;
 			}
 			if (hitButton(infoWikiButton, p)) {

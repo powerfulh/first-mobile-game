@@ -169,6 +169,12 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
 
+export function drawTowerQueuePanel(tower) {
+	const p = infoPanel;
+	const cfg = tower.cfg;
+	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
+}
+
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
 export const SETTINGS_GA = {
 	ground: { x: 96, y: 556, w: 48, h: 32 },
