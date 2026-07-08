@@ -360,7 +360,7 @@ function selectTowerAt(p) {
 		if (Math.hypot(p.x - tower.x, p.y - tower.y) <= TOWER.radius + 4) {
 			game.selectedTower = tower;
 			game.selectedEnemy = null;
-			tower.panel = null; // 선택은 항상 정보 카드로 시작 (이전 선택 때의 잔류 패널 제거)
+			tower.panel = null; // 주석 처리하면 타워마다 패널 기억하는데 전직 패널은 다른 시점에 골드가 부족할 수 있어서 검토 중
 			game.holdDelete = { tower: tower, accumulated: 0 };
 			playTowerSelect();
 			return true;
