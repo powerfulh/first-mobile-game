@@ -155,6 +155,7 @@ const STRINGS = {
 	'panel.priority.strongest': { ko: '가장 강함', ja: '最も強い', en: 'Strongest' },
 	'panel.priority.weakest': { ko: '가장 약함', ja: '最も弱い', en: 'Weakest' },
 	'panel.cardStats': { ko: '사거리 {range}  ·  데미지 {dmg}  ·  속도 {rate}/s', ja: '射程 {range}  ·  ダメージ {dmg}  ·  速度 {rate}/s', en: 'Range {range}  ·  DMG {dmg}  ·  Speed {rate}/s' },
+	'panel.queueTitle': { ko: '예약 전직', ja: '転職予約', en: 'Promotion queue' },
 	'panel.promote.title': { ko: '전직 가능!', ja: '転職可能!', en: 'Promotion available!' },
 	'panel.promote.tier4Info': { ko: '{from} 타워가 {to} 타워로 전직됩니다', ja: '{from}が{to}に転職します', en: '{from} promotes into {to}' },
 	'panel.promote.choose': { ko: '역할을 선택하세요', ja: '役割を選択してください', en: 'Choose a role' },

@@ -180,7 +180,7 @@ export function drawTowerQueuePanel(tower) {
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	drawPanelHeader('예약 전직'); // 다국어 처리 todo
+	drawPanelHeader(t('panel.queueTitle'));
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
