@@ -11,6 +11,7 @@ export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
 const infoTopBtn = {
 	y: 504, w: 28, h: 28
 }
+export const infoQueueButton = { x: 244, ...infoTopBtn };
 export const infoWikiButton = { x: 276, ...infoTopBtn };
 export const infoSettingsButton = { x: 308, ...infoTopBtn };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
@@ -163,6 +164,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		drawPromotionButton(tower, promotionState);
 	}
 
+	drawTopIconButton(infoQueueButton, drawBookIcon);
 	drawTopIconButton(infoWikiButton, drawBookIcon);
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 }
