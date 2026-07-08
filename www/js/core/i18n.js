@@ -92,7 +92,7 @@ const STRINGS = {
 	'tower.resolver.desc2': { ko: '공격력, 공격 속도를 두 배로 버프합니다', ja: '攻撃力・攻撃速度を2倍にします', en: 'Doubles attack and fire rate' },
 	'tower.zeus.name': { ko: '제우스', ja: 'ゼウス', en: 'Zeus' },
 	'tower.zeus.tagline': { ko: '광역 폭격 + 스턴 · 지상 (반경 200)', ja: '広域爆撃 + スタン · 地上 (半径 200)', en: 'Area bombard + stun · Ground (radius 200)' },
-	'tower.zeus.desc2': { ko: '피격된 적을 1초간 스턴시킵니다', ja: '被弾した敵を1秒間スタンさせます', en: 'Stuns hit enemies for 1 second' },
+	'tower.zeus.desc2': { ko: '폭발 범위 내 모든 적을 1초간 스턴시킵니다', ja: '爆発範囲内のすべての敵を1秒間スタンさせます', en: 'Stuns all enemies in the blast for 1 second' },
 	'tower.dragon.name': { ko: '드래곤', ja: 'ドラゴン', en: 'Dragon' },
 	'tower.dragon.tagline': { ko: '관통 연사 빔 · 지상/공중', ja: '貫通連射ビーム · 地上/空中', en: 'Piercing rapid beam · Ground/Air' },
 	'tower.dragon.desc1': { ko: '일직선상의 모든 적을 관통하는 빔을 초고속 연사합니다', ja: '直線上の敵を貫通するビームを高速連射します', en: 'Rapid-fires beams that pierce all enemies in a line' },
