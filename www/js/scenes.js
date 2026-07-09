@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	PARALLEL_INTRO_KEY, ACCENT_RED, GOLD,
+	PARALLEL_INTRO_KEY, GOLD,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -20,6 +20,7 @@ import {
 	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion, getTowerRefund,
 	grantWaveEndXp, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
+	getReservationChoices, reserveTowerPromotion, moveReservation, cancelReservation, processReservations,
 } from './tower.js';
 import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
 import { drawTowerSprite } from './ui/sprite/tower.js';
@@ -42,7 +43,7 @@ import {
 	drawEnemyInfoPanel, drawTowerInfoPanel, drawTowerSettingsCard, infoSettingsButton, infoWikiButton, SETTINGS_DELETE_BTN, infoPanel, infoPromotionButton,
 	drawPromotionPanel, promotionPanel, promotionCloseButton, promotionCardSlots, tier4ResultCardSlot,
 	infoQueueButton,
-	drawTowerQueuePanel,
+	drawTowerQueuePanel, queuePanel, getQueueLayout,
 } from './ui/panel.js';
 import { settingsModalTap, volumePointerMove, volumePointerUp } from './settings-modal.js';
 import { playBgm, syncBattleMusic } from './audio.js';
@@ -108,38 +109,16 @@ const titleButtonsNoSave = {
 	wiki:     { x: 80, y: 442, w: 200, h: 64 },
 	settings: { x: 80, y: 518, w: 200, h: 64 },
 };
-let titleAnim = 0;
 let titleSave = null;
-
-function drawContinueButton(btn, wave) {
-	ctx.fillStyle = ACCENT_RED;
-	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 2;
-	ctx.stroke();
-
-	ctx.fillStyle = '#fff';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.font = '13px sans-serif';
-	ctx.fillText(t('title.continue'), btn.x + btn.w / 2, btn.y + btn.h / 2 - 13);
-	ctx.font = 'bold 22px sans-serif';
-	ctx.fillText(`Wave ${wave}`, btn.x + btn.w / 2, btn.y + btn.h / 2 + 11);
-	ctx.textBaseline = 'alphabetic';
-}
 
 scenes.title = {
 	settingsOpen: false,
 	enter() {
-		titleAnim = 0;
 		titleSave = loadSaveData();
 		this.settingsOpen = false;
 		playBgm('normal'); // 타이틀·일반 웨이브 공용 BGM
 	},
-	update(dt) {
-		titleAnim += dt;
-	},
+	update() {},
 	draw() {
 		ctx.fillStyle = '#1a2e1a';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
@@ -160,21 +139,19 @@ scenes.title = {
 		ctx.font = '13px sans-serif';
 		ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 256);
 
-		const pulse = 0.5 + 0.5 * Math.sin(titleAnim * 3);
-
+		// 추천 액션(저장 있으면 이어하기, 없으면 시작)만 pulse 강조
 		if (titleSave) {
-			ctx.globalAlpha = 0.6 + 0.4 * pulse;
-			drawContinueButton(titleButtonsWithSave.continueBtn, titleSave.wave);
-			ctx.globalAlpha = 1;
-			drawButton(titleButtonsWithSave.start, t('title.start'));
-			drawButton(titleButtonsWithSave.wiki, t('common.wiki'));
-			drawButton(titleButtonsWithSave.settings, t('settings.title'));
+			drawButton(titleButtonsWithSave.continueBtn, [
+				{ label: t('title.continue'), font: '13px sans-serif', margin: 6 },
+				{ label: `Wave ${titleSave.wave}` },
+			], { pulse: true });
+			drawButton(titleButtonsWithSave.start, [{ label: t('title.start') }]);
+			drawButton(titleButtonsWithSave.wiki, [{ label: t('common.wiki') }]);
+			drawButton(titleButtonsWithSave.settings, [{ label: t('settings.title') }]);
 		} else {
-			ctx.globalAlpha = 0.6 + 0.4 * pulse;
-			drawButton(titleButtonsNoSave.start, t('title.start'));
-			ctx.globalAlpha = 1;
-			drawButton(titleButtonsNoSave.wiki, t('common.wiki'));
-			drawButton(titleButtonsNoSave.settings, t('settings.title'));
+			drawButton(titleButtonsNoSave.start, [{ label: t('title.start') }], { pulse: true });
+			drawButton(titleButtonsNoSave.wiki, [{ label: t('common.wiki') }]);
+			drawButton(titleButtonsNoSave.settings, [{ label: t('settings.title') }]);
 		}
 
 		if (this.settingsOpen) drawSettingsModal(titleSettingsButtons);
@@ -345,6 +322,7 @@ function deselectTower() {
 // 타워 삭제 공통 — 홀드 삭제 완료와 설정 패널 삭제 버튼이 공유. 선택·전직 대상 참조도 정리.
 // 투입 골드 10% 환불(재료 타워 투입분 제외) + 토스트 안내.
 function deleteTower(dead) {
+	cancelReservation(dead); // 예약 큐에서 제거 + 뒤 순번 압축 (엔티티 제거 전에)
 	game.entities.towers = game.entities.towers.filter(x => x !== dead);
 	recomputeStats();
 	const refund = getTowerRefund(dead);
@@ -471,6 +449,7 @@ scenes.playing = {
 		// 패시브 오라(감속·회복차단) 리셋 — 아래 updateTower들이 다시 push, 적은 다음 프레임 소비
 		for (const e of game.entities.enemies) { e.slowFactor = 1; e.regenDisabled = false; }
 		for (const tower of game.entities.towers) updateTower(tower, dt);
+		processReservations(); // 1순위 예약의 전직 조건 달성 시 즉시 전직
 		for (const p of game.entities.projectiles) updateProjectile(p, dt);
 		for (const b of game.effects.beams) updateBeam(b, dt);
 		for (const l of game.effects.links) updateLink(l, dt);
@@ -631,7 +610,7 @@ scenes.playing = {
 			if (sel.panel === 'promotion') {
 				drawPromotionPanel(sel, canAffordPromotion(sel), getPromotionChoices(sel));
 			} else if (sel.panel === 'queue') {
-				drawTowerQueuePanel(sel);
+				drawTowerQueuePanel(sel, getReservationChoices(sel));
 			} else if (sel.panel === 'settings') {
 				drawTowerSettingsCard(sel, towerDualCapable(sel.cfg));
 			} else {
@@ -738,6 +717,31 @@ scenes.playing = {
 			}
 			if (hitButton(infoPanel, p)) return; // 카드 내부 빈 영역 탭 소비
 			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 전체 닫기
+			return;
+		}
+		if (game.selectedTower?.panel === 'queue') {
+			const layout = getQueueLayout();
+			if (layout) {
+				for (const cell of layout.cells) {
+					if (hitButton(cell, p)) {
+						playButton();
+						reserveTowerPromotion(game.selectedTower, cell.role); // 재터치=해제, 다른 셀=변경
+						return;
+					}
+				}
+				if (layout.prev && hitButton(layout.prev, p)) {
+					playButton();
+					moveReservation(game.selectedTower, -1);
+					return;
+				}
+				if (layout.next && hitButton(layout.next, p)) {
+					playButton();
+					moveReservation(game.selectedTower, 1);
+					return;
+				}
+			}
+			if (hitButton(queuePanel, p)) return; // 패널 내부 빈 영역 탭 소비
+			if (!selectTowerAt(p)) deselectTower(); // 다른 타워면 선택 전환, 빈 곳이면 닫기
 			return;
 		}
 		if (game.selectedTower?.panel === 'promotion') {
@@ -938,8 +942,8 @@ scenes.gameOver = {
 		ctx.font = '16px sans-serif';
 		ctx.fillText(t('gameover.defeat', { n: game.wave }), LOGICAL_W / 2, 252);
 
-		drawButton(gameOverButtons.restart, t('gameover.restart'));
-		drawButton(gameOverButtons.toTitle, t('gameover.toTitle'));
+		drawButton(gameOverButtons.restart, [{ label: t('gameover.restart') }]);
+		drawButton(gameOverButtons.toTitle, [{ label: t('gameover.toTitle') }]);
 	},
 	pointerDown(p) {
 		if (hitButton(gameOverButtons.restart, p)) {

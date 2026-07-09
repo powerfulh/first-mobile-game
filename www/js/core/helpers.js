@@ -67,19 +67,53 @@ export function drawPanel(x, y, w, h, opts = {}) {
 	ctx.stroke();
 }
 
-export function drawButton(btn, label) {
+const BUTTON_FONT = 'bold 22px sans-serif';
+// 폰트 문자열의 px 크기 = 행 높이 (파싱 실패 시 기본 22)
+function fontPx(font) {
+	const m = /(\d+(?:\.\d+)?)px/.exec(font);
+	return m ? parseFloat(m[1]) : 22;
+}
+
+/**
+ * 버튼 (빨간 라운드 배경 + 흰 테두리) + 라벨 스택 — 그룹 전체를 버튼 세로 중앙에 정렬.
+ * @param {{ x: number, y: number, w: number, h: number }} btn 버튼 영역 (hit-test와 공유하는 사각형)
+ * @param {Array<{ label: string, font?: string, margin?: number }>} labels 위→아래 순서의 라벨 스택
+ *   - label: 표시 텍스트 (필수)
+ *   - font: canvas font 문자열 (기본 BUTTON_FONT). px 크기가 행 높이가 됨 (파싱 실패 시 22)
+ *   - margin: 다음 요소와의 세로 간격 px (기본 0, 마지막 요소에선 무시)
+ * @param {{ pulse?: boolean }} [opts] pulse: 추천 액션 강조 — 버튼 전체(배경·테두리·라벨) 알파 맥동
+ */
+export function drawButton(btn, labels, { pulse = false } = {}) {
+	if (pulse) ctx.globalAlpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(performance.now() / 333));
+
 	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';
 	ctx.lineWidth = 2;
 	ctx.stroke();
+
+	// 1패스 — 그룹 총 높이 (행 높이 합 + 요소 사이 마진 합)
+	let total = 0;
+	for (let i = 0; i < labels.length; i++) {
+		total += fontPx(labels[i].font || BUTTON_FONT);
+		if (i < labels.length - 1) total += labels[i].margin || 0;
+	}
+
+	// 2패스 — 위에서부터 행마다 중앙 기준으로 그리며 전진
 	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 22px sans-serif';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
-	ctx.fillText(label, btn.x + btn.w / 2, btn.y + btn.h / 2);
+	const cx = btn.x + btn.w / 2;
+	let y = btn.y + btn.h / 2 - total / 2;
+	for (const item of labels) {
+		const h = fontPx(item.font || BUTTON_FONT);
+		ctx.font = item.font || BUTTON_FONT;
+		ctx.fillText(item.label, cx, y + h / 2);
+		y += h + (item.margin || 0);
+	}
 	ctx.textBaseline = 'alphabetic';
+	ctx.globalAlpha = 1;
 }
 
 export function hitButton(btn, p) {

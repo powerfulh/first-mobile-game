@@ -226,7 +226,7 @@ export function drawSettingsModal(buttons) {
 	drawVolumeSliders(sliders, sliderCy);
 	drawSettingsCheckboxes(checkboxes, checkboxY);
 
-	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], t(buttons[i].label));
+	for (let i = 0; i < buttons.length; i++) drawButton(btns[i], [{ label: t(buttons[i].label) }]);
 
 	ctx.fillStyle = '#9ab';
 	ctx.font = '12px sans-serif';

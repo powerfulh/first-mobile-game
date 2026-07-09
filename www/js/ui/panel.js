@@ -1,21 +1,29 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
-import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
+import { ACCENT_RED, GOLD, INFO_BLUE, LOGICAL_H, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
 import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon } from './sprite.js';
 import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
+// 부모 컨테이너 가장자리 ↔ 자식 아이템 공용 패딩. 같은 성격 아이템의 나열 간격은 별도(각 자리 리터럴).
+const PAD = 8;
+// 아이템 사이 마진 공용값
+const margin = 6;
+// 섹션 헤더 폰트 크기 — drawSection과 섹션 내부 정적 셀 좌표(hit-test 공유) 도출이 함께 사용
+const sectionFontSize = 11;
+
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
-export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
+export const infoPanel = { x: 16, w: 328, h: 152, y: LOGICAL_H - 152 };
 const infoTopBtn = {
-	y: 504, w: 28, h: 28
-}
-export const infoQueueButton = { x: 244, ...infoTopBtn };
-export const infoWikiButton = { x: 276, ...infoTopBtn };
-export const infoSettingsButton = { x: 308, ...infoTopBtn };
+	y: infoPanel.y + PAD, w: 28, h: 28,
+};
+// 우상단 아이콘 버튼 — 우측 가장자리에서 PAD, 버튼 사이 간격 4
+export const infoSettingsButton = { x: infoPanel.x + infoPanel.w - PAD - infoTopBtn.w, ...infoTopBtn };
+export const infoWikiButton = { x: infoSettingsButton.x - infoTopBtn.w - 4, ...infoTopBtn };
+export const infoQueueButton = { x: infoWikiButton.x - infoTopBtn.w - 4, ...infoTopBtn };
 // 정보 카드 하단 전직 버튼 (hit-test는 scenes, 액션은 tower.handlePromotionButton).
-export const infoPromotionButton = { x: 30, y: 600, w: 300, h: 32 };
+export const infoPromotionButton = { x: infoPanel.x + PAD, y: LOGICAL_H - PAD - 32, w: infoPanel.w - PAD * 2, h: 32 };
 
 // 닫기(×) 버튼 — 빨간 배경 사각 버튼 (hit-test는 호출부).
 export function drawCloseX(btn) {
@@ -35,13 +43,38 @@ export function drawCloseX(btn) {
 
 // 패널 헤더 텍스트 (흰색 bold 14px, 좌측 정렬) — 기본 위치는 정보 패널 좌상단.
 // 헤더 폰트 기준 TextMetrics를 반환 — 헤더 옆에 이어 그리는 요소의 배치 계산용.
-function drawPanelHeader(text, x = infoPanel.x + 14, y = infoPanel.y + 22) {
+function drawPanelHeader(text, x = infoPanel.x + PAD, y = infoPanel.y) {
 	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
+	ctx.textBaseline = 'top';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(text, x, y);
+	ctx.fillText(text, x, y + PAD);
 	return ctx.measureText(text);
+}
+
+// 섹션 — 헤더 텍스트 + margin + 컨테이너 박스. y(섹션 헤더 윗선)만 받고
+// x·너비는 패널 공통(PAD 인셋) 고정. drawContent(boxY)가 내부 내용을 그리고 그 높이를 반환하면
+// 컨테이너 높이 = PAD + 내용 높이 + PAD로 동적 도출 (부모 컨테이너가 충분히 넉넉하다는 전제).
+// 컨테이너 rect { x, y, w, h }를 반환.
+function drawSection(title, y, drawContent) {
+	const x = infoPanel.x + PAD;
+	const w = infoPanel.w - PAD * 2;
+
+	const fontSize = sectionFontSize;
+	ctx.fillStyle = '#9ab';
+	ctx.font = `bold ${fontSize}px sans-serif`;
+	ctx.textBaseline = 'top';
+	ctx.fillText(title, x, y);
+	ctx.textBaseline = 'alphabetic';
+
+	const boxY = y + fontSize + margin;
+	const contentH = drawContent(boxY);
+	const h = PAD + contentH + PAD;
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+	ctx.lineWidth = 1;
+	roundRect(x, boxY, w, h, 6);
+	ctx.stroke();
+	return { x, y: boxY, w, h };
 }
 
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
@@ -109,22 +142,19 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	const nameWidth = drawPanelHeader(cfg.name).width;
 
 	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + 14 + nameWidth + 8, infoPanel.y + 22);
+	ctx.textBaseline = 'top'; // 헤더와 같은 윗선(패널 상단 + PAD)에 나란히 (이름과의 간격 8)
+	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + PAD + nameWidth + 8, infoPanel.y + PAD);
 
 	if (tower.canPromote) drawTopIconButton(infoQueueButton, drawHourglassIcon);
 	drawTopIconButton(infoWikiButton, drawBookIcon);
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 
-	ctx.font = '12px sans-serif';
+	const specFontSize = 12
+	ctx.font = `${specFontSize}px sans-serif`;
 	ctx.fillStyle = '#cdd';
-	const sx = infoPanel.x + 14;
-	const sy = infoPanel.y + 50;
-	const total = round1(tower.totalDamage);
-	const atkLabels = { ground: t('common.ground'), air: t('common.air') };
-	const activeTypes = [];
-	if (tower.canGround) activeTypes.push('ground');
-	if (tower.canAir) activeTypes.push('air');
-	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('common.none');
+	ctx.textBaseline = 'top'; // 스탯 행 — 윗선 기준으로 쌓임
+	const sx = infoPanel.x + PAD;
+	const sy = infoTopBtn.y + infoTopBtn.h + margin
 
 	if (hasItems(cfg.attackTypes)) {
 		const effDmg = tower.damage; // 캐시 (위치+리솔버 버프 반영)
@@ -141,10 +171,10 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		const rateStr = rateBuffPct > 0
 			? t('panel.fireRateBuffed', { rate: effRate.toFixed(1), pct: rateBuffPct })
 			: t('panel.fireRate', { rate: cfg.fireRate.toFixed(1) });
-		ctx.fillText(rateStr, sx, sy + 18);
+		ctx.fillText(rateStr, sx, sy + specFontSize + margin);
 	} else {
 		ctx.fillText(t('panel.dmgNone'), sx, sy);
-		ctx.fillText(t('panel.fireRateNone'), sx, sy + 18);
+		ctx.fillText(t('panel.fireRateNone'), sx, sy + specFontSize + margin);
 	}
 
 	const effRange = tower.range;
@@ -154,56 +184,120 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		? t('panel.rangeBuffed', { range: Math.round(effRange), pct: buffPct })
 		: t('panel.range', { range: baseRange });
 	ctx.fillText(rangeStr, sx + 160, sy);
-	ctx.fillText(t('panel.targets', { types: atkText }), sx + 160, sy + 18);
+	const atkLabels = { ground: t('common.ground'), air: t('common.air') };
+	const activeTypes = [];
+	if (tower.canGround) activeTypes.push('ground');
+	if (tower.canAir) activeTypes.push('air');
+	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('common.none');
+	ctx.fillText(t('panel.targets', { types: atkText }), sx + 160, sy + specFontSize + margin);
 	const wave = round1(tower.waveDamage);
-	ctx.fillText(t('panel.waveDamage', { dmg: wave.toLocaleString() }), sx, sy + 36);
-	ctx.fillText(t('panel.totalDamage', { dmg: total.toLocaleString() }), sx + 160, sy + 36);
+	ctx.fillText(t('panel.waveDamage', { dmg: wave.toLocaleString() }), sx, sy + specFontSize*2 + margin*2);
+	const total = round1(tower.totalDamage);
+	ctx.fillText(t('panel.totalDamage', { dmg: total.toLocaleString() }), sx + 160, sy + specFontSize*2 + margin*2);
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;
 		const bx = sx;
-		const by = sy + 44;
+		const by = sy + specFontSize*3 + margin*3
 		const bw = 220;
 		const bh = 8;
 		const ratio = xpMax > 0 ? tower.xp / xpMax : 0;
 		drawBar(bx, by, bw, bh, ratio, tower.xp >= xpMax ? GOLD : INFO_BLUE);
 		ctx.fillStyle = '#fff';
 		ctx.font = '10px sans-serif';
-		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh - 1);
+		ctx.textBaseline = 'middle'; // XP 바 세로 중앙에 정렬
+		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + margin, by + bh / 2);
 
 		drawPromotionButton(tower, promotionState);
 	}
+	ctx.textBaseline = 'alphabetic';
 }
 
-export function drawTowerQueuePanel(tower) {
-	const p = infoPanel;
+export const queuePanel = { ...infoPanel, h: 176, y: LOGICAL_H - 176 }; // 섹션 2개(전직·예약 순서)가 들어가는 높이
+
+// 마지막 draw 기준 예약 패널 인터랙션 rect — scenes hit-test와 공유 (패널이 그려진 뒤에만 탭 가능).
+// cells: [{ x, y, w, h, role }], prev/next: 순번 이동 버튼 (예약 없으면 null).
+let queueLayout = null;
+export function getQueueLayout() {
+	return queueLayout;
+}
+
+// choices: 예약 가능한 전직 대상 뷰모델 [{ role, cfg }] (tower.getReservationChoices가 도출해 전달).
+export function drawTowerQueuePanel(tower, choices) {
+	const p = queuePanel;
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	drawPanelHeader(t('panel.queueTitle'));
+	const headerMetrics = drawPanelHeader(t('panel.queueTitle'), undefined, p.y);
+	// 헤더 실측 높이 (baseline 설정과 무관하게 어센트+디센트 합 = 글리프 높이)
+	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
-	// 전직 영역
-	ctx.fillStyle = '#9ab';
-	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText(t('전직'), p.x + 14, p.y + 46); // 다국어 todo
+	// 전직 섹션 — 분기 상 전직 가능한 대상 셀 나열. 예약된 셀은 금색 강조.
+	const cells = [];
+	const promoteSection = drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, (boxY) => {
+		const cellH = 32;
+		choices.forEach((choice, i) => {
+			const cell = { x: p.x + PAD * 2 + i * (48 + margin), y: boxY + PAD, w: 48, h: cellH, role: choice.role };
+			drawCellButton(cell);
+			drawTowerSprite(choice.cfg, cell.x + cell.w / 2, cell.y + cell.h / 2, { radius: 12 });
+			if (tower.reservation?.role === choice.role) {
+				ctx.strokeStyle = GOLD; // 예약됨 — 강조 테두리
+				ctx.lineWidth = 2;
+				roundRect(cell.x, cell.y, cell.w, cell.h, 6);
+				ctx.stroke();
+			}
+			cells.push(cell);
+		});
+		return cellH;
+	});
 
-	const ax = p.x + 14; // 이것들을 절대 말고 부모의 패딩기반으로 해보자 todo
-	const ay = p.y + 54;
-	const aw = p.w - 28;
-	const ah = p.y + p.h - 14 - ay;
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-	ctx.lineWidth = 1;
-	roundRect(ax, ay, aw, ah, 6);
-	ctx.stroke();
+	// 예약 순서 섹션 — {<} {순번} {>}. 예약 없으면 자리 표시만.
+	let prev = null;
+	let next = null;
+	drawSection(t('panel.queueOrder'), promoteSection.y + promoteSection.h + margin, (boxY) => {
+		const rowH = 24;
+		const y = boxY + PAD;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		if (tower.reservation) {
+			const numberW = 32;
+			prev = { x: p.x + PAD * 2, y, w: 24, h: rowH };
+			next = { x: prev.x + prev.w + margin + numberW + margin, y, w: 24, h: rowH };
+			drawCellButton(prev);
+			drawCellButton(next);
+			ctx.fillStyle = '#fff';
+			ctx.font = 'bold 13px sans-serif';
+			ctx.fillText('<', prev.x + prev.w / 2, y + rowH / 2);
+			ctx.fillText('>', next.x + next.w / 2, y + rowH / 2);
+			ctx.fillText(String(tower.reservation.order), prev.x + prev.w + margin + numberW / 2, y + rowH / 2);
+		} else {
+			ctx.fillStyle = '#7a8a99';
+			ctx.font = '12px sans-serif';
+			ctx.textAlign = 'left';
+			ctx.fillText('—', p.x + PAD * 2, y + rowH / 2);
+		}
+		ctx.textAlign = 'left';
+		ctx.textBaseline = 'alphabetic';
+		return rowH;
+	});
+
+	queueLayout = { cells, prev, next };
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
+
+// 우선순위 섹션 컨테이너 윗선 — drawSection의 도출과 동일 수식 (셀 hit-test 좌표가 정적이어야 해서 공유).
+const settingsSectionBoxY = infoTopBtn.y + infoTopBtn.h + margin + sectionFontSize + margin;
+// 지상/공중 우선 행 — 섹션 윗선에서 PAD, 셀 3개(너비 고정)를 셀 간격 margin으로 가로 중앙 정렬.
+const gaCell = { y: settingsSectionBoxY + PAD, w: 48, h: 32 };
+const gaStartX = infoPanel.x + (infoPanel.w - (gaCell.w * 3 + margin * 2)) / 2;
 export const SETTINGS_GA = {
-	ground: { x: 96, y: 556, w: 48, h: 32 },
-	sign: { x: 156, y: 556, w: 48, h: 32 },
-	air: { x: 216, y: 556, w: 48, h: 32 },
+	ground: { x: gaStartX, ...gaCell },
+	sign: { x: gaStartX + gaCell.w + margin, ...gaCell },
+	air: { x: gaStartX + (gaCell.w + margin) * 2, ...gaCell },
 };
-export const SETTINGS_PRIORITY_BTN = { x: 38, y: 596, w: 284, h: 24 };
+// 공통 우선순위 버튼 — 지상/공중 행 끝선 + margin, x는 섹션 x + PAD.
+export const SETTINGS_PRIORITY_BTN = { x: infoPanel.x + PAD * 2, y: gaCell.y + gaCell.h + margin, w: infoPanel.w - PAD * 4, h: 24 };
 const PRIORITY_LABELS = { closest: t('panel.priority.closest'), farthest: t('panel.priority.farthest'), strongest: t('panel.priority.strongest'), weakest: t('panel.priority.weakest') };
 
 function drawCellButton(cell) {
@@ -233,74 +327,73 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
-	// 우선순위 영역
-	ctx.fillStyle = '#9ab';
-	ctx.font = 'bold 11px sans-serif';
-	ctx.fillText(t('panel.priority'), p.x + 14, p.y + 46);
+	// 우선순위 섹션 — 삭제 버튼 끝선 + 마진에서 시작. 컨테이너 높이는 내용에 맞춰 동적.
+	drawSection(t('panel.priority'), infoTopBtn.y + infoTopBtn.h + margin, () => {
+		if (!hasItems(cfg.attackTypes)) {
+			// 비공격 타워 — 안내문 한 행 (행 높이는 공통 우선순위 버튼과 동일)
+			const rowH = SETTINGS_PRIORITY_BTN.h;
+			ctx.fillStyle = '#7a8a99';
+			ctx.font = '12px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(t('panel.nonAttacking'), infoPanel.x + infoPanel.w / 2, gaCell.y + rowH / 2);
+			ctx.textAlign = 'left';
+			ctx.textBaseline = 'alphabetic';
+			return rowH;
+		}
 
-	const ax = p.x + 14;
-	const ay = p.y + 54;
-	const aw = p.w - 28;
-	const ah = p.y + p.h - 14 - ay;
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-	ctx.lineWidth = 1;
-	roundRect(ax, ay, aw, ah, 6);
-	ctx.stroke();
+		let bottom = gaCell.y; // 내용 하단 추적 — 내용 높이 = bottom − 내용 윗선(gaCell.y)
 
-	if (!hasItems(cfg.attackTypes)) {
-		ctx.fillStyle = '#7a8a99';
-		ctx.font = '12px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.fillText(t('panel.nonAttacking'), p.x + p.w / 2, ay + ah / 2 + 4);
-		ctx.textAlign = 'left';
-		return;
-	}
+		// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
+		if (dualCapable) {
+			drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
+			drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
+			// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
+			const s = SETTINGS_GA.sign;
+			const sweep = cfg.areaSweep;
+			const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
+			ctx.globalAlpha = sweep ? 0.45 : 1;
+			drawCellButton(s);
+			ctx.fillStyle = GOLD;
+			ctx.font = 'bold 20px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
+			ctx.textBaseline = 'alphabetic';
+			ctx.textAlign = 'left';
+			ctx.globalAlpha = 1;
+			bottom = gaCell.y + gaCell.h;
+		}
 
-	// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
-	if (dualCapable) {
-		drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
-		drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
-		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
-		const s = SETTINGS_GA.sign;
-		const sweep = cfg.areaSweep;
-		const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
-		ctx.globalAlpha = sweep ? 0.45 : 1;
-		drawCellButton(s);
-		ctx.fillStyle = GOLD;
-		ctx.font = 'bold 20px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
-		ctx.textBaseline = 'alphabetic';
-		ctx.textAlign = 'left';
-		ctx.globalAlpha = 1;
-	}
+		// 2순위 — 공통 표적 우선순위 (토글 버튼).
+		// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
+		if (!cfg.areaSweep) {
+			const b = SETTINGS_PRIORITY_BTN;
+			drawCellButton(b);
+			ctx.fillStyle = '#fff';
+			ctx.font = 'bold 13px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(t('panel.target', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
+			ctx.textBaseline = 'alphabetic';
+			ctx.textAlign = 'left';
+			bottom = b.y + b.h;
+		}
 
-	// 2순위 — 공통 표적 우선순위 (토글 버튼).
-	// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
-	if (!cfg.areaSweep) {
-		const b = SETTINGS_PRIORITY_BTN;
-		drawCellButton(b);
-		ctx.fillStyle = '#fff';
-		ctx.font = 'bold 13px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(t('panel.target', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
-		ctx.textBaseline = 'alphabetic';
-		ctx.textAlign = 'left';
-	}
+		return bottom - gaCell.y;
+	});
 }
 
 // ============ 전직 패널 ============
 // 좌표 상수는 scenes의 hit-test와 공유.
-export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
-export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
+export const promotionPanel = { ...infoPanel, h: 248, y: LOGICAL_H - 248 };
+export const promotionCloseButton = { x: promotionPanel.x + promotionPanel.w - PAD - 28, y: promotionPanel.y + PAD, w: 28, h: 28 };
 export const promotionCardSlots = [
-	{ x: 24, y: 432, w: 312, h: 84 },
-	{ x: 24, y: 526, w: 312, h: 84 },
+	{ x: promotionPanel.x + PAD, y: 448, w: promotionPanel.w - PAD * 2, h: 84 },
+	{ x: promotionPanel.x + PAD, y: 542, w: promotionPanel.w - PAD * 2, h: 84 },
 ];
 // 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
-export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
+export const tier4ResultCardSlot = { x: promotionPanel.x + PAD, y: 432, w: promotionPanel.w - PAD * 2, h: 178 };
 
 function drawPromotionCard(slot, cfg, cost, canAfford) {
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
@@ -311,24 +404,26 @@ function drawPromotionCard(slot, cfg, cost, canAfford) {
 
 	drawTowerSprite(cfg, slot.x + 36, slot.y + slot.h / 2, { radius: 18 });
 
+	// 카드 콘텐츠 — 전부 윗선 기준으로 쌓임
 	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
+	ctx.textBaseline = 'top';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(cfg.name, slot.x + 68, slot.y + 32);
+	ctx.fillText(cfg.name, slot.x + 68, slot.y + PAD);
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
-	ctx.fillText(t('panel.cardStats', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 56);
+	ctx.fillText(t('panel.cardStats', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }), slot.x + 68, slot.y + 46);
 
 	ctx.fillStyle = '#8aa';
 	ctx.font = '11px sans-serif';
-	ctx.fillText(cfg.tagline || '', slot.x + 68, slot.y + 74);
+	ctx.fillText(cfg.tagline || '', slot.x + 68, slot.y + 64);
 
 	ctx.textAlign = 'right';
 	ctx.fillStyle = canAfford ? GOLD : '#666';
 	ctx.font = 'bold 16px sans-serif';
-	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
+	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - PAD, slot.y + PAD); // 이름과 같은 윗선
+	ctx.textBaseline = 'alphabetic';
 }
 
 function drawTier4ResultCard(slot, cfg, cost, canAfford) {
@@ -341,17 +436,17 @@ function drawTier4ResultCard(slot, cfg, cost, canAfford) {
 	// 외관 미리보기 — 게임과 동일한 4티어 타워 그래픽 (후광 포함)
 	drawTowerSprite(cfg, slot.x + 42, slot.y + 42, { radius: 22 });
 
-	// 이름 + 비용
+	// 이름 + 비용 — 카드 콘텐츠는 전부 윗선 기준으로 쌓임
 	ctx.textAlign = 'left';
-	ctx.textBaseline = 'alphabetic';
+	ctx.textBaseline = 'top';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 20px sans-serif';
-	ctx.fillText(cfg.name, slot.x + 80, slot.y + 32);
+	ctx.fillText(cfg.name, slot.x + 80, slot.y + PAD);
 
 	ctx.textAlign = 'right';
 	ctx.fillStyle = canAfford ? GOLD : '#666';
 	ctx.font = 'bold 16px sans-serif';
-	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - 14, slot.y + 32);
+	ctx.fillText(`${cost.toLocaleString()}G`, slot.x + slot.w - PAD, slot.y + PAD); // 이름과 같은 윗선
 
 	// 스탯
 	ctx.textAlign = 'left';
@@ -359,30 +454,31 @@ function drawTier4ResultCard(slot, cfg, cost, canAfford) {
 	ctx.font = '12px sans-serif';
 	ctx.fillText(
 		t('panel.cardStats', { range: cfg.range, dmg: cfg.damage, rate: cfg.fireRate.toFixed(1) }),
-		slot.x + 80, slot.y + 54,
+		slot.x + 80, slot.y + 44,
 	);
 
 	ctx.fillStyle = '#8aa';
 	ctx.font = '11px sans-serif';
-	ctx.fillText(cfg.tagline || '', slot.x + 80, slot.y + 72);
+	ctx.fillText(cfg.tagline || '', slot.x + 80, slot.y + 62);
 
 	// 구분선
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
 	ctx.lineWidth = 1;
 	ctx.beginPath();
-	ctx.moveTo(slot.x + 14, slot.y + 92);
-	ctx.lineTo(slot.x + slot.w - 14, slot.y + 92);
+	ctx.moveTo(slot.x + PAD, slot.y + 92);
+	ctx.lineTo(slot.x + slot.w - PAD, slot.y + 92);
 	ctx.stroke();
 
-	// 상세 설명
+	// 상세 설명 — 구분선(+92) 아래에서 윗선 기준으로 쌓임
 	const lines = cfg.description || [];
 	ctx.fillStyle = '#dde';
 	ctx.font = '12px sans-serif';
 	const lineH = 18;
-	const baseY = slot.y + 112;
+	const topY = slot.y + 102;
 	for (let i = 0; i < lines.length; i++) {
-		ctx.fillText('• ' + lines[i], slot.x + 16, baseY + i * lineH);
+		ctx.fillText('• ' + lines[i], slot.x + PAD, topY + i * lineH);
 	}
+	ctx.textBaseline = 'alphabetic';
 }
 
 // canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
@@ -392,11 +488,12 @@ export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
 		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
 	});
 
+	// 타이틀·안내문 — 패널 상단에서 윗선 기준으로 쌓임
 	ctx.textAlign = 'center';
-	ctx.textBaseline = 'alphabetic';
+	ctx.textBaseline = 'top';
 	ctx.fillStyle = GOLD;
 	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(t('panel.promote.title'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 28);
+	ctx.fillText(t('panel.promote.title'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + PAD);
 
 	const cost = tower.promotionCost;
 
@@ -406,11 +503,13 @@ export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
 		ctx.fillText(
 			t('panel.promote.tier4Info', { from: tower.cfg.name, to: tier4Cfg.name }),
 			promotionPanel.x + promotionPanel.w / 2,
-			promotionPanel.y + 48,
+			promotionPanel.y + 40,
 		);
+		ctx.textBaseline = 'alphabetic';
 		drawTier4ResultCard(tier4ResultCardSlot, tier4Cfg, cost, canAfford);
 	} else {
-		ctx.fillText(t('panel.promote.choose'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 48);
+		ctx.fillText(t('panel.promote.choose'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 40);
+		ctx.textBaseline = 'alphabetic';
 		for (let i = 0; i < cfgs.length && i < promotionCardSlots.length; i++) {
 			drawPromotionCard(promotionCardSlots[i], cfgs[i], cost, canAfford);
 		}
@@ -429,17 +528,18 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 
 	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	
-	drawPanelHeader(e.name, p.x + 42, p.y + 27); // 좌측 스프라이트 옆
+	drawPanelHeader(e.name, p.x + 42, p.y + 5); // 좌측 스프라이트 옆
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
-	const sx = p.x + 14;
+	ctx.textBaseline = 'top'; // 행들은 윗선 기준으로 쌓임
+	const sx = p.x + PAD;
 
-	// 항목을 균일한 행 간격으로 순서대로 배치 — rowY()는 현재 행 y를 반환하고 다음 행으로 진행.
+	// 항목을 균일한 행 간격으로 순서대로 배치 — rowY()는 현재 행 윗선 y를 반환하고 다음 행으로 진행.
 	// 조건부 항목(방어력/회복/장벽)이 있어도 항상 같은 간격으로 규칙적으로 쌓임.
 	const ROW = 20;
 	let row = 0;
-	const rowY = () => p.y + 52 + (row++) * ROW;
+	const rowY = () => p.y + 44 + (row++) * ROW;
 
 	// 타입
 	ctx.fillText(t('panel.type', { type: e.ga === 'air' ? t('common.air') : t('common.ground') }), sx, rowY());
@@ -450,8 +550,8 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 	ctx.fillText(hpLabel, sx, yHp);
 	const bh = 8;
 	const bx = sx + ctx.measureText(hpLabel).width + 10;
-	const by = yHp - bh;
-	const bw = Math.max(0, (p.x + p.w - 14) - bx);
+	const by = yHp + 2; // 행 텍스트(12px, 윗선 yHp) 세로 중앙에 바 중앙을 맞춤
+	const bw = Math.max(0, (p.x + p.w - PAD) - bx);
 	const ratio = e.hpMax > 0 ? Math.max(0, e.hp / e.hpMax) : 0;
 	drawBar(bx, by, bw, bh, ratio, e.shielded ? INFO_BLUE : '#2ecc71');
 	ctx.fillStyle = '#cdd';
@@ -476,4 +576,5 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 	if (e.kind === 'barrierSpawner') {
 		ctx.fillText(t('panel.barrierHp', { hp: fmtHp(e.barrierHp) }), sx, rowY());
 	}
+	ctx.textBaseline = 'alphabetic';
 }

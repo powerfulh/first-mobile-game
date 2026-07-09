@@ -1,6 +1,6 @@
 import { ctx } from './core/canvas.js';
 import {
-	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole,
+	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole, fusionRecipesWithMaterial,
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
@@ -260,6 +260,7 @@ export function placeTower(x, y) {
 		xp: 0,
 		totalDamage: 0,
 		waveDamage: 0,
+		reservation: null, // 전직 예약 { role, order } — 영속 (저장/로드 포함)
 	};
 	setTowerTier(tw, 'novice', 0);
 	game.entities.towers.push(tw);
@@ -300,6 +301,7 @@ export function promoteTower(tower, role) {
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
 	}
+	cancelReservation(tower); // 전직 완료 — 예약이 있었다면 소모 (수동 전직 포함)
 	return true;
 }
 
@@ -316,6 +318,10 @@ export function promoteFusion(triggerTower) {
 
 	game.gold -= triggerTower.promotionCost;
 
+	// 전직 완료·재료 소모 — 걸려 있던 예약 정리 (순번 압축 포함)
+	cancelReservation(triggerTower);
+	for (const m of materials) cancelReservation(m);
+
 	// 재료 타워들 제거 (트리거는 남아서 결과로 변환)
 	const consumed = new Set(materials);
 	game.entities.towers = game.entities.towers.filter(x => !consumed.has(x));
@@ -327,6 +333,74 @@ export function promoteFusion(triggerTower) {
 	setTowerTier(triggerTower, resultRole, triggerTower.tier + 1, prevRole);
 	recomputeStats();
 	return true;
+}
+
+// ============ 전직 예약 ============
+// tower.reservation = { role, order } | null — 휘발하지 않는 영속 데이터 (저장/로드 포함).
+// order는 전체 예약 큐에서의 순번 (1부터 연속·유일). 예약 전직은 processReservations가 1순위만 시도.
+
+// 예약 큐 — 순번 오름차순.
+export function getReservedTowers() {
+	return game.entities.towers
+		.filter(t => t.reservation)
+		.sort((a, b) => a.reservation.order - b.reservation.order);
+}
+
+// 이 타워가 예약할 수 있는 전직 대상 목록 [{ role, cfg }] —
+// 일반 전직은 promotions 분기, 합체 티어(3·4)는 자기 role을 재료로 쓰는 레시피의 결과들.
+export function getReservationChoices(tower) {
+	const roles = hasItems(tower.cfg.promotions)
+		? tower.cfg.promotions
+		: fusionRecipesWithMaterial(tower.role).map(r => r.result);
+	return roles.map(role => ({ role, cfg: TOWER_ROLES[role] }));
+}
+
+// 예약 토글/변경 — 이미 예약된 role 재터치면 삭제, 다른 role이면 변경(순번 유지), 신규면 끝 순번 부여.
+export function reserveTowerPromotion(tower, role) {
+	if (tower.reservation?.role === role) {
+		cancelReservation(tower);
+		return;
+	}
+	if (tower.reservation) {
+		tower.reservation.role = role;
+		return;
+	}
+	tower.reservation = { role, order: getReservedTowers().length + 1 };
+}
+
+// 예약 삭제 — 뒤 순번들을 앞으로 당겨 연속 유지.
+export function cancelReservation(tower) {
+	if (!tower.reservation) return;
+	const removed = tower.reservation.order;
+	tower.reservation = null;
+	for (const t of game.entities.towers) {
+		if (t.reservation && t.reservation.order > removed) t.reservation.order--;
+	}
+}
+
+// 순번 이동 — dir(-1/+1) 방향의 이웃 예약과 순번 교환. 끝이면 무시.
+export function moveReservation(tower, dir) {
+	if (!tower.reservation) return;
+	const targetOrder = tower.reservation.order + dir;
+	const other = game.entities.towers.find(t => t.reservation && t.reservation.order === targetOrder);
+	if (!other) return;
+	other.reservation.order = tower.reservation.order;
+	tower.reservation.order = targetOrder;
+}
+
+// 예약 전직 처리 (매 프레임) — 1순위 예약의 조건이 모두 달성되면 즉시 전직.
+// 일반 전직: XP·골드 충족 시. 합체 전직: 필요한 재료 타워들이 재료(fusionMaterials)로 선정되어
+// 예약된 결과를 완성하는 경우에만 (검증·예약 해제는 promoteTower/promoteFusion이 담당).
+export function processReservations() {
+	const first = getReservedTowers()[0];
+	if (!first) return;
+	const { role } = first.reservation;
+	if (first.cfg.promotions.includes(role)) {
+		promoteTower(first, role);
+	} else if (isFusionTriggerContext(first)) {
+		const roles = game.fusionMaterials.map(m => m.role);
+		if (fusionResultFor([...roles, first.role]) === role) promoteFusion(first);
+	}
 }
 
 // ============ Update / Fire ============
