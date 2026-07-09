@@ -81,8 +81,11 @@ function fontPx(font) {
  *   - label: 표시 텍스트 (필수)
  *   - font: canvas font 문자열 (기본 BUTTON_FONT). px 크기가 행 높이가 됨 (파싱 실패 시 22)
  *   - margin: 다음 요소와의 세로 간격 px (기본 0, 마지막 요소에선 무시)
+ * @param {{ pulse?: boolean }} [opts] pulse: 추천 액션 강조 — 버튼 전체(배경·테두리·라벨) 알파 맥동
  */
-export function drawButton(btn, labels) {
+export function drawButton(btn, labels, { pulse = false } = {}) {
+	if (pulse) ctx.globalAlpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(performance.now() / 333));
+
 	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
 	ctx.fill();
@@ -110,6 +113,7 @@ export function drawButton(btn, labels) {
 		y += h + (item.margin || 0);
 	}
 	ctx.textBaseline = 'alphabetic';
+	ctx.globalAlpha = 1;
 }
 
 export function hitButton(btn, p) {

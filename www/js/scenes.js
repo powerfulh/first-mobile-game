@@ -108,20 +108,16 @@ const titleButtonsNoSave = {
 	wiki:     { x: 80, y: 442, w: 200, h: 64 },
 	settings: { x: 80, y: 518, w: 200, h: 64 },
 };
-let titleAnim = 0;
 let titleSave = null;
 
 scenes.title = {
 	settingsOpen: false,
 	enter() {
-		titleAnim = 0;
 		titleSave = loadSaveData();
 		this.settingsOpen = false;
 		playBgm('normal'); // 타이틀·일반 웨이브 공용 BGM
 	},
-	update(dt) {
-		titleAnim += dt;
-	},
+	update() {},
 	draw() {
 		ctx.fillStyle = '#1a2e1a';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
@@ -142,22 +138,17 @@ scenes.title = {
 		ctx.font = '13px sans-serif';
 		ctx.fillText('OFFLINE EDITION', LOGICAL_W / 2, 256);
 
-		const pulse = 0.5 + 0.5 * Math.sin(titleAnim * 3);
-
+		// 추천 액션(저장 있으면 이어하기, 없으면 시작)만 pulse 강조
 		if (titleSave) {
-			ctx.globalAlpha = 0.6 + 0.4 * pulse;
 			drawButton(titleButtonsWithSave.continueBtn, [
 				{ label: t('title.continue'), font: '13px sans-serif', margin: 6 },
 				{ label: `Wave ${titleSave.wave}` },
-			]);
-			ctx.globalAlpha = 1;
+			], { pulse: true });
 			drawButton(titleButtonsWithSave.start, [{ label: t('title.start') }]);
 			drawButton(titleButtonsWithSave.wiki, [{ label: t('common.wiki') }]);
 			drawButton(titleButtonsWithSave.settings, [{ label: t('settings.title') }]);
 		} else {
-			ctx.globalAlpha = 0.6 + 0.4 * pulse;
-			drawButton(titleButtonsNoSave.start, [{ label: t('title.start') }]);
-			ctx.globalAlpha = 1;
+			drawButton(titleButtonsNoSave.start, [{ label: t('title.start') }], { pulse: true });
 			drawButton(titleButtonsNoSave.wiki, [{ label: t('common.wiki') }]);
 			drawButton(titleButtonsNoSave.settings, [{ label: t('settings.title') }]);
 		}
