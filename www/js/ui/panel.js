@@ -293,7 +293,7 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 // ============ 전직 패널 ============
 // 좌표 상수는 scenes의 hit-test와 공유.
-export const promotionPanel = { x: 16, y: 392, w: 328, h: 248 };
+export const promotionPanel = { ...infoPanel, h: 248, y: LOGICAL_H - 248 };
 export const promotionCloseButton = { x: 308, y: 400, w: 28, h: 28 };
 export const promotionCardSlots = [
 	{ x: 24, y: 448, w: 312, h: 84 },
