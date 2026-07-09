@@ -213,7 +213,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.textBaseline = 'alphabetic';
 }
 
-export const queuePanel = {...infoPanel, h: 160, y: LOGICAL_H - 160}
+export const queuePanel = { ...infoPanel, h: 176, y: LOGICAL_H - 176 }; // 섹션 2개(전직·예약 순서)가 들어가는 높이
 
 export function drawTowerQueuePanel(tower) {
 	const p = queuePanel;
@@ -225,7 +225,10 @@ export function drawTowerQueuePanel(tower) {
 	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
 	// 전직 섹션 — 헤더 끝선 + 마진에서 시작. 내용 미구현 (임시 높이만 확보)
-	drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, () => 32);
+	const promoteSection = drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, () => 32);
+
+	// 예약 순서 섹션 — 전직 섹션 끝선 + 마진. 내용 미구현 (임시 높이만 확보)
+	drawSection(t('panel.queueOrder'), promoteSection.y + promoteSection.h + margin, () => 32);
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
