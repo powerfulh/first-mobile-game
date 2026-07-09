@@ -293,11 +293,11 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 // ============ 전직 패널 ============
 // 좌표 상수는 scenes의 hit-test와 공유.
-export const promotionPanel = { x: 16, y: 376, w: 328, h: 248 };
-export const promotionCloseButton = { x: 308, y: 384, w: 28, h: 28 };
+export const promotionPanel = { x: 16, y: 392, w: 328, h: 248 };
+export const promotionCloseButton = { x: 308, y: 400, w: 28, h: 28 };
 export const promotionCardSlots = [
-	{ x: 24, y: 432, w: 312, h: 84 },
-	{ x: 24, y: 526, w: 312, h: 84 },
+	{ x: 24, y: 448, w: 312, h: 84 },
+	{ x: 24, y: 542, w: 312, h: 84 },
 ];
 // 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
 export const tier4ResultCardSlot = { x: 24, y: 432, w: 312, h: 178 };
