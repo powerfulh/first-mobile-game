@@ -8,6 +8,8 @@ import { t } from '../core/i18n.js';
 
 // 부모 컨테이너 가장자리 ↔ 자식 아이템 공용 패딩. 같은 성격 아이템의 나열 간격은 별도(각 자리 리터럴).
 const PAD = 8;
+// 아이템 사이 마진 공용값
+const margin = 6;
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
 export const infoPanel = { x: 16, w: 328, h: 152, y: LOGICAL_H - 152 };
@@ -125,7 +127,6 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.fillStyle = '#cdd';
 	ctx.textBaseline = 'top'; // 스탯 행 — 윗선 기준으로 쌓임
 	const sx = infoPanel.x + PAD;
-	const margin = 6
 	const sy = infoTopBtn.y + infoTopBtn.h + margin
 
 	if (hasItems(cfg.attackTypes)) {
@@ -192,7 +193,9 @@ export function drawTowerQueuePanel(tower) {
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	drawPanelHeader(t('panel.queueTitle'), undefined, p.y);
+	const headerMetrics = drawPanelHeader(t('panel.queueTitle'), undefined, p.y);
+	// 헤더 실측 높이 (baseline 설정과 무관하게 어센트+디센트 합 = 글리프 높이)
+	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
 	// 전직 영역
 	const ax = p.x + PAD;
@@ -202,8 +205,8 @@ export function drawTowerQueuePanel(tower) {
 
 	ctx.fillStyle = '#9ab';
 	ctx.font = 'bold 11px sans-serif';
-	ctx.textBaseline = 'bottom'; // 영역 박스 윗선에서 6px 위
-	ctx.fillText(t('panel.queuePromote'), ax, ay - 6);
+	ctx.textBaseline = 'top'; // 헤더 아래 margin
+	ctx.fillText(t('panel.queuePromote'), ax, p.y + PAD + headerH + margin);
 
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 	ctx.lineWidth = 1;
@@ -251,19 +254,20 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 	// 우선순위 영역
 	const ax = p.x + PAD;
-	const ay = p.y + 54;
+	const ay = infoTopBtn.y + infoTopBtn.h + margin
 	const aw = p.w - PAD * 2;
 	const ah = p.y + p.h - PAD - ay;
 
 	ctx.fillStyle = '#9ab';
-	ctx.font = 'bold 11px sans-serif';
-	ctx.textBaseline = 'bottom'; // 영역 박스 윗선에서 6px 위
-	ctx.fillText(t('panel.priority'), ax, ay - 6);
+	const sectionFontSize = 11
+	ctx.font = `bold ${sectionFontSize}px sans-serif`;
+	ctx.textBaseline = 'top';
+	ctx.fillText(t('panel.priority'), ax, ay);
 	ctx.textBaseline = 'alphabetic';
 
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 	ctx.lineWidth = 1;
-	roundRect(ax, ay, aw, ah, 6);
+	roundRect(ax, ay + sectionFontSize + margin, aw, ah, 6);
 	ctx.stroke();
 
 	if (!hasItems(cfg.attackTypes)) {
