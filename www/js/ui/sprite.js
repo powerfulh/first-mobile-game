@@ -395,33 +395,38 @@ export function drawBookIcon(cx, cy) {
 }
 
 // 모래시계 아이콘 — 위/아래 가로대 + 중앙이 잘록한 몸통 + 아래에 쌓인 모래
-export function drawHourglassIcon(cx, cy) {
+// spin=true면 중심 기준으로 천천히 회전 (예약 진행 중 표시).
+export function drawHourglassIcon(cx, cy, spin = false) {
+	ctx.save();
+	ctx.translate(cx, cy);
+	if (spin) ctx.rotate((performance.now() / 500) % (Math.PI * 2));
 	ctx.strokeStyle = '#fff';
 	ctx.lineWidth = 1.5;
 	// 위·아래 가로대
 	ctx.beginPath();
-	ctx.moveTo(cx - 5, cy - 6);
-	ctx.lineTo(cx + 5, cy - 6);
-	ctx.moveTo(cx - 5, cy + 6);
-	ctx.lineTo(cx + 5, cy + 6);
+	ctx.moveTo(-5, -6);
+	ctx.lineTo(5, -6);
+	ctx.moveTo(-5, 6);
+	ctx.lineTo(5, 6);
 	ctx.stroke();
 	// 몸통 — 좌우 곡선이 중앙에서 잘록하게 만남
 	ctx.beginPath();
-	ctx.moveTo(cx - 4, cy - 6);
-	ctx.quadraticCurveTo(cx - 4, cy - 2, cx, cy);
-	ctx.quadraticCurveTo(cx - 4, cy + 2, cx - 4, cy + 6);
-	ctx.moveTo(cx + 4, cy - 6);
-	ctx.quadraticCurveTo(cx + 4, cy - 2, cx, cy);
-	ctx.quadraticCurveTo(cx + 4, cy + 2, cx + 4, cy + 6);
+	ctx.moveTo(-4, -6);
+	ctx.quadraticCurveTo(-4, -2, 0, 0);
+	ctx.quadraticCurveTo(-4, 2, -4, 6);
+	ctx.moveTo(4, -6);
+	ctx.quadraticCurveTo(4, -2, 0, 0);
+	ctx.quadraticCurveTo(4, 2, 4, 6);
 	ctx.stroke();
 	// 아래쪽에 쌓인 모래
 	ctx.fillStyle = '#fff';
 	ctx.beginPath();
-	ctx.moveTo(cx, cy + 1);
-	ctx.lineTo(cx + 2.5, cy + 5);
-	ctx.lineTo(cx - 2.5, cy + 5);
+	ctx.moveTo(0, 1);
+	ctx.lineTo(2.5, 5);
+	ctx.lineTo(-2.5, 5);
 	ctx.closePath();
 	ctx.fill();
+	ctx.restore();
 }
 
 // EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.

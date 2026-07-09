@@ -145,7 +145,8 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.textBaseline = 'top'; // 헤더와 같은 윗선(패널 상단 + PAD)에 나란히 (이름과의 간격 8)
 	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + PAD + nameWidth + 8, infoPanel.y + PAD);
 
-	if (tower.canPromote) drawTopIconButton(infoQueueButton, drawHourglassIcon);
+	// 예약이 걸린 타워는 모래시계가 회전 (예약 진행 중 표시)
+	if (tower.canPromote) drawTopIconButton(infoQueueButton, (cx, cy) => drawHourglassIcon(cx, cy, !!tower.reservation));
 	drawTopIconButton(infoWikiButton, drawBookIcon);
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 
