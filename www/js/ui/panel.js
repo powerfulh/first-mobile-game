@@ -35,12 +35,13 @@ export function drawCloseX(btn) {
 
 // 패널 헤더 텍스트 (흰색 bold 14px, 좌측 정렬) — 기본 위치는 정보 패널 좌상단.
 // 헤더 폰트 기준 TextMetrics를 반환 — 헤더 옆에 이어 그리는 요소의 배치 계산용.
-function drawPanelHeader(text, x = infoPanel.x + 14, y = infoPanel.y + 22) {
+function drawPanelHeader(text, x = infoPanel.x + 14, y = infoPanel.y) {
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'alphabetic';
 	ctx.fillStyle = '#fff';
 	ctx.font = 'bold 14px sans-serif';
-	ctx.fillText(text, x, y);
+	const topPadding = 22
+	ctx.fillText(text, x, topPadding + y);
 	return ctx.measureText(text);
 }
 
@@ -431,7 +432,7 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 
 	drawEnemySprite(e.spriteType, p.x + 24, p.y + 22, 9, { shielded: e.shielded });
 	
-	drawPanelHeader(e.name, p.x + 42, p.y + 27); // 좌측 스프라이트 옆
+	drawPanelHeader(e.name, p.x + 42, p.y + 5); // 좌측 스프라이트 옆
 
 	ctx.font = '12px sans-serif';
 	ctx.fillStyle = '#cdd';
