@@ -222,8 +222,18 @@ export function getQueueLayout() {
 	return queueLayout;
 }
 
-// choices: 예약 가능한 전직 대상 뷰모델 [{ role, cfg }] (tower.getReservationChoices가 도출해 전달).
-export function drawTowerQueuePanel(tower, choices) {
+// rows: 예약 전직 뷰모델 (tower.getReservationChoices) — 티어순 행 [{ roles:[{role,cfg}], chosen }].
+// 분기 상 가능한 전직을 티어별 행으로 나열, 예약 경로(chosen)는 금색 강조. 행 수에 맞춰 패널 높이 동적 조정(하단 고정).
+export function drawTowerQueuePanel(tower, rows) {
+	const cellH = 32;
+	const rowCount = Math.max(1, rows.length);
+	const promoteContentH = rowCount * cellH + (rowCount - 1) * margin;
+	const estHeaderH = 16; // 패널 헤더 글리프 높이 근사 (약간 여유 — 하단 슬랙 확보)
+	const promoteSectionH = sectionFontSize + margin + PAD + promoteContentH + PAD;
+	const orderSectionH = sectionFontSize + margin + PAD + 24 + PAD;
+	queuePanel.h = PAD + estHeaderH + margin + promoteSectionH + margin + orderSectionH + PAD;
+	queuePanel.y = LOGICAL_H - queuePanel.h;
+
 	const p = queuePanel;
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
@@ -232,23 +242,25 @@ export function drawTowerQueuePanel(tower, choices) {
 	// 헤더 실측 높이 (baseline 설정과 무관하게 어센트+디센트 합 = 글리프 높이)
 	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
-	// 전직 섹션 — 분기 상 전직 가능한 대상 셀 나열. 예약된 셀은 금색 강조.
+	// 전직 섹션 — 티어순 행별로 전직 대상 셀 나열. 예약 경로 셀은 금색 강조.
 	const cells = [];
 	const promoteSection = drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, (boxY) => {
-		const cellH = 32;
-		choices.forEach((choice, i) => {
-			const cell = { x: p.x + PAD * 2 + i * (48 + margin), y: boxY + PAD, w: 48, h: cellH, role: choice.role };
-			drawCellButton(cell);
-			drawTowerSprite(choice.cfg, cell.x + cell.w / 2, cell.y + cell.h / 2, { radius: 12 });
-			if (tower.reservation?.role === choice.role) {
-				ctx.strokeStyle = GOLD; // 예약됨 — 강조 테두리
-				ctx.lineWidth = 2;
-				roundRect(cell.x, cell.y, cell.w, cell.h, 6);
-				ctx.stroke();
-			}
-			cells.push(cell);
+		rows.forEach((row, ri) => {
+			const rowY = boxY + PAD + ri * (cellH + margin);
+			row.roles.forEach((choice, i) => {
+				const cell = { x: p.x + PAD * 2 + i * (48 + margin), y: rowY, w: 48, h: cellH, role: choice.role };
+				drawCellButton(cell);
+				drawTowerSprite(choice.cfg, cell.x + cell.w / 2, cell.y + cell.h / 2, { radius: 12 });
+				if (row.chosen === choice.role) {
+					ctx.strokeStyle = GOLD; // 예약 경로 — 강조 테두리
+					ctx.lineWidth = 2;
+					roundRect(cell.x, cell.y, cell.w, cell.h, 6);
+					ctx.stroke();
+				}
+				cells.push(cell);
+			});
 		});
-		return cellH;
+		return promoteContentH;
 	});
 
 	// 예약 순서 섹션 — {<} {순번} {>}. 예약 없으면 자리 표시만.

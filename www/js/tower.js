@@ -301,7 +301,7 @@ export function promoteTower(tower, role) {
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {
 		game.modal = { type: 'buffIntro' };
 	}
-	cancelReservation(tower); // 전직 완료 — 예약이 있었다면 소모 (수동 전직 포함)
+	reconcileReservation(tower); // 전직 완료 — 예약이 목표 도달이면 해제, 남은 단계 있으면 유지
 	return true;
 }
 
@@ -318,8 +318,7 @@ export function promoteFusion(triggerTower) {
 
 	game.gold -= triggerTower.promotionCost;
 
-	// 전직 완료·재료 소모 — 걸려 있던 예약 정리 (순번 압축 포함)
-	cancelReservation(triggerTower);
+	// 재료 소모 — 걸려 있던 예약 정리 (순번 압축 포함). 트리거 예약은 아래 전직 후 재조정.
 	for (const m of materials) cancelReservation(m);
 
 	// 재료 타워들 제거 (트리거는 남아서 결과로 변환)
@@ -332,6 +331,7 @@ export function promoteFusion(triggerTower) {
 	triggerTower.xp = 0;
 	setTowerTier(triggerTower, resultRole, triggerTower.tier + 1, prevRole);
 	recomputeStats();
+	reconcileReservation(triggerTower); // 합체 완료 — 목표 도달이면 해제
 	return true;
 }
 
@@ -346,23 +346,75 @@ export function getReservedTowers() {
 		.sort((a, b) => a.reservation.order - b.reservation.order);
 }
 
-// 이 타워가 예약할 수 있는 전직 대상 목록 [{ role, cfg }] —
-// 일반 전직은 promotions 분기, 합체 티어(3·4)는 자기 role을 재료로 쓰는 레시피의 결과들.
-export function getReservationChoices(tower) {
-	const roles = hasItems(tower.cfg.promotions)
-		? tower.cfg.promotions
-		: fusionRecipesWithMaterial(tower.role).map(r => r.result);
-	return roles.map(role => ({ role, cfg: TOWER_ROLES[role] }));
+// 전직 트리 부모 (promotions 기준). 없으면 null.
+function promotionParentOf(role) {
+	for (const parent in TOWER_ROLES) {
+		if ((TOWER_ROLES[parent].promotions || []).includes(role)) return parent;
+	}
+	return null;
 }
 
-// 예약 토글/변경 — 이미 예약된 role 재터치면 삭제, 다른 role이면 변경(순번 유지), 신규면 끝 순번 부여.
+// fromRole → targetRole 경로의 '다음 한 단계' 자식 (promotions 트리). target이 from의 하위가 아니면 null.
+function promotionStepToward(fromRole, targetRole) {
+	let node = targetRole;
+	while (node) {
+		const parent = promotionParentOf(node);
+		if (parent === fromRole) return node;
+		node = parent;
+	}
+	return null;
+}
+
+// 예약(=목표 role) 재조정 — 전직 완료 후 호출. 목표 도달 시 해제, 아직 하위 경로(승급/합체)면 유지, 도달 불가(분기 이탈)면 해제.
+function reconcileReservation(tower) {
+	const res = tower.reservation;
+	if (!res) return;
+	if (tower.role === res.role) { cancelReservation(tower); return; } // 목표 도달
+	const canReach = promotionStepToward(tower.role, res.role)
+		|| fusionRecipesWithMaterial(tower.role).some(r => r.result === res.role);
+	if (!canReach) cancelReservation(tower);
+}
+
+// 예약 패널용 뷰모델 — 티어순 행 목록. 각 행 { roles:[{role,cfg}], chosen }.
+// 승급 트리를 따라 내려가며 목표(reservation.role) 경로의 자식을 chosen으로 표시(분기 좁힘).
+// 미선택 티어에서 멈춰 그 아래는 안 보임. tier3 실제 타워는 합체 결과 1행(단독 예약).
+export function getReservationChoices(tower) {
+	const target = tower.reservation?.role || null;
+	const rows = [];
+	let node = tower.role;
+	for (;;) {
+		const promotions = TOWER_ROLES[node].promotions || [];
+		let roles, isFusion = false;
+		if (hasItems(promotions)) {
+			roles = promotions;
+		} else if (node === tower.role) {
+			roles = fusionRecipesWithMaterial(node).map(r => r.result); // tier3 → 합체 결과
+			isFusion = true;
+		} else {
+			break; // 체인은 승급 트리까지만 (합체는 실제 tier3 타워에서 단독 예약)
+		}
+		if (!hasItems(roles)) break;
+		const chosen = !target ? null
+			: isFusion ? (roles.includes(target) ? target : null)
+				: promotionStepToward(node, target);
+		rows.push({ roles: roles.map(r => ({ role: r, cfg: TOWER_ROLES[r] })), chosen });
+		if (isFusion || !chosen) break; // 합체행은 종단 / 미선택 티어에서 멈춤 (목표 티어여도 다음 티어는 확장용으로 노출)
+		node = chosen;
+	}
+	return rows;
+}
+
+// 예약 토글/변경 — 목표 role을 저장(경로는 파생). 같은 셀 재터치는 한 티어 축소(부모로, 최상단이면 해제).
+// 다른 셀은 그 role로 목표 변경(더 깊은 티어 잘림, 순번 유지). 신규는 끝 순번 부여.
 export function reserveTowerPromotion(tower, role) {
 	if (tower.reservation?.role === role) {
-		cancelReservation(tower);
+		const parent = promotionParentOf(role);
+		if (parent && parent !== tower.role) tower.reservation.role = parent; // 한 단계 축소
+		else cancelReservation(tower); // 최상단 재터치 → 예약 해제
 		return;
 	}
 	if (tower.reservation) {
-		tower.reservation.role = role;
+		tower.reservation.role = role; // 목표 변경 (순번 유지)
 		return;
 	}
 	tower.reservation = { role, order: getReservedTowers().length + 1 };
@@ -388,19 +440,19 @@ export function moveReservation(tower, dir) {
 	tower.reservation.order = targetOrder;
 }
 
-// 예약 전직 처리 (매 프레임) — 1순위 예약의 조건이 모두 달성되면 즉시 전직.
-// 일반 전직: XP·골드 충족 시. 합체 전직: 필요한 재료 타워들이 재료(fusionMaterials)로 선정되어
-// 예약된 결과를 완성하는 경우에만 (검증·예약 해제는 promoteTower/promoteFusion이 담당).
-// 실제 전직이 일어나면 true 반환 — 호출부(scenes)가 전직 효과음 재생에 사용.
+// 예약 전직 처리 (매 프레임) — 1순위 예약을 목표(reservation.role)까지 한 티어씩 전진.
+// 승급 경로면 다음 단계로 promoteTower(예약은 목표 도달 전까지 유지 — reconcileReservation).
+// 합체 목표면 재료가 갖춰져 결과가 일치할 때 promoteFusion. 실제 전직 시 true (호출부가 효과음).
 export function processReservations() {
 	const first = getReservedTowers()[0];
 	if (!first) return false;
-	const { role } = first.reservation;
-	if (first.cfg.promotions.includes(role)) {
-		return promoteTower(first, role);
+	const target = first.reservation.role;
+	const step = promotionStepToward(first.role, target); // 목표로 가는 다음 승급 단계
+	if (step) {
+		return promoteTower(first, step);
 	} else if (isFusionTriggerContext(first)) {
 		const roles = game.fusionMaterials.map(m => m.role);
-		if (fusionResultFor([...roles, first.role]) === role) return promoteFusion(first);
+		if (fusionResultFor([...roles, first.role]) === target) return promoteFusion(first);
 	}
 	return false;
 }
