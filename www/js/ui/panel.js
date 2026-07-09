@@ -175,6 +175,8 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	}
 }
 
+export const queuePanel = {...infoPanel, h: 160, y: LOGICAL_H - 160}
+
 export function drawTowerQueuePanel(tower) {
 	const p = infoPanel;
 	const cfg = tower.cfg;
