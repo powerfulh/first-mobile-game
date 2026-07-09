@@ -53,9 +53,10 @@ function drawPanelHeader(text, x = infoPanel.x + PAD, y = infoPanel.y) {
 }
 
 // 섹션 — 헤더 텍스트 + margin + 컨테이너 박스. y(섹션 헤더 윗선)만 받고
-// x·너비는 패널 공통(PAD 인셋) 고정, 컨테이너 높이는 부모 패널 끝선(LOGICAL_H) − PAD로 도출.
-// 컨테이너 rect { x, y, w, h }를 반환 — 내부 아이템 배치용.
-function drawSection(title, y) {
+// x·너비는 패널 공통(PAD 인셋) 고정. drawContent가 내부 내용을 그리고 그 높이를 반환하면
+// 컨테이너 높이 = PAD + 내용 높이 + PAD로 동적 도출 (부모 컨테이너가 충분히 넉넉하다는 전제).
+// 컨테이너 rect { x, y, w, h }를 반환.
+function drawSection(title, y, drawContent) {
 	const x = infoPanel.x + PAD;
 	const w = infoPanel.w - PAD * 2;
 
@@ -67,7 +68,8 @@ function drawSection(title, y) {
 	ctx.textBaseline = 'alphabetic';
 
 	const boxY = y + fontSize + margin;
-	const h = LOGICAL_H - PAD - boxY;
+	const contentH = drawContent();
+	const h = PAD + contentH + PAD;
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 	ctx.lineWidth = 1;
 	roundRect(x, boxY, w, h, 6);
@@ -222,8 +224,8 @@ export function drawTowerQueuePanel(tower) {
 	// 헤더 실측 높이 (baseline 설정과 무관하게 어센트+디센트 합 = 글리프 높이)
 	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
-	// 전직 섹션 — 헤더 끝선 + 마진에서 시작
-	drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin);
+	// 전직 섹션 — 헤더 끝선 + 마진에서 시작. 내용 미구현 (임시 높이만 확보)
+	drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, () => 32);
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
@@ -269,53 +271,61 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
-	// 우선순위 섹션 — 삭제 버튼 끝선 + 마진에서 시작
-	const area = drawSection(t('panel.priority'), infoTopBtn.y + infoTopBtn.h + margin);
+	// 우선순위 섹션 — 삭제 버튼 끝선 + 마진에서 시작. 컨테이너 높이는 내용에 맞춰 동적.
+	drawSection(t('panel.priority'), infoTopBtn.y + infoTopBtn.h + margin, () => {
+		if (!hasItems(cfg.attackTypes)) {
+			// 비공격 타워 — 안내문 한 행 (행 높이는 공통 우선순위 버튼과 동일)
+			const rowH = SETTINGS_PRIORITY_BTN.h;
+			ctx.fillStyle = '#7a8a99';
+			ctx.font = '12px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(t('panel.nonAttacking'), infoPanel.x + infoPanel.w / 2, gaCell.y + rowH / 2);
+			ctx.textAlign = 'left';
+			ctx.textBaseline = 'alphabetic';
+			return rowH;
+		}
 
-	if (!hasItems(cfg.attackTypes)) {
-		ctx.fillStyle = '#7a8a99';
-		ctx.font = '12px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle'; // 섹션 컨테이너 세로 중앙
-		ctx.fillText(t('panel.nonAttacking'), area.x + area.w / 2, area.y + area.h / 2);
-		ctx.textAlign = 'left';
-		ctx.textBaseline = 'alphabetic';
-		return;
-	}
+		let bottom = gaCell.y; // 내용 하단 추적 — 내용 높이 = bottom − 내용 윗선(gaCell.y)
 
-	// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
-	if (dualCapable) {
-		drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
-		drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
-		// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
-		const s = SETTINGS_GA.sign;
-		const sweep = cfg.areaSweep;
-		const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
-		ctx.globalAlpha = sweep ? 0.45 : 1;
-		drawCellButton(s);
-		ctx.fillStyle = GOLD;
-		ctx.font = 'bold 20px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
-		ctx.textBaseline = 'alphabetic';
-		ctx.textAlign = 'left';
-		ctx.globalAlpha = 1;
-	}
+		// 1순위 — 지상/공중 우선 (둘 다 가능한 타워만). 각 셀이 버튼.
+		if (dualCapable) {
+			drawGaCell(SETTINGS_GA.ground, 'ground', tower.canGround);
+			drawGaCell(SETTINGS_GA.air, 'air', tower.canAir);
+			// 부등호(지상/공중 우선). 스윕류는 단일 표적 정렬이 무의미 → '=' 고정·비활성(흐리게) 표시.
+			const s = SETTINGS_GA.sign;
+			const sweep = cfg.areaSweep;
+			const sign = sweep ? '=' : (tower.gaPriority === 'ground' ? '>' : tower.gaPriority === 'air' ? '<' : '=');
+			ctx.globalAlpha = sweep ? 0.45 : 1;
+			drawCellButton(s);
+			ctx.fillStyle = GOLD;
+			ctx.font = 'bold 20px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(sign, s.x + s.w / 2, s.y + s.h / 2);
+			ctx.textBaseline = 'alphabetic';
+			ctx.textAlign = 'left';
+			ctx.globalAlpha = 1;
+			bottom = gaCell.y + gaCell.h;
+		}
 
-	// 2순위 — 공통 표적 우선순위 (토글 버튼).
-	// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
-	if (!cfg.areaSweep) {
-		const b = SETTINGS_PRIORITY_BTN;
-		drawCellButton(b);
-		ctx.fillStyle = '#fff';
-		ctx.font = 'bold 13px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(t('panel.target', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
-		ctx.textBaseline = 'alphabetic';
-		ctx.textAlign = 'left';
-	}
+		// 2순위 — 공통 표적 우선순위 (토글 버튼).
+		// 범위(스윕) 공격은 사거리 내 전체를 때려 단일 표적 우선순위가 무의미 → 영역 생략.
+		if (!cfg.areaSweep) {
+			const b = SETTINGS_PRIORITY_BTN;
+			drawCellButton(b);
+			ctx.fillStyle = '#fff';
+			ctx.font = 'bold 13px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(t('panel.target', { p: PRIORITY_LABELS[tower.targetPriority] }), b.x + b.w / 2, b.y + b.h / 2);
+			ctx.textBaseline = 'alphabetic';
+			ctx.textAlign = 'left';
+			bottom = b.y + b.h;
+		}
+
+		return bottom - gaCell.y;
+	});
 }
 
 // ============ 전직 패널 ============
