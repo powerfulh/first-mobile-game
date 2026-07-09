@@ -179,11 +179,11 @@ export function drawTowerInfoPanel(tower, promotionState) {
 export const queuePanel = {...infoPanel, h: 160, y: LOGICAL_H - 160}
 
 export function drawTowerQueuePanel(tower) {
-	const p = infoPanel;
+	const p = queuePanel;
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
 
-	drawPanelHeader(t('panel.queueTitle'));
+	drawPanelHeader(t('panel.queueTitle'), undefined, p.y);
 
 	// 전직 영역
 	ctx.fillStyle = '#9ab';
