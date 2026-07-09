@@ -449,7 +449,7 @@ scenes.playing = {
 		// 패시브 오라(감속·회복차단) 리셋 — 아래 updateTower들이 다시 push, 적은 다음 프레임 소비
 		for (const e of game.entities.enemies) { e.slowFactor = 1; e.regenDisabled = false; }
 		for (const tower of game.entities.towers) updateTower(tower, dt);
-		processReservations(); // 1순위 예약의 전직 조건 달성 시 즉시 전직
+		if (processReservations()) playPromote(); // 1순위 예약의 전직 조건 달성 시 즉시 전직 (+효과음)
 		for (const p of game.entities.projectiles) updateProjectile(p, dt);
 		for (const b of game.effects.beams) updateBeam(b, dt);
 		for (const l of game.effects.links) updateLink(l, dt);

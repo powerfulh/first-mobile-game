@@ -391,16 +391,18 @@ export function moveReservation(tower, dir) {
 // 예약 전직 처리 (매 프레임) — 1순위 예약의 조건이 모두 달성되면 즉시 전직.
 // 일반 전직: XP·골드 충족 시. 합체 전직: 필요한 재료 타워들이 재료(fusionMaterials)로 선정되어
 // 예약된 결과를 완성하는 경우에만 (검증·예약 해제는 promoteTower/promoteFusion이 담당).
+// 실제 전직이 일어나면 true 반환 — 호출부(scenes)가 전직 효과음 재생에 사용.
 export function processReservations() {
 	const first = getReservedTowers()[0];
-	if (!first) return;
+	if (!first) return false;
 	const { role } = first.reservation;
 	if (first.cfg.promotions.includes(role)) {
-		promoteTower(first, role);
+		return promoteTower(first, role);
 	} else if (isFusionTriggerContext(first)) {
 		const roles = game.fusionMaterials.map(m => m.role);
-		if (fusionResultFor([...roles, first.role]) === role) promoteFusion(first);
+		if (fusionResultFor([...roles, first.role]) === role) return promoteFusion(first);
 	}
+	return false;
 }
 
 // ============ Update / Fire ============
