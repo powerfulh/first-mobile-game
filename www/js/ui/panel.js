@@ -2,7 +2,7 @@
 import { ctx } from '../core/canvas.js';
 import { ACCENT_RED, GOLD, INFO_BLUE, LOGICAL_H, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
-import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon } from './sprite.js';
+import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon, drawNewBadge } from './sprite.js';
 import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
@@ -97,23 +97,6 @@ function drawTopIconButton(btn, drawIcon) {
 	ctx.lineWidth = 1;
 	ctx.stroke();
 	drawIcon(btn.x + btn.w / 2, btn.y + btn.h / 2);
-}
-
-// 신규 기능 ? 배지 — 버튼 우상단 모서리 (병렬 웨이브 버튼과 동일 모티프).
-function drawNewBadge(btn) {
-	const bx = btn.x + btn.w - 3;
-	const by = btn.y + 3;
-	ctx.fillStyle = GOLD;
-	ctx.beginPath();
-	ctx.arc(bx, by, 8, 0, Math.PI * 2);
-	ctx.fill();
-	ctx.fillStyle = '#1a2535';
-	ctx.font = 'bold 12px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText('?', bx, by + 1);
-	ctx.textBaseline = 'alphabetic';
-	ctx.textAlign = 'left';
 }
 
 // 전직 버튼 — state(tower.getPromotionState)로 라벨·활성 도출, 구운 tower 필드 사용.

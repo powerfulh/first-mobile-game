@@ -1,7 +1,7 @@
 // 적 스프라이트·공용 렌더 프리미티브 (HP바·마크링·재생 오라 등 게임 오버레이는 제외).
 // 게임/위키/인트로/정보패널/HUD 요약이 공유. 타워 본체 스프라이트는 ./sprite/tower.js.
 import { ctx } from '../core/canvas.js';
-import { AIR_COLOR, ACCENT_RED, INFO_BLUE, TOWER, BARRIER_RADIUS, EMP_COLOR } from '../core/config.js';
+import { AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE, TOWER, BARRIER_RADIUS, EMP_COLOR } from '../core/config.js';
 import { roundRect } from '../core/helpers.js';
 
 // 4티어 공통 후광 — 회전하는 6개 점. 타워 참조만 받아 본체 반지름 바깥에 그림.
@@ -427,6 +427,23 @@ export function drawHourglassIcon(cx, cy, spin = false) {
 	ctx.closePath();
 	ctx.fill();
 	ctx.restore();
+}
+
+// 신규 기능 ? 배지 — 버튼 우상단 모서리. 미열람 안내가 걸린 버튼(추가 웨이브·예약 등) 공용.
+export function drawNewBadge(btn) {
+	const bx = btn.x + btn.w - 3;
+	const by = btn.y + 3;
+	ctx.fillStyle = GOLD;
+	ctx.beginPath();
+	ctx.arc(bx, by, 8, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = '#1a2535';
+	ctx.font = 'bold 12px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('?', bx, by + 1);
+	ctx.textBaseline = 'alphabetic';
+	ctx.textAlign = 'left';
 }
 
 // EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.

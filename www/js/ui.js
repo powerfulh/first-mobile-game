@@ -1,7 +1,7 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, GOLD, INFO_BLUE, SLATE } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE } from './core/config.js';
 import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
-import { drawEnemySprite } from './ui/sprite.js';
+import { drawEnemySprite, drawNewBadge } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
 
@@ -144,20 +144,7 @@ export function drawNextWaveButton({ enabled, showBadge, triple }) {
 	ctx.globalAlpha = 1;
 
 	// 모서리에 ? 배지 (신규 기능 표시 — 비활성이어도 또렷하게)
-	if (showBadge) {
-		const bx = nextWaveButton.x + nextWaveButton.w - 3;
-		const by = nextWaveButton.y + 3;
-		ctx.fillStyle = GOLD;
-		ctx.beginPath();
-		ctx.arc(bx, by, 8, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.fillStyle = '#1a2535';
-		ctx.font = 'bold 12px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText('?', bx, by + 1);
-		ctx.textBaseline = 'alphabetic';
-	}
+	if (showBadge) drawNewBadge(nextWaveButton);
 }
 
 // 적 HP바 — 본체 위 별도 패스로 그림(호출부가 대상 판별). 보빙 미반영: 항상 e.y 기준.
