@@ -50,6 +50,29 @@ function drawPanelHeader(text, x = infoPanel.x + PAD, y = infoPanel.y) {
 	return ctx.measureText(text);
 }
 
+// 섹션 — 헤더 텍스트 + margin + 컨테이너 박스. y(섹션 헤더 윗선)만 받고
+// x·너비는 패널 공통(PAD 인셋) 고정, 컨테이너 높이는 부모 패널 끝선(LOGICAL_H) − PAD로 도출.
+// 컨테이너 rect { x, y, w, h }를 반환 — 내부 아이템 배치용.
+function drawSection(title, y) {
+	const x = infoPanel.x + PAD;
+	const w = infoPanel.w - PAD * 2;
+
+	const fontSize = 11;
+	ctx.fillStyle = '#9ab';
+	ctx.font = `bold ${fontSize}px sans-serif`;
+	ctx.textBaseline = 'top';
+	ctx.fillText(title, x, y);
+	ctx.textBaseline = 'alphabetic';
+
+	const boxY = y + fontSize + margin;
+	const h = LOGICAL_H - PAD - boxY;
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+	ctx.lineWidth = 1;
+	roundRect(x, boxY, w, h, 6);
+	ctx.stroke();
+	return { x, y: boxY, w, h };
+}
+
 // 진행 바 (배경 트랙 + ratio만큼 채움 + 테두리). XP·HP 바 공용. 좌표·ratio·색은 호출부가 결정.
 function drawBar(x, y, w, h, ratio, fillColor) {
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -197,22 +220,8 @@ export function drawTowerQueuePanel(tower) {
 	// 헤더 실측 높이 (baseline 설정과 무관하게 어센트+디센트 합 = 글리프 높이)
 	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
-	// 전직 영역
-	const ax = p.x + PAD;
-	const ay = p.y + 54;
-	const aw = p.w - PAD * 2;
-	const ah = p.y + p.h - PAD - ay;
-
-	ctx.fillStyle = '#9ab';
-	ctx.font = 'bold 11px sans-serif';
-	ctx.textBaseline = 'top'; // 헤더 아래 margin
-	ctx.fillText(t('panel.queuePromote'), ax, p.y + PAD + headerH + margin);
-
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-	ctx.lineWidth = 1;
-	roundRect(ax, ay, aw, ah, 6);
-	ctx.stroke();
-	ctx.textBaseline = 'alphabetic';
+	// 전직 섹션 — 헤더 끝선 + 마진에서 시작
+	drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin);
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
@@ -252,30 +261,15 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
 
-	// 우선순위 영역
-	const ax = p.x + PAD;
-	const ay = infoTopBtn.y + infoTopBtn.h + margin
-	const aw = p.w - PAD * 2;
-	const ah = p.y + p.h - PAD - ay;
-
-	ctx.fillStyle = '#9ab';
-	const sectionFontSize = 11
-	ctx.font = `bold ${sectionFontSize}px sans-serif`;
-	ctx.textBaseline = 'top';
-	ctx.fillText(t('panel.priority'), ax, ay);
-	ctx.textBaseline = 'alphabetic';
-
-	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-	ctx.lineWidth = 1;
-	roundRect(ax, ay + sectionFontSize + margin, aw, ah, 6);
-	ctx.stroke();
+	// 우선순위 섹션 — 삭제 버튼 끝선 + 마진에서 시작
+	const area = drawSection(t('panel.priority'), infoTopBtn.y + infoTopBtn.h + margin);
 
 	if (!hasItems(cfg.attackTypes)) {
 		ctx.fillStyle = '#7a8a99';
 		ctx.font = '12px sans-serif';
 		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle'; // 영역 박스 세로 중앙
-		ctx.fillText(t('panel.nonAttacking'), p.x + p.w / 2, ay + ah / 2);
+		ctx.textBaseline = 'middle'; // 섹션 컨테이너 세로 중앙
+		ctx.fillText(t('panel.nonAttacking'), area.x + area.w / 2, area.y + area.h / 2);
 		ctx.textAlign = 'left';
 		ctx.textBaseline = 'alphabetic';
 		return;
