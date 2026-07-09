@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	PARALLEL_INTRO_KEY, ACCENT_RED, GOLD,
+	PARALLEL_INTRO_KEY, GOLD,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -111,24 +111,6 @@ const titleButtonsNoSave = {
 let titleAnim = 0;
 let titleSave = null;
 
-function drawContinueButton(btn, wave) {
-	ctx.fillStyle = ACCENT_RED;
-	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 2;
-	ctx.stroke();
-
-	ctx.fillStyle = '#fff';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.font = '13px sans-serif';
-	ctx.fillText(t('title.continue'), btn.x + btn.w / 2, btn.y + btn.h / 2 - 13);
-	ctx.font = 'bold 22px sans-serif';
-	ctx.fillText(`Wave ${wave}`, btn.x + btn.w / 2, btn.y + btn.h / 2 + 11);
-	ctx.textBaseline = 'alphabetic';
-}
-
 scenes.title = {
 	settingsOpen: false,
 	enter() {
@@ -164,17 +146,20 @@ scenes.title = {
 
 		if (titleSave) {
 			ctx.globalAlpha = 0.6 + 0.4 * pulse;
-			drawContinueButton(titleButtonsWithSave.continueBtn, titleSave.wave);
+			drawButton(titleButtonsWithSave.continueBtn, [
+				{ label: t('title.continue'), font: '13px sans-serif', margin: 6 },
+				{ label: `Wave ${titleSave.wave}` },
+			]);
 			ctx.globalAlpha = 1;
-			drawButton(titleButtonsWithSave.start, t('title.start'));
-			drawButton(titleButtonsWithSave.wiki, t('common.wiki'));
-			drawButton(titleButtonsWithSave.settings, t('settings.title'));
+			drawButton(titleButtonsWithSave.start, [{ label: t('title.start') }]);
+			drawButton(titleButtonsWithSave.wiki, [{ label: t('common.wiki') }]);
+			drawButton(titleButtonsWithSave.settings, [{ label: t('settings.title') }]);
 		} else {
 			ctx.globalAlpha = 0.6 + 0.4 * pulse;
-			drawButton(titleButtonsNoSave.start, t('title.start'));
+			drawButton(titleButtonsNoSave.start, [{ label: t('title.start') }]);
 			ctx.globalAlpha = 1;
-			drawButton(titleButtonsNoSave.wiki, t('common.wiki'));
-			drawButton(titleButtonsNoSave.settings, t('settings.title'));
+			drawButton(titleButtonsNoSave.wiki, [{ label: t('common.wiki') }]);
+			drawButton(titleButtonsNoSave.settings, [{ label: t('settings.title') }]);
 		}
 
 		if (this.settingsOpen) drawSettingsModal(titleSettingsButtons);
@@ -938,8 +923,8 @@ scenes.gameOver = {
 		ctx.font = '16px sans-serif';
 		ctx.fillText(t('gameover.defeat', { n: game.wave }), LOGICAL_W / 2, 252);
 
-		drawButton(gameOverButtons.restart, t('gameover.restart'));
-		drawButton(gameOverButtons.toTitle, t('gameover.toTitle'));
+		drawButton(gameOverButtons.restart, [{ label: t('gameover.restart') }]);
+		drawButton(gameOverButtons.toTitle, [{ label: t('gameover.toTitle') }]);
 	},
 	pointerDown(p) {
 		if (hitButton(gameOverButtons.restart, p)) {

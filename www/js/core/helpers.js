@@ -67,18 +67,42 @@ export function drawPanel(x, y, w, h, opts = {}) {
 	ctx.stroke();
 }
 
-export function drawButton(btn, label) {
+const BUTTON_FONT = 'bold 22px sans-serif';
+// 폰트 문자열의 px 크기 = 행 높이 (파싱 실패 시 기본 22)
+function fontPx(font) {
+	const m = /(\d+(?:\.\d+)?)px/.exec(font);
+	return m ? parseFloat(m[1]) : 22;
+}
+
+// 버튼 (빨간 라운드 배경 + 흰 테두리) + 라벨 스택.
+// labels: [{ label, font?, margin? }] — 그룹 전체를 세로 중앙 정렬, margin은 다음 요소와의 간격.
+export function drawButton(btn, labels) {
 	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';
 	ctx.lineWidth = 2;
 	ctx.stroke();
+
+	// 1패스 — 그룹 총 높이 (행 높이 합 + 요소 사이 마진 합)
+	let total = 0;
+	for (let i = 0; i < labels.length; i++) {
+		total += fontPx(labels[i].font || BUTTON_FONT);
+		if (i < labels.length - 1) total += labels[i].margin || 0;
+	}
+
+	// 2패스 — 위에서부터 행마다 중앙 기준으로 그리며 전진
 	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 22px sans-serif';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
-	ctx.fillText(label, btn.x + btn.w / 2, btn.y + btn.h / 2);
+	const cx = btn.x + btn.w / 2;
+	let y = btn.y + btn.h / 2 - total / 2;
+	for (const item of labels) {
+		const h = fontPx(item.font || BUTTON_FONT);
+		ctx.font = item.font || BUTTON_FONT;
+		ctx.fillText(item.label, cx, y + h / 2);
+		y += h + (item.margin || 0);
+	}
 	ctx.textBaseline = 'alphabetic';
 }
 

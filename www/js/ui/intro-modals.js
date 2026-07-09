@@ -180,7 +180,7 @@ function makeIntro(opts) {
 			ctx.font = `${lineSize}px sans-serif`;
 			lines.forEach((line, i) => ctx.fillText(t(line), cx, panel.y + lineStart + i * lineGap));
 			if (drawExtra) drawExtra(panel, cx);
-			drawButton(confirmBtn, t('common.confirm'));
+			drawButton(confirmBtn, [{ label: t('common.confirm') }]);
 		},
 	};
 }
