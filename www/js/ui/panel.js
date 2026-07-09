@@ -125,9 +125,8 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.fillStyle = '#cdd';
 	ctx.textBaseline = 'top'; // 스탯 행 — 윗선 기준으로 쌓임
 	const sx = infoPanel.x + PAD;
-	// const sy = infoPanel.y + 44; // 첫 행 윗선 (헤더 아래 위치 — 패딩 아님)
-	const sy = infoTopBtn.y + infoTopBtn.h + 8
 	const margin = 6
+	const sy = infoTopBtn.y + infoTopBtn.h + margin
 
 	if (hasItems(cfg.attackTypes)) {
 		const effDmg = tower.damage; // 캐시 (위치+리솔버 버프 반영)
@@ -179,7 +178,7 @@ export function drawTowerInfoPanel(tower, promotionState) {
 		ctx.fillStyle = '#fff';
 		ctx.font = '10px sans-serif';
 		ctx.textBaseline = 'middle'; // XP 바 세로 중앙에 정렬
-		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + 8, by + bh / 2);
+		ctx.fillText(`XP ${tower.xp} / ${xpMax}`, bx + bw + margin, by + bh / 2);
 
 		drawPromotionButton(tower, promotionState);
 	}
