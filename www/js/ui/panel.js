@@ -1,13 +1,13 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
-import { ACCENT_RED, GOLD, INFO_BLUE, SLATE } from '../core/config.js';
+import { ACCENT_RED, GOLD, INFO_BLUE, LOGICAL_H, SLATE } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
 import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon } from './sprite.js';
 import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
-export const infoPanel = { x: 16, y: 496, w: 328, h: 144 };
+export const infoPanel = { x: 16, w: 328, h: 144, y: LOGICAL_H - 144 };
 const infoTopBtn = {
 	y: 504, w: 28, h: 28
 }
