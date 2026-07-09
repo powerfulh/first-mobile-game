@@ -74,8 +74,14 @@ function fontPx(font) {
 	return m ? parseFloat(m[1]) : 22;
 }
 
-// 버튼 (빨간 라운드 배경 + 흰 테두리) + 라벨 스택.
-// labels: [{ label, font?, margin? }] — 그룹 전체를 세로 중앙 정렬, margin은 다음 요소와의 간격.
+/**
+ * 버튼 (빨간 라운드 배경 + 흰 테두리) + 라벨 스택 — 그룹 전체를 버튼 세로 중앙에 정렬.
+ * @param {{ x: number, y: number, w: number, h: number }} btn 버튼 영역 (hit-test와 공유하는 사각형)
+ * @param {Array<{ label: string, font?: string, margin?: number }>} labels 위→아래 순서의 라벨 스택
+ *   - label: 표시 텍스트 (필수)
+ *   - font: canvas font 문자열 (기본 BUTTON_FONT). px 크기가 행 높이가 됨 (파싱 실패 시 22)
+ *   - margin: 다음 요소와의 세로 간격 px (기본 0, 마지막 요소에선 무시)
+ */
 export function drawButton(btn, labels) {
 	ctx.fillStyle = ACCENT_RED;
 	roundRect(btn.x, btn.y, btn.w, btn.h, 14);
