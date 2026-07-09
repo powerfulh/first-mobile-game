@@ -99,6 +99,23 @@ function drawTopIconButton(btn, drawIcon) {
 	drawIcon(btn.x + btn.w / 2, btn.y + btn.h / 2);
 }
 
+// 신규 기능 ? 배지 — 버튼 우상단 모서리 (병렬 웨이브 버튼과 동일 모티프).
+function drawNewBadge(btn) {
+	const bx = btn.x + btn.w - 3;
+	const by = btn.y + 3;
+	ctx.fillStyle = GOLD;
+	ctx.beginPath();
+	ctx.arc(bx, by, 8, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.fillStyle = '#1a2535';
+	ctx.font = 'bold 12px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText('?', bx, by + 1);
+	ctx.textBaseline = 'alphabetic';
+	ctx.textAlign = 'left';
+}
+
 // 전직 버튼 — state(tower.getPromotionState)로 라벨·활성 도출, 구운 tower 필드 사용.
 function drawPromotionButton(tower, state) {
 	const active = state !== 'notReady' && state !== 'noGold';
@@ -135,7 +152,8 @@ function drawPromotionButton(tower, state) {
 }
 
 // 선택된 타워 정보 카드. promotionState는 호출부(도메인)가 tower.getPromotionState로 도출해 전달.
-export function drawTowerInfoPanel(tower, promotionState) {
+// queueBadge: 예약 안내를 아직 못 본 경우 true — 예약 버튼에 ? 배지 (호출부가 hasSeenIntro로 도출).
+export function drawTowerInfoPanel(tower, promotionState, queueBadge) {
 	const cfg = tower.cfg;
 	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
@@ -146,7 +164,10 @@ export function drawTowerInfoPanel(tower, promotionState) {
 	ctx.fillText(`Tier ${tower.tier}`, infoPanel.x + PAD + nameWidth + 8, infoPanel.y + PAD);
 
 	// 예약이 걸린 타워는 모래시계가 회전 (예약 진행 중 표시)
-	if (tower.canPromote) drawTopIconButton(infoQueueButton, (cx, cy) => drawHourglassIcon(cx, cy, !!tower.reservation));
+	if (tower.canPromote) {
+		drawTopIconButton(infoQueueButton, (cx, cy) => drawHourglassIcon(cx, cy, !!tower.reservation));
+		if (queueBadge) drawNewBadge(infoQueueButton); // 미열람 — 신규 기능 ? 배지
+	}
 	drawTopIconButton(infoWikiButton, drawBookIcon);
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
 

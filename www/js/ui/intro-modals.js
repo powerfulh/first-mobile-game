@@ -5,11 +5,11 @@ import { ctx } from '../core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, PARALLEL_INTRO_KEY,
-	MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
 } from '../core/config.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
-import { drawEnemySprite } from './sprite.js';
+import { drawEnemySprite, drawHourglassIcon } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 표준 모달 레이아웃 (대부분 공유, tier4만 별도)
@@ -266,6 +266,19 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawEnemySprite('regen', cx, cy, 13),
 		title: 'intro.regen.title',
 		lines: ['intro.regen.line1', 'intro.regen.line2', 'intro.regen.line3'],
+	}),
+
+	queueIntro: makeIntro({
+		key: QUEUE_INTRO_KEY, accent: GOLD,
+		drawIcon: (cx, cy) => {
+			ctx.save();
+			ctx.translate(cx, cy);
+			ctx.scale(2.4, 2.4); // 작은 버튼 아이콘을 모달용으로 확대
+			drawHourglassIcon(0, 0, true); // 회전 — 기능(예약 진행)과 동일 연출
+			ctx.restore();
+		},
+		title: 'intro.queue.title',
+		lines: ['intro.queue.line1', 'intro.queue.line2', 'intro.queue.line3'],
 	}),
 
 	empIntro: makeIntro({
