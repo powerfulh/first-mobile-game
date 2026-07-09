@@ -10,6 +10,8 @@ import { t } from '../core/i18n.js';
 const PAD = 8;
 // 아이템 사이 마진 공용값
 const margin = 6;
+// 섹션 헤더 폰트 크기 — drawSection과 섹션 내부 정적 셀 좌표(hit-test 공유) 도출이 함께 사용
+const sectionFontSize = 11;
 
 // 선택된 타워/적의 정보·설정 카드 공용 패널 영역 (화면 하단). 위치/크기·hit-test 공유.
 export const infoPanel = { x: 16, w: 328, h: 152, y: LOGICAL_H - 152 };
@@ -57,7 +59,7 @@ function drawSection(title, y) {
 	const x = infoPanel.x + PAD;
 	const w = infoPanel.w - PAD * 2;
 
-	const fontSize = 11;
+	const fontSize = sectionFontSize;
 	ctx.fillStyle = '#9ab';
 	ctx.font = `bold ${fontSize}px sans-serif`;
 	ctx.textBaseline = 'top';
@@ -225,13 +227,19 @@ export function drawTowerQueuePanel(tower) {
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
+
+// 우선순위 섹션 컨테이너 윗선 — drawSection의 도출과 동일 수식 (셀 hit-test 좌표가 정적이어야 해서 공유).
+const settingsSectionBoxY = infoTopBtn.y + infoTopBtn.h + margin + sectionFontSize + margin;
+// 지상/공중 우선 행 — 섹션 윗선에서 PAD, 셀 3개(너비 고정)를 셀 간격 margin으로 가로 중앙 정렬.
+const gaCell = { y: settingsSectionBoxY + PAD, w: 48, h: 32 };
+const gaStartX = infoPanel.x + (infoPanel.w - (gaCell.w * 3 + margin * 2)) / 2;
 export const SETTINGS_GA = {
-	ground: { x: 96, y: 556, w: 48, h: 32 },
-	sign: { x: 156, y: 556, w: 48, h: 32 },
-	air: { x: 216, y: 556, w: 48, h: 32 },
+	ground: { x: gaStartX, ...gaCell },
+	sign: { x: gaStartX + gaCell.w + margin, ...gaCell },
+	air: { x: gaStartX + (gaCell.w + margin) * 2, ...gaCell },
 };
-// 우선순위 영역 박스(패널에서 PAD) 안의 자식 버튼 — 영역에서 다시 PAD, 하단도 PAD
-export const SETTINGS_PRIORITY_BTN = { x: infoPanel.x + PAD * 2, y: infoPanel.y + infoPanel.h - PAD * 2 - 24, w: infoPanel.w - PAD * 4, h: 24 };
+// 공통 우선순위 버튼 — 지상/공중 행 끝선 + margin, x는 섹션 x + PAD.
+export const SETTINGS_PRIORITY_BTN = { x: infoPanel.x + PAD * 2, y: gaCell.y + gaCell.h + margin, w: infoPanel.w - PAD * 4, h: 24 };
 const PRIORITY_LABELS = { closest: t('panel.priority.closest'), farthest: t('panel.priority.farthest'), strongest: t('panel.priority.strongest'), weakest: t('panel.priority.weakest') };
 
 function drawCellButton(cell) {
