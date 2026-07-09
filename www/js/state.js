@@ -140,6 +140,7 @@ export function saveGame() {
 			totalDamage: t.totalDamage || 0,
 			canGround: t.canGround, canAir: t.canAir,
 			gaPriority: t.gaPriority, targetPriority: t.targetPriority,
+			reservation: t.reservation || null, // 전직 예약 { role, order }
 		})),
 	};
 	try {
@@ -207,12 +208,14 @@ export function loadGame(data) {
 				cooldown: 0, angle: 0, xp: td.xp || 0,
 				totalDamage: td.totalDamage || 0,
 				waveDamage: 0,
+				reservation: null,
 			};
 			setTowerTier(tw, td.role, td.tier); // role/tier + cfg·파생값 + 우선순위 기본값
 			if (td.canGround !== undefined) tw.canGround = td.canGround;
 			if (td.canAir !== undefined) tw.canAir = td.canAir;
 			if (td.gaPriority) tw.gaPriority = td.gaPriority;
 			if (td.targetPriority) tw.targetPriority = td.targetPriority;
+			if (td.reservation && TOWER_ROLES[td.reservation.role]) tw.reservation = td.reservation;
 			return tw;
 		});
 

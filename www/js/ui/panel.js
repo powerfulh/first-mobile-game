@@ -53,7 +53,7 @@ function drawPanelHeader(text, x = infoPanel.x + PAD, y = infoPanel.y) {
 }
 
 // 섹션 — 헤더 텍스트 + margin + 컨테이너 박스. y(섹션 헤더 윗선)만 받고
-// x·너비는 패널 공통(PAD 인셋) 고정. drawContent가 내부 내용을 그리고 그 높이를 반환하면
+// x·너비는 패널 공통(PAD 인셋) 고정. drawContent(boxY)가 내부 내용을 그리고 그 높이를 반환하면
 // 컨테이너 높이 = PAD + 내용 높이 + PAD로 동적 도출 (부모 컨테이너가 충분히 넉넉하다는 전제).
 // 컨테이너 rect { x, y, w, h }를 반환.
 function drawSection(title, y, drawContent) {
@@ -68,7 +68,7 @@ function drawSection(title, y, drawContent) {
 	ctx.textBaseline = 'alphabetic';
 
 	const boxY = y + fontSize + margin;
-	const contentH = drawContent();
+	const contentH = drawContent(boxY);
 	const h = PAD + contentH + PAD;
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 	ctx.lineWidth = 1;
@@ -215,7 +215,15 @@ export function drawTowerInfoPanel(tower, promotionState) {
 
 export const queuePanel = { ...infoPanel, h: 176, y: LOGICAL_H - 176 }; // 섹션 2개(전직·예약 순서)가 들어가는 높이
 
-export function drawTowerQueuePanel(tower) {
+// 마지막 draw 기준 예약 패널 인터랙션 rect — scenes hit-test와 공유 (패널이 그려진 뒤에만 탭 가능).
+// cells: [{ x, y, w, h, role }], prev/next: 순번 이동 버튼 (예약 없으면 null).
+let queueLayout = null;
+export function getQueueLayout() {
+	return queueLayout;
+}
+
+// choices: 예약 가능한 전직 대상 뷰모델 [{ role, cfg }] (tower.getReservationChoices가 도출해 전달).
+export function drawTowerQueuePanel(tower, choices) {
 	const p = queuePanel;
 	const cfg = tower.cfg;
 	drawPanel(p.x, p.y, p.w, p.h, { stroke: cfg.color, alpha: 0.9 });
@@ -224,11 +232,56 @@ export function drawTowerQueuePanel(tower) {
 	// 헤더 실측 높이 (baseline 설정과 무관하게 어센트+디센트 합 = 글리프 높이)
 	const headerH = headerMetrics.actualBoundingBoxAscent + headerMetrics.actualBoundingBoxDescent;
 
-	// 전직 섹션 — 헤더 끝선 + 마진에서 시작. 내용 미구현 (임시 높이만 확보)
-	const promoteSection = drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, () => 32);
+	// 전직 섹션 — 분기 상 전직 가능한 대상 셀 나열. 예약된 셀은 금색 강조.
+	const cells = [];
+	const promoteSection = drawSection(t('panel.queuePromote'), p.y + PAD + headerH + margin, (boxY) => {
+		const cellH = 32;
+		choices.forEach((choice, i) => {
+			const cell = { x: p.x + PAD * 2 + i * (48 + margin), y: boxY + PAD, w: 48, h: cellH, role: choice.role };
+			drawCellButton(cell);
+			drawTowerSprite(choice.cfg, cell.x + cell.w / 2, cell.y + cell.h / 2, { radius: 12 });
+			if (tower.reservation?.role === choice.role) {
+				ctx.strokeStyle = GOLD; // 예약됨 — 강조 테두리
+				ctx.lineWidth = 2;
+				roundRect(cell.x, cell.y, cell.w, cell.h, 6);
+				ctx.stroke();
+			}
+			cells.push(cell);
+		});
+		return cellH;
+	});
 
-	// 예약 순서 섹션 — 전직 섹션 끝선 + 마진. 내용 미구현 (임시 높이만 확보)
-	drawSection(t('panel.queueOrder'), promoteSection.y + promoteSection.h + margin, () => 32);
+	// 예약 순서 섹션 — {<} {순번} {>}. 예약 없으면 자리 표시만.
+	let prev = null;
+	let next = null;
+	drawSection(t('panel.queueOrder'), promoteSection.y + promoteSection.h + margin, (boxY) => {
+		const rowH = 24;
+		const y = boxY + PAD;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		if (tower.reservation) {
+			const numberW = 32;
+			prev = { x: p.x + PAD * 2, y, w: 24, h: rowH };
+			next = { x: prev.x + prev.w + margin + numberW + margin, y, w: 24, h: rowH };
+			drawCellButton(prev);
+			drawCellButton(next);
+			ctx.fillStyle = '#fff';
+			ctx.font = 'bold 13px sans-serif';
+			ctx.fillText('<', prev.x + prev.w / 2, y + rowH / 2);
+			ctx.fillText('>', next.x + next.w / 2, y + rowH / 2);
+			ctx.fillText(String(tower.reservation.order), prev.x + prev.w + margin + numberW / 2, y + rowH / 2);
+		} else {
+			ctx.fillStyle = '#7a8a99';
+			ctx.font = '12px sans-serif';
+			ctx.textAlign = 'left';
+			ctx.fillText('—', p.x + PAD * 2, y + rowH / 2);
+		}
+		ctx.textAlign = 'left';
+		ctx.textBaseline = 'alphabetic';
+		return rowH;
+	});
+
+	queueLayout = { cells, prev, next };
 }
 
 export const SETTINGS_DELETE_BTN = { ...infoWikiButton };
