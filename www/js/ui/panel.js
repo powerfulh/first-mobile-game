@@ -269,7 +269,9 @@ export function drawTowerQueuePanel(tower, rows) {
 		ctx.textBaseline = 'middle';
 		if (tower.reservation) {
 			const numberW = 32;
-			prev = { x: p.x + PAD * 2, y, w: 24, h: rowH };
+			const clusterW = 24 + margin + numberW + margin + 24; // {<}{순번}{>} 전체 폭
+			const startX = p.x + (p.w - clusterW) / 2; // 패널 가로 중앙 정렬
+			prev = { x: startX, y, w: 24, h: rowH };
 			next = { x: prev.x + prev.w + margin + numberW + margin, y, w: 24, h: rowH };
 			drawCellButton(prev);
 			drawCellButton(next);
