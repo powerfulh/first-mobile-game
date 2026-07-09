@@ -203,7 +203,7 @@ export function drawTowerQueuePanel(tower) {
 	ctx.fillStyle = '#9ab';
 	ctx.font = 'bold 11px sans-serif';
 	ctx.textBaseline = 'bottom'; // 영역 박스 윗선에서 6px 위
-	ctx.fillText(t('전직'), ax, ay - 6); // 다국어 todo
+	ctx.fillText(t('panel.queuePromote'), ax, ay - 6);
 
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 	ctx.lineWidth = 1;
