@@ -52,7 +52,7 @@ export const MAPS = {
 			regenStartWave: 71, regenChanceStep: 0.004, // 재생 적: wave 71부터 0.4% (+0.4%/wave → wave 80에 상한 4%)
 			shieldStartCap: 0.4, // 방어막 상한: 81~90 확장 없이 등장(51)부터 1~40% (101~110 → 50%는 공통)
 			barrierStartWave: 111, // 장벽 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
-			empStartWave: 161, // 신규 적(emp): wave 161부터 0.4% (+0.4%/wave → wave 170에 상한 4%). 맵2 전용
+			empStartWave: 161, // 신규 적(emp): wave 161부터 0.4% (+0.4%/wave → wave 170에 상한 4%)
 
 			regenHealRampWave: 120, // 재생 회복률 강화를 wave 121~130으로 (12% → 22%)
 			countRampWave: 31, countCapWave: 90, // 적 수 +2→+1 전환 wave 31, 상한 wave 90 → 126마리
@@ -81,6 +81,7 @@ export const MAPS = {
 		waveComposition: {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적: wave 21부터 0.2% (+0.2%/wave → wave 40에 상한 4%)
+			empStartWave: 111, // EMP 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
 		},
 		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
