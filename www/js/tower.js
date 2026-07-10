@@ -10,7 +10,7 @@ import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
 } from './attack.js';
 import { isBlockedByBarrier, isEmpStunned } from './enemy.js';
-import { drawTier4Halo, drawTier5Halo } from './ui/sprite.js';
+import { drawTier4Halo, drawTier5Halo, drawHourglassIcon } from './ui/sprite.js';
 import { drawEnergyBall, drawTowerSprite } from './ui/sprite/tower.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
 
@@ -720,6 +720,11 @@ export function drawTower(tower) {
 		ctx.fillRect(bx, by, bw, bh);
 		ctx.fillStyle = ratio >= 1 ? GOLD : INFO_BLUE;
 		ctx.fillRect(bx, by, bw * ratio, bh);
+	}
+
+	// 1순위 예약 표시 — 타워 위에 반투명 회전 모래시계 (예약 버튼의 진행 중 연출과 동일)
+	if (tower.reservation?.order === 1) {
+		drawHourglassIcon(tower.x, tower.y, true, 0.6);
 	}
 }
 

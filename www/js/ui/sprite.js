@@ -395,10 +395,11 @@ export function drawBookIcon(cx, cy) {
 }
 
 // 모래시계 아이콘 — 위/아래 가로대 + 중앙이 잘록한 몸통 + 아래에 쌓인 모래
-// spin=true면 중심 기준으로 천천히 회전 (예약 진행 중 표시).
-export function drawHourglassIcon(cx, cy, spin = false) {
+// spin=true면 중심 기준으로 천천히 회전 (예약 진행 중 표시). alpha로 반투명 표시 가능.
+export function drawHourglassIcon(cx, cy, spin = false, alpha = 1) {
 	ctx.save();
 	ctx.translate(cx, cy);
+	ctx.globalAlpha = alpha;
 	if (spin) ctx.rotate((performance.now() / 500) % (Math.PI * 2));
 	ctx.strokeStyle = '#fff';
 	ctx.lineWidth = 1.5;
