@@ -651,7 +651,7 @@ scenes.playing = {
 
 		if (game.modal) {
 			const intro = INTRO_MODALS[game.modal.type];
-			if (intro) intro.draw();
+			if (intro) intro.draw(game.modal);
 		}
 
 		if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
@@ -667,7 +667,7 @@ scenes.playing = {
 			const intro = INTRO_MODALS[game.modal.type];
 			if (intro && hitButton(intro.confirmBtn, p)) {
 				playButton();
-				setIntroSeen(intro.key);
+				if (intro.key) setIntroSeen(intro.key); // key 없는 모달(맵 해금)은 매번 표시라 기록 없음
 				game.modal = null;
 			}
 			return;
