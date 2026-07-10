@@ -60,6 +60,38 @@ export const MAPS = {
 		},
 		unlock: { type: 'clearWave', map: 'map1', wave: 201 }, // 1번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
+	// 맵3 — 현재 맵2 복제(경로/시작 돈/BGM/웨이브 구성 동일). 고유 속성은 추후 차별화 예정.
+	map3: {
+		id: 'map3',
+		name: 'map.map3.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: 300, y: 0 },
+			{ x: 300, y: 400, shortcut: true },
+			{ x: 300, y: 580 },
+			{ x: 175, y: 580 },
+			{ x: 175, y: 400, shortcut: true },
+			{ x: 175, y: 65 },
+			{ x: 55, y: 65 },
+			{ x: 55, y: 385 },
+			{ x: 0, y: 385 },
+		],
+		startGold: 150,
+		bgm: 'bgm2',
+		waveComposition: {
+			airStartWave: 4, airStartChance: 0.04, airChanceStep: 0.016,
+			airHpBase: 0.4,
+			regenStartWave: 71, regenChanceStep: 0.004,
+			shieldStartCap: 0.4,
+			barrierStartWave: 111,
+			empStartWave: 161,
+
+			regenHealRampWave: 120,
+			countRampWave: 31, countCapWave: 90,
+			densityFloorWave: 40,
+			densityCeilWave: 80,
+		},
+		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
+	},
 };
 
 let activeMapId = 'map1';

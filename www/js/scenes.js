@@ -220,13 +220,19 @@ scenes.title = {
 
 // ============ Map select scene ============
 // 해금 맵이 2개 이상일 때만 '게임 시작'에서 진입(1개면 바로 playing). 맵 탭 → resetGame(맵) → playing.
-// 버튼은 단순 라벨 대신 맵 경로를 축소 렌더한 썸네일 카드. 가로 한 줄 중앙 정렬(맵 늘면 줄바꿈은 추후).
+// 버튼은 단순 라벨 대신 맵 경로를 축소 렌더한 썸네일 카드. 화면 폭에 맞게 줄바꿈, 행·전체 블록 중앙 정렬.
 function mapSelectButtons() {
 	const ids = getUnlockedMaps();
 	const TW = 150, TH = 250, GAP = 24;
-	const startX = (LOGICAL_W - (ids.length * TW + (ids.length - 1) * GAP)) / 2;
-	const y = (LOGICAL_H - TH) / 2;
-	return ids.map((id, i) => ({ id, x: startX + i * (TW + GAP), y, w: TW, h: TH }));
+	const perRow = Math.max(1, Math.floor((LOGICAL_W + GAP) / (TW + GAP)));
+	const rows = Math.ceil(ids.length / perRow);
+	const startY = (LOGICAL_H - (rows * TH + (rows - 1) * GAP)) / 2;
+	return ids.map((id, i) => {
+		const row = Math.floor(i / perRow);
+		const cols = Math.min(perRow, ids.length - row * perRow); // 마지막 행은 남은 개수만큼 중앙 정렬
+		const startX = (LOGICAL_W - (cols * TW + (cols - 1) * GAP)) / 2;
+		return { id, x: startX + (i % perRow) * (TW + GAP), y: startY + row * (TH + GAP), w: TW, h: TH };
+	});
 }
 function drawMapThumb(map, b) {
 	ctx.fillStyle = '#2d4a2b'; // 플레이 배경과 같은 느낌

@@ -25,6 +25,7 @@ const STRINGS = {
 	// ---- 공용 ----
 	'map.map1.name': { ko: '맵 1', ja: 'マップ1', en: 'Map 1' },
 	'map.map2.name': { ko: '맵 2', ja: 'マップ2', en: 'Map 2' },
+	'map.map3.name': { ko: '맵 3', ja: 'マップ3', en: 'Map 3' },
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
