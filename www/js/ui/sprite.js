@@ -143,6 +143,18 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+	} else if (type === 'transport') {
+		// 신규 적(transport) placeholder — 임시로 공중 적과 동일한 삼각형 (그래픽은 추후 교체)
+		ctx.fillStyle = AIR_COLOR;
+		ctx.beginPath();
+		ctx.moveTo(cx, cy - r);
+		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
+		ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
 	} else if (type === 'regen') {
 		const w = r * 1.8;
 		const x = cx - w / 2;

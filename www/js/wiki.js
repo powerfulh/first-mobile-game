@@ -89,6 +89,12 @@ const ENEMY_ENTRIES = [
 			'enemy.emp.desc3',
 		],
 	},
+	{
+		key: 'transport',
+		name: 'enemy.transport.name',
+		tagline: 'enemy.transport.tagline',
+		description: ['enemy.transport.desc1'],
+	},
 ];
 
 // 위키 표시 텍스트 다국어화 — i18n 키를 정의 직후 1회 표시 문자열로 변환. (타워 텍스트는 config.js에서, 그룹 라벨은 파생 시 변환됨)
