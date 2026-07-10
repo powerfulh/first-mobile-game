@@ -1,6 +1,6 @@
 import {
 	SAVE_KEY, BEST_WAVE_KEY,
-	INTRO_KEYS, MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
+	INTRO_KEYS, SHORTCUT_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
@@ -287,9 +287,9 @@ export function checkMapUnlocks() {
 	for (const id in MAPS) {
 		const u = MAPS[id].unlock;
 		if (u && u.type === 'clearWave' && game.mapId === u.map && game.wave >= u.wave) {
-			// 최초 해금 시 안내 모달 (한 번만)
-			if (unlockMap(id) && !game.modal && !hasSeenIntro(MAP_UNLOCK_INTRO_KEY)) {
-				game.modal = { type: 'mapUnlock' };
+			// 신규 해금마다 안내 모달 — 어떤 맵인지 mapId로 전달 (다른 모달이 떠 있으면 생략)
+			if (unlockMap(id) && !game.modal) {
+				game.modal = { type: 'mapUnlock', mapId: id };
 			}
 		}
 	}

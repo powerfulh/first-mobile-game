@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, GOLD,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, GOLD, MAP_BG_COLOR,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -9,7 +9,7 @@ import {
 	getIntermissionEnabled, getUnlockedMaps, clearEffects,
 } from './state.js';
 import { getActiveMap, MAPS } from './core/maps.js';
-import { roundRect, drawButton, hitButton } from './core/helpers.js';
+import { drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
 	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss, getEffectiveSpeed,
@@ -22,7 +22,7 @@ import {
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 	getReservationChoices, reserveTowerPromotion, moveReservation, cancelReservation, processReservations,
 } from './tower.js';
-import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice, drawConfirmButton } from './ui/sprite.js';
 import { drawTowerSprite } from './ui/sprite/tower.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
@@ -36,7 +36,7 @@ import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
 	drawToast, drawEnemyHpBar,
-	drawSettingsModal, drawPath,
+	drawSettingsModal, drawPath, drawMapThumb,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
@@ -220,42 +220,19 @@ scenes.title = {
 
 // ============ Map select scene ============
 // 해금 맵이 2개 이상일 때만 '게임 시작'에서 진입(1개면 바로 playing). 맵 탭 → resetGame(맵) → playing.
-// 버튼은 단순 라벨 대신 맵 경로를 축소 렌더한 썸네일 카드. 가로 한 줄 중앙 정렬(맵 늘면 줄바꿈은 추후).
+// 버튼은 단순 라벨 대신 맵 경로를 축소 렌더한 썸네일 카드. 화면 폭에 맞게 줄바꿈, 행·전체 블록 중앙 정렬.
 function mapSelectButtons() {
 	const ids = getUnlockedMaps();
 	const TW = 150, TH = 250, GAP = 24;
-	const startX = (LOGICAL_W - (ids.length * TW + (ids.length - 1) * GAP)) / 2;
-	const y = (LOGICAL_H - TH) / 2;
-	return ids.map((id, i) => ({ id, x: startX + i * (TW + GAP), y, w: TW, h: TH }));
-}
-function drawMapThumb(map, b) {
-	ctx.fillStyle = '#2d4a2b'; // 플레이 배경과 같은 느낌
-	roundRect(b.x, b.y, b.w, b.h, 10);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 2;
-	ctx.stroke();
-
-	// 경로 미니 렌더 — 카드 안(이름 영역 제외)에 종횡비 유지하며 맞춤.
-	const pad = 10, nameH = 26;
-	const aw = b.w - pad * 2, ah = b.h - pad * 2 - nameH;
-	const s = Math.min(aw / LOGICAL_W, ah / LOGICAL_H);
-	const ox = b.x + pad + (aw - LOGICAL_W * s) / 2;
-	const oy = b.y + pad + (ah - LOGICAL_H * s) / 2;
-	ctx.strokeStyle = '#8a7a5a';
-	ctx.lineWidth = 4;
-	ctx.lineJoin = 'round';
-	ctx.beginPath();
-	ctx.moveTo(ox + map.path[0].x * s, oy + map.path[0].y * s);
-	for (let i = 1; i < map.path.length; i++) ctx.lineTo(ox + map.path[i].x * s, oy + map.path[i].y * s);
-	ctx.stroke();
-
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText(t(map.name), b.x + b.w / 2, b.y + b.h - nameH / 2);
-	ctx.textBaseline = 'alphabetic';
+	const perRow = Math.max(1, Math.floor((LOGICAL_W + GAP) / (TW + GAP)));
+	const rows = Math.ceil(ids.length / perRow);
+	const startY = (LOGICAL_H - (rows * TH + (rows - 1) * GAP)) / 2;
+	return ids.map((id, i) => {
+		const row = Math.floor(i / perRow);
+		const cols = Math.min(perRow, ids.length - row * perRow); // 마지막 행은 남은 개수만큼 중앙 정렬
+		const startX = (LOGICAL_W - (cols * TW + (cols - 1) * GAP)) / 2;
+		return { id, x: startX + (i % perRow) * (TW + GAP), y: startY + row * (TH + GAP), w: TW, h: TH };
+	});
 }
 scenes.mapSelect = {
 	enter() {},
@@ -289,7 +266,7 @@ scenes.mapSelect = {
 };
 
 function enterSandbox() {
-	resetGame('map2'); // 샌드박스는 2번 맵 고정
+	resetGame('map3');
 	game.sandbox = true;
 	game.gold = 999999;
 	game.hp = 999999;
@@ -392,22 +369,7 @@ function drawGhostTower() {
 	ctx.stroke();
 	ctx.setLineDash([]);
 	// 확정 버튼 (✅) — 배치 불가 시 흐리게(비활성)
-	const r = ghostConfirmRect();
-	ctx.globalAlpha = ok ? 1 : 0.4;
-	ctx.fillStyle = ok ? '#27ae60' : '#7f8c8d';
-	roundRect(r.x, r.y, r.w, r.h, 10);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 2;
-	ctx.stroke();
-	ctx.lineWidth = 4;
-	ctx.lineJoin = 'round';
-	ctx.beginPath();
-	ctx.moveTo(r.x + 13, r.y + r.h / 2);
-	ctx.lineTo(r.x + r.w * 0.42, r.y + r.h - 14);
-	ctx.lineTo(r.x + r.w - 11, r.y + 14);
-	ctx.stroke();
-	ctx.globalAlpha = 1;
+	drawConfirmButton(ghostConfirmRect(), ok);
 }
 
 // ============ Playing scene ============
@@ -541,7 +503,7 @@ scenes.playing = {
 	draw() {
 		updateHUD(); // dom 이라 제일 먼저
 		// 배경 잔디
-		ctx.fillStyle = '#2d4a2b';
+		ctx.fillStyle = MAP_BG_COLOR;
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 		drawPath(getActiveMap());
 
@@ -645,7 +607,7 @@ scenes.playing = {
 
 		if (game.modal) {
 			const intro = INTRO_MODALS[game.modal.type];
-			if (intro) intro.draw();
+			if (intro) intro.draw(game.modal);
 		}
 
 		if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
@@ -661,7 +623,7 @@ scenes.playing = {
 			const intro = INTRO_MODALS[game.modal.type];
 			if (intro && hitButton(intro.confirmBtn, p)) {
 				playButton();
-				setIntroSeen(intro.key);
+				if (intro.key) setIntroSeen(intro.key); // key 없는 모달(맵 해금)은 매번 표시라 기록 없음
 				game.modal = null;
 			}
 			return;

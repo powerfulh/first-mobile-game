@@ -143,6 +143,40 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+	} else if (type === 'transport') {
+		// 수송 적 — 공중 적(삼각형) 기반. 각 변이 바깥으로 살짝 볼록해 통통한 느낌 + 몸체 중앙에 작은 빨간 원 두 개.
+		const verts = [
+			{ x: cx, y: cy - r },
+			{ x: cx - r * 0.9, y: cy + r * 0.6 },
+			{ x: cx + r * 0.9, y: cy + r * 0.6 },
+		];
+		const gx = cx, gy = cy + r * 0.2 / 3; // 무게중심 — 볼록 방향의 기준
+		ctx.fillStyle = AIR_COLOR;
+		ctx.beginPath();
+		ctx.moveTo(verts[0].x, verts[0].y);
+		for (let i = 0; i < 3; i++) {
+			const a = verts[i];
+			const b = verts[(i + 1) % 3];
+			const mx = (a.x + b.x) / 2;
+			const my = (a.y + b.y) / 2;
+			const d = Math.hypot(mx - gx, my - gy) || 1;
+			const bulge = r * 0.35; // 제어점 오프셋 — 실제 볼록은 절반 수준
+			ctx.quadraticCurveTo(mx + (mx - gx) / d * bulge, my + (my - gy) / d * bulge, b.x, b.y);
+		}
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
+		// 중앙 빨간 원 = 실어 나르는 화물. opts.cargo(기본 2)개 — 방출할 때마다 하나씩 사라짐.
+		const cargo = opts.cargo ?? 2;
+		const cargoXs = cargo === 2 ? [-r * 0.28, r * 0.28] : cargo === 1 ? [0] : [];
+		ctx.fillStyle = ACCENT_RED;
+		for (const ox of cargoXs) {
+			ctx.beginPath();
+			ctx.arc(cx + ox, cy + r * 0.05, r * 0.2, 0, Math.PI * 2);
+			ctx.fill();
+		}
 	} else if (type === 'regen') {
 		const w = r * 1.8;
 		const x = cx - w / 2;
@@ -395,10 +429,11 @@ export function drawBookIcon(cx, cy) {
 }
 
 // 모래시계 아이콘 — 위/아래 가로대 + 중앙이 잘록한 몸통 + 아래에 쌓인 모래
-// spin=true면 중심 기준으로 천천히 회전 (예약 진행 중 표시).
-export function drawHourglassIcon(cx, cy, spin = false) {
+// spin=true면 중심 기준으로 천천히 회전 (예약 진행 중 표시). alpha로 반투명 표시 가능.
+export function drawHourglassIcon(cx, cy, spin = false, alpha = 1) {
 	ctx.save();
 	ctx.translate(cx, cy);
+	ctx.globalAlpha = alpha;
 	if (spin) ctx.rotate((performance.now() / 500) % (Math.PI * 2));
 	ctx.strokeStyle = '#fff';
 	ctx.lineWidth = 1.5;
@@ -444,6 +479,25 @@ export function drawNewBadge(btn) {
 	ctx.fillText('?', bx, by + 1);
 	ctx.textBaseline = 'alphabetic';
 	ctx.textAlign = 'left';
+}
+
+// 확정(✅) 버튼 — 둥근 사각 + 체크 표시. enabled=false 면 흐리게(비활성).
+export function drawConfirmButton(r, enabled) {
+	ctx.globalAlpha = enabled ? 1 : 0.4;
+	ctx.fillStyle = enabled ? '#27ae60' : '#7f8c8d';
+	roundRect(r.x, r.y, r.w, r.h, 10);
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+	ctx.lineWidth = 4;
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(r.x + 13, r.y + r.h / 2);
+	ctx.lineTo(r.x + r.w * 0.42, r.y + r.h - 14);
+	ctx.lineTo(r.x + r.w - 11, r.y + 14);
+	ctx.stroke();
+	ctx.globalAlpha = 1;
 }
 
 // EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.

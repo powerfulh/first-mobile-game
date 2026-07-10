@@ -315,6 +315,7 @@ export const ACCENT_RED = '#c0392b';
 export const GOLD = '#f1c40f';       // XP 가득·골드 비용·활성 강조
 export const INFO_BLUE = '#5dade2';  // 정보/선택/방어막 하이라이트
 export const SLATE = '#2c3e50';      // 어두운 패널/비활성 배경
+export const MAP_BG_COLOR = '#2d4a2b'; // 맵 배경 잔디 — 플레이 배경/맵 썸네일/해금 아이콘 공용
 
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
@@ -344,7 +345,6 @@ export const BARRIER_INTRO_KEY = 'td_seen_barrier_intro';
 export const EMP_INTRO_KEY = 'td_seen_emp_intro';
 export const QUEUE_INTRO_KEY = 'td_seen_queue_intro'; // 전직 예약 안내 모달 (예약 버튼 최초 탭)
 export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(병렬 호출) 안내 모달
-export const MAP_UNLOCK_INTRO_KEY = 'td_seen_map_unlock'; // 맵 해금 안내 모달
 export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 안내 모달 (airShortcut 맵 최초 진입)
 
 // 인트로 플래그 키 전체. resetLocalData가 이 배열을 spread 해 초기화 누락을 막는다.
@@ -352,7 +352,7 @@ export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 
 export const INTRO_KEYS = [
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY,
 ];
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.

@@ -23,8 +23,9 @@ export function getLang() {
 
 const STRINGS = {
 	// ---- 공용 ----
-	'map.map1.name': { ko: '맵 1', ja: 'マップ1', en: 'Map 1' },
-	'map.map2.name': { ko: '맵 2', ja: 'マップ2', en: 'Map 2' },
+	'map.map1.name': { ko: '시작', ja: 'スタート', en: 'Start' },
+	'map.map2.name': { ko: '구름 다리', ja: '雲の橋', en: 'Cloud Bridge' },
+	'map.map3.name': { ko: '사다리꼴', ja: '台形', en: 'Trapezoid' },
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
@@ -121,6 +122,11 @@ const STRINGS = {
 	'enemy.barrierSpawner.desc2': { ko: '처치 시 그 자리에 튼튼한 장벽 생성', ja: '撃破時にその場に頑丈なバリアを生成', en: 'On death spawns a tough barrier in place' },
 	'enemy.barrierSpawner.desc3': { ko: '장벽은 공중 공격을 막아 대신 데미지를 받으며, 웨이브 종료까지 유지', ja: 'バリアは空中攻撃を防いで代わりにダメージを受け、ウェーブ終了まで維持', en: 'The barrier blocks air attacks (taking the damage) until the wave ends' },
 	'enemy.barrierSpawner.desc4': { ko: '지상 전용 공격은 장벽 영향 없음', ja: '地上専用攻撃はバリアの影響を受けない', en: 'Ground-only attacks ignore barriers' },
+	'enemy.transport.name': { ko: '수송 적', ja: '輸送の敵', en: 'Transport' },
+	'enemy.transport.tagline': { ko: '맵 3 등장 예정 · 이동 중 일반 적 투하', ja: 'マップ3登場予定 · 移動中に通常の敵を投下', en: 'Coming to Map 3 · drops enemies en route' },
+	'enemy.transport.desc1': { ko: '공중 타입, 속도는 일반 적의 75%', ja: '空中タイプ、速度は通常の敵の75%', en: 'Air type; moves at 75% of normal speed' },
+	'enemy.transport.desc2': { ko: '이동 중 최대 2회, 체력이 40% 이상이면 33%를 소모해 일반 적(체력 40%)을 그 자리에 투하', ja: '移動中最大2回、HPが40%以上なら33%を消費して通常の敵(HP40%)をその場に投下', en: 'Up to twice en route, if HP ≥ 40%, spends 33% HP to drop a normal enemy (40% HP)' },
+	'enemy.transport.desc3': { ko: '투하할 때마다 중앙의 빨간 원이 하나 사라짐', ja: '投下のたびに中央の赤い円がひとつ消える', en: 'Each drop removes one central red dot' },
 	'enemy.emp.name': { ko: 'EMP 적', ja: 'EMPの敵', en: 'EMP' },
 	'enemy.emp.tagline': { ko: '맵 2 후반 등장 · 처치 시 타워 스턴', ja: 'マップ2終盤登場 · 撃破時にタワーをスタン', en: 'Map 2 late waves · stuns a tower on death' },
 	'enemy.emp.desc1': { ko: '지상 타입, HP는 일반 적의 절반', ja: '地上タイプ、HPは通常の敵の半分', en: 'Ground type; half the HP of normal enemies' },
@@ -227,8 +233,7 @@ const STRINGS = {
 	'intro.parallel.warn1': { ko: '• 병렬로 부른 웨이브는 저장되지 않습니다.', ja: '• 並列で呼んだウェーブは保存されません。', en: '• Parallel-called waves are not saved.' },
 	'intro.parallel.warn2': { ko: '• 적이 겹쳐 방어 부담이 큽니다. 신중히!', ja: '• 敵が密集し防衛が厳しくなります。慎重に!', en: '• Enemies stack up — defend carefully!' },
 	'intro.mapUnlock.title': { ko: '새로운 맵 해금!', ja: '新しいマップ解放!', en: 'New Map Unlocked!' },
-	'intro.mapUnlock.line1': { ko: '1번 맵을 깊이 진행했습니다!', ja: 'マップ1をかなり進めました!', en: 'You pushed deep into Map 1!' },
-	'intro.mapUnlock.line2': { ko: '새로운 맵이 해금되었습니다.', ja: '新しいマップが解放されました。', en: 'A new map is now available.' },
+	'intro.mapUnlock.line2': { ko: '{name} 맵이 해금되었습니다.', ja: '{name}マップが解放されました。', en: 'The {name} map is now available.' },
 	'intro.mapUnlock.line3': { ko: '게임 시작에서 선택하세요.', ja: 'ゲーム開始から選択してください。', en: 'Choose it from Start.' },
 	'intro.shortcut.title': { ko: '공중 지름길', ja: '空中ショートカット', en: 'Air Shortcut' },
 	'intro.shortcut.line1': { ko: '이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다', ja: 'このマップには空中タイプが使えるショートカットがあります', en: 'This map has an air-only shortcut.' },

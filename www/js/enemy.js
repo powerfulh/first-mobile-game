@@ -16,10 +16,14 @@ const DEFAULT_WAVE = {
 	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
+	regenBoostWave: 190, // 재생 적 강화(회복률 +1%/wave, 출현 +0.4%/wave) 시작 직전 웨이브 — 기본 191~200 에 10웨이브 램프
+	regenChanceBoost2Wave: Infinity, // 재생 출현 확률 2차 강화(+0.4%/wave, 10웨이브 누적 +4%) 시작 직전 웨이브 — 기본 미적용
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
+	transportStartWave: Infinity, transportChanceStep: 0.004, transportChanceCap: 0.04, // 신규 적(transport) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
+	spawnIntervalStart: 1.2, spawnIntervalStep: 0.08, // 스폰 간격: wave 1 시작값에서 -step/wave (하한 0.5초 공통)
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 	densityCeilWave: 120, // 이 웨이브 이후 maxNarrow -0.01/wave (10웨이브 누적 -0.10)
@@ -56,17 +60,19 @@ export function getAirHpRatio(wave) {
 export function getRegenChance(wave) {
 	const p = wparams();
 	if (wave < p.regenStartWave) return 0;
-	// 시작 웨이브부터 +step/wave 누적 (cap까지) / Wave 191~200: +0.4%/wave 추가 (전 맵 공통)
+	// 시작 웨이브부터 +step/wave 누적 (cap까지) / 강화 구간(regenBoostWave·regenChanceBoost2Wave 이후 각 10웨이브): +0.4%/wave 추가
 	const base = Math.min(p.regenChanceCap, (wave - p.regenStartWave + 1) * p.regenChanceStep);
-	const lateBonus = clamp((wave - 190) * 0.004, 0, 0.04);
-	return base + lateBonus;
+	const lateBonus = clamp((wave - p.regenBoostWave) * 0.004, 0, 0.04);
+	const lateBonus2 = clamp((wave - p.regenChanceBoost2Wave) * 0.004, 0, 0.04);
+	return base + lateBonus + lateBonus2;
 }
 
 export function getRegenHealRate(wave) {
-	// 기본 12% / regenHealRampWave 이후 +1%/wave (10웨이브 누적 22%) /
-	// Wave 191~200: +1%/wave 추가 (32%, 전 맵 공통) / 그 외 구간 고정
-	const bonus1 = clamp((wave - wparams().regenHealRampWave) * 0.01, 0, 0.10);
-	const bonus2 = clamp((wave - 190) * 0.01, 0, 0.10);
+	// 기본 12% / regenHealRampWave 이후 +1%/wave (10웨이브 누적 +10%) /
+	// 강화 구간(regenBoostWave 이후 10웨이브): +1%/wave 추가 / 그 외 구간 고정
+	const p = wparams();
+	const bonus1 = clamp((wave - p.regenHealRampWave) * 0.01, 0, 0.10);
+	const bonus2 = clamp((wave - p.regenBoostWave) * 0.01, 0, 0.10);
 	return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
 
@@ -75,6 +81,13 @@ export function getEmpChance(wave) {
 	const p = wparams();
 	if (wave < p.empStartWave) return 0;
 	return Math.min(p.empChanceCap, (wave - p.empStartWave + 1) * p.empChanceStep);
+}
+
+// 신규 적(transport) 출현 확률 — 시작 웨이브에 step, 이후 +step/wave 누적 (cap까지). 기본은 미출현.
+export function getTransportChance(wave) {
+	const p = wparams();
+	if (wave < p.transportStartWave) return 0;
+	return Math.min(p.transportChanceCap, (wave - p.transportStartWave + 1) * p.transportChanceStep);
 }
 
 export function getBarrierSpawnerChance(wave) {
@@ -144,7 +157,8 @@ export function getBossReward(wave) {
 }
 
 export function getBaseSpawnInterval(wave) {
-	return Math.max(0.5, 1.2 - (wave - 1) * 0.08);
+	const p = wparams();
+	return Math.max(0.5, p.spawnIntervalStart - (wave - 1) * p.spawnIntervalStep);
 }
 
 // 적 기본 이동 속도 — Wave에 비례 증가, ENEMY_SPEED_CAP_WAVE에서 상한 고정. spawnEnemy/spawnBoss 공용.
@@ -161,7 +175,8 @@ export function spawnEnemy(spawner) {
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
 	let kind, spriteType, ga;
-	if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; } // 임시 — 메커니즘은 일반 적과 동일
+	if (Math.random() < getTransportChance(wave)) { kind = 'transport'; spriteType = 'transport'; ga = 'air'; } // placeholder — 공중 적 복제 (메커니즘 추후)
+	else if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; }
 	else if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
 	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
 	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
@@ -172,7 +187,9 @@ export function spawnEnemy(spawner) {
 	let hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
 	if (kind === 'emp') hp = round1(baseHp * 0.5); // EMP 적 — 일반 적의 절반
 	const baseSpeed = getEnemyBaseSpeed(wave);
-	const speed = kind === 'regen' ? baseSpeed * 0.5 : baseSpeed;
+	const speed = kind === 'regen' ? baseSpeed * 0.5
+		: kind === 'transport' ? baseSpeed * 0.75
+			: baseSpeed;
 	// 공중 적 지름길 — 경로에 shortcut 마커가 있는 맵에서 '처음 만나는 숏컷 탑승 여부'를 교대 등록.
 	// undefined면 숏컷 규칙 비적용 (지상·마커 없는 맵·보스). 이동 분기는 updateEnemy.
 	let shortcutReady;
@@ -200,6 +217,9 @@ export function spawnEnemy(spawner) {
 		shieldReduction: shielded ? getShieldReduction(wave) : 0,
 		regenRate: kind === 'regen' ? getRegenHealRate(wave) : 0,
 		barrierHp: kind === 'barrierSpawner' ? hp * 2 : 0,
+		// 수송 적 — 경로 진행률 임계 2개(9~11%, 19~21% 랜덤)에서 일반 적 방출 시도. 방출 수만큼 화물(빨간 원) 감소.
+		transportEvents: kind === 'transport' ? [0.09 + Math.random() * 0.02, 0.19 + Math.random() * 0.02] : null,
+		transportSpawned: 0,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 — 분류 키 = 스프라이트 종류 (요약이 스프라이트로 표시)
@@ -338,6 +358,20 @@ export function updateEnemy(e, dt) {
 	if (e.kind === 'regen' && !e.regenDisabled && e.hp < e.hpMax) {
 		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
 	}
+	// 수송 적 이벤트 — 진행률이 임계를 넘으면 그 자리에 일반 적 방출.
+	// 숏컷 비행 중이면 그 이벤트는 생략(소멸). 체력 40% 미만이면 방출 없이 소멸.
+	if (e.kind === 'transport' && e.transportEvents?.length) {
+		const progress = pathProgress(e);
+		while (e.transportEvents.length && progress >= e.transportEvents[0]) {
+			e.transportEvents.shift();
+			if (e.onShortcut) continue;
+			if (e.hp >= e.hpMax * 0.4) {
+				e.hp -= e.hpMax * 0.33;
+				spawnTransportChild(e);
+				e.transportSpawned++;
+			}
+		}
+	}
 	const path = e.path || getActiveMap().path;
 	if (e.segment >= path.length - 1) {
 		game.hp -= 1;
@@ -376,6 +410,48 @@ export function updateEnemy(e, dt) {
 		e.x += (dx / dist) * move;
 		e.y += (dy / dist) * move;
 	}
+}
+
+// 경로 진행률 (이동 거리 / 전체 경로 길이, 0~1) — 수송 적 이벤트 판정용.
+// 숏컷 비행 중엔 점프 목적지 기준이라 부정확할 수 있으나, 그 경우 이벤트가 생략되므로 무관.
+function pathProgress(e) {
+	const path = e.path || getActiveMap().path;
+	let total = 0;
+	let traveled = 0;
+	for (let i = 0; i < path.length - 1; i++) {
+		const len = Math.hypot(path[i + 1].x - path[i].x, path[i + 1].y - path[i].y);
+		if (i < e.segment) traveled += len;
+		total += len;
+	}
+	if (e.segment < path.length - 1) {
+		traveled += Math.hypot(e.x - path[e.segment].x, e.y - path[e.segment].y);
+	}
+	return total > 0 ? traveled / total : 1;
+}
+
+// 수송 적 방출 — 그 자리에서 소속 웨이브 기준 일반 지상 적(HP 40%)이 내려와 경로를 이어감.
+function spawnTransportChild(e) {
+	const hp = round1(computeBaseHpAt(e.waveNum) * 0.4);
+	game.entities.enemies.push({
+		x: e.x,
+		y: e.y,
+		kind: 'basic',
+		spriteType: 'ground',
+		ga: 'ground',
+		name: enemyName('basic'),
+		path: e.path,
+		speed: getEnemyBaseSpeed(e.waveNum),
+		segment: e.segment,
+		radius: 10,
+		hpMax: hp,
+		hp: hp,
+		bobPhase: Math.random() * Math.PI * 2,
+		shielded: false,
+		shieldReduction: 0,
+		regenRate: 0,
+		barrierHp: 0,
+		waveNum: e.waveNum, // 부모와 같은 웨이브 소속 — 웨이브 완료 추적에 포함
+	});
 }
 
 // from부터 경로 뒤쪽에서 가장 가까운 shortcut 마커 인덱스 — 없으면 -1
@@ -531,6 +607,7 @@ function enemyName(kind) {
 		case 'airBoss': return t('enemy.boss');
 		case 'barrier': return t('enemy.barrier');
 		case 'barrierSpawner': return t('enemy.barrierSpawner.name');
+		case 'transport': return t('enemy.transport.name');
 		case 'emp': return t('enemy.emp.name');
 		case 'regen': return t('enemy.regen.name');
 		case 'air': return t('enemy.air.name');
@@ -639,7 +716,9 @@ function drawEnemyBody(e) {
 	}
 	// 공중 적만 본체가 위아래로 보빙 (마크링·HP바는 e.y 고정).
 	const bobY = e.ga === 'air' ? e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3 : e.y;
-	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, { shielded: e.shielded });
+	const opts = { shielded: e.shielded };
+	if (e.kind === 'transport') opts.cargo = 2 - (e.transportSpawned || 0); // 방출한 만큼 빨간 원 감소
+	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, opts);
 	if (e.marked) drawMarkRing(e);
 }
 

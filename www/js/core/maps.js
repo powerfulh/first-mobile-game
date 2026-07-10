@@ -2,6 +2,7 @@
 // 맵별 고유 속성(생김새/시작 돈/BGM/특성/웨이브 구성/해금)을 한곳에 모은다.
 // 순수 데이터 leaf — 외부 import 없음(순환/계층 무관). 활성 맵은 모듈 내부 상태로 보유하고
 // resetGame/loadGame/맵 선택이 setActiveMap으로 바꾼다. 기본값 map1 → 타이틀에서도 path 렌더 유효.
+const pathUnit = 8
 
 export const MAPS = {
 	map1: {
@@ -9,8 +10,8 @@ export const MAPS = {
 		name: 'map.map1.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		// 적 이동 경로 (= 맵 생김새). drawPath/거리판정/적 이동·스폰의 단일 출처.
 		path: [
-			{ x: 60, y: 0 },
-			{ x: 60, y: 150 },
+			{ x: 8 * pathUnit, y: 0 },
+			{ x: 8 * pathUnit, y: 150 },
 			{ x: 280, y: 150 },
 			{ x: 280, y: 350 },
 			{ x: 80, y: 350 },
@@ -51,7 +52,7 @@ export const MAPS = {
 			regenStartWave: 71, regenChanceStep: 0.004, // 재생 적: wave 71부터 0.4% (+0.4%/wave → wave 80에 상한 4%)
 			shieldStartCap: 0.4, // 방어막 상한: 81~90 확장 없이 등장(51)부터 1~40% (101~110 → 50%는 공통)
 			barrierStartWave: 111, // 장벽 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
-			empStartWave: 161, // 신규 적(emp): wave 161부터 0.4% (+0.4%/wave → wave 170에 상한 4%). 맵2 전용
+			empStartWave: 161, // 신규 적(emp): wave 161부터 0.4% (+0.4%/wave → wave 170에 상한 4%)
 
 			regenHealRampWave: 120, // 재생 회복률 강화를 wave 121~130으로 (12% → 22%)
 			countRampWave: 31, countCapWave: 90, // 적 수 +2→+1 전환 wave 31, 상한 wave 90 → 126마리
@@ -59,6 +60,35 @@ export const MAPS = {
 			densityCeilWave: 80, // 조밀도 상한 추가 강화를 wave 81~90으로 (maxNarrow 0.90 @ wave 90)
 		},
 		unlock: { type: 'clearWave', map: 'map1', wave: 201 }, // 1번 맵 200웨이브 돌파(=201 진입) 시 해금
+	},
+	// 맵3
+	map3: {
+		id: 'map3',
+		name: 'map.map3.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: 38 * pathUnit, y: 80 * pathUnit },
+			{ x: 38 * pathUnit, y: 9 * pathUnit },
+			{ x: 7 * pathUnit, y: 12 * pathUnit },
+			{ x: 7 * pathUnit, y: 45 * pathUnit },
+			{ x: 29 * pathUnit, y: 48 * pathUnit },
+			{ x: 29 * pathUnit, y: 70 * pathUnit },
+			{ x: 10 * pathUnit, y: 70 * pathUnit },
+			{ x: 10 * pathUnit, y: 55 * pathUnit },
+			{ x: 0 * pathUnit, y: 55 * pathUnit },
+		],
+		startGold: 200,
+		bgm: 'bgm2',
+		waveComposition: {
+			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
+			regenStartWave: 21, // 재생 적: wave 21부터 0.2% (+0.2%/wave → wave 40에 상한 4%)
+			empStartWave: 111, // EMP 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
+			regenBoostWave: 60, // 재생 강화를 wave 61~70으로 — 70에 회복률 22%·출현 8% 도달 (2차 회복 강화는 기본 161~170 → 32%)
+			regenChanceBoost2Wave: 90, // 재생 출현 확률 2차 강화: wave 91~100 에 +0.4%/wave → 100에 12% 도달
+			densityFloorWave: 70, // 조밀도 하한 추가 강화를 wave 71~80으로 (minNarrow 0.30 @ wave 80)
+			countRampWave: 60, countCapWave: 70, // 적 수 +2→+1 전환 wave 60, 고정 wave 70 → 135마리
+			densityCeilWave: 100, // 조밀도 상한 추가 강화를 wave 101~110으로 (maxNarrow 0.90 @ wave 110)
+		},
+		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
 

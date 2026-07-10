@@ -6,8 +6,9 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, MAP_UNLOCK_INTRO_KEY, SHORTCUT_INTRO_KEY,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, MAP_BG_COLOR,
 } from '../core/config.js';
+import { MAPS } from '../core/maps.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
 import { drawEnemySprite, drawHourglassIcon } from './sprite.js';
 import { t } from '../core/i18n.js';
@@ -138,7 +139,7 @@ function drawShortcutIcon(cx, cy) {
 function drawMapUnlockIcon(cx, cy) {
 	// 미니 맵 카드 + 경로 squiggle
 	const w = 34, h = 26;
-	ctx.fillStyle = '#2d4a2b';
+	ctx.fillStyle = MAP_BG_COLOR;
 	roundRect(cx - w / 2, cy - h / 2, w, h, 4);
 	ctx.fill();
 	ctx.strokeStyle = GOLD;
@@ -156,6 +157,7 @@ function drawMapUnlockIcon(cx, cy) {
 }
 
 // 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
+// key 없는 항목은 1회성이 아니라 조건 충족마다 표시. lines 항목이 함수면 (modal) => 완성 문자열.
 function makeIntro(opts) {
 	const {
 		key, accent, dimAlpha = 0.65,
@@ -167,7 +169,7 @@ function makeIntro(opts) {
 	} = opts;
 	return {
 		key, panel, confirmBtn,
-		draw() {
+		draw(modal) {
 			drawIntroBackdrop(panel, accent, dimAlpha);
 			const cx = LOGICAL_W / 2;
 			if (drawIcon) drawIcon(cx, panel.y + iconY);
@@ -178,7 +180,7 @@ function makeIntro(opts) {
 			ctx.fillText(t(title), cx, panel.y + titleY);
 			ctx.fillStyle = lineColor;
 			ctx.font = `${lineSize}px sans-serif`;
-			lines.forEach((line, i) => ctx.fillText(t(line), cx, panel.y + lineStart + i * lineGap));
+			lines.forEach((line, i) => ctx.fillText(typeof line === 'function' ? line(modal) : t(line), cx, panel.y + lineStart + i * lineGap));
 			if (drawExtra) drawExtra(panel, cx);
 			drawButton(confirmBtn, [{ label: t('common.confirm') }]);
 		},
@@ -304,11 +306,15 @@ export const INTRO_MODALS = {
 		},
 	}),
 
+	// key 없음 — 맵이 새로 해금될 때마다 표시. checkMapUnlocks가 modal.mapId로 해금 맵을 전달.
 	mapUnlock: makeIntro({
-		key: MAP_UNLOCK_INTRO_KEY, accent: GOLD,
+		accent: GOLD,
 		drawIcon: drawMapUnlockIcon,
 		title: 'intro.mapUnlock.title',
-		lines: ['intro.mapUnlock.line1', 'intro.mapUnlock.line2', 'intro.mapUnlock.line3'],
+		lines: [
+			modal => t('intro.mapUnlock.line2', { name: t(MAPS[modal?.mapId]?.name) }),
+			'intro.mapUnlock.line3',
+		],
 	}),
 
 	shortcutIntro: makeIntro({

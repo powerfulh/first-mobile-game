@@ -9,7 +9,8 @@ import { clamp } from './core/helpers.js';
 const SRC = {
 	normal: 'assets/audio/bgm.mp3',
 	boss: 'assets/audio/boss.mp3',
-	bgm2: 'assets/audio/m2-rock-organ.mp3', // 맵2 BGM
+	bgm2: 'assets/audio/m2-rock-organ.mp3', // 맵2
+	bgm3: 'assets/audio/m2-rock-organ.mp3', // 맵3
 };
 
 let ctx = null;          // AudioContext (첫 playBgm에서 생성)
