@@ -23,9 +23,9 @@ export function getLang() {
 
 const STRINGS = {
 	// ---- 공용 ----
-	'map.map1.name': { ko: '맵 1', ja: 'マップ1', en: 'Map 1' },
-	'map.map2.name': { ko: '맵 2', ja: 'マップ2', en: 'Map 2' },
-	'map.map3.name': { ko: '맵 3', ja: 'マップ3', en: 'Map 3' },
+	'map.map1.name': { ko: '시작', ja: 'スタート', en: 'Start' },
+	'map.map2.name': { ko: '구름 다리', ja: '雲の橋', en: 'Cloud Bridge' },
+	'map.map3.name': { ko: '사다리꼴', ja: '台形', en: 'Trapezoid' },
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
@@ -228,7 +228,7 @@ const STRINGS = {
 	'intro.parallel.warn1': { ko: '• 병렬로 부른 웨이브는 저장되지 않습니다.', ja: '• 並列で呼んだウェーブは保存されません。', en: '• Parallel-called waves are not saved.' },
 	'intro.parallel.warn2': { ko: '• 적이 겹쳐 방어 부담이 큽니다. 신중히!', ja: '• 敵が密集し防衛が厳しくなります。慎重に!', en: '• Enemies stack up — defend carefully!' },
 	'intro.mapUnlock.title': { ko: '새로운 맵 해금!', ja: '新しいマップ解放!', en: 'New Map Unlocked!' },
-	'intro.mapUnlock.line2': { ko: '{name}이(가) 해금되었습니다.', ja: '{name}が解放されました。', en: '{name} is now available.' },
+	'intro.mapUnlock.line2': { ko: '{name} 맵이 해금되었습니다.', ja: '{name}マップが解放されました。', en: 'The {name} map is now available.' },
 	'intro.mapUnlock.line3': { ko: '게임 시작에서 선택하세요.', ja: 'ゲーム開始から選択してください。', en: 'Choose it from Start.' },
 	'intro.shortcut.title': { ko: '공중 지름길', ja: '空中ショートカット', en: 'Air Shortcut' },
 	'intro.shortcut.line1': { ko: '이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다', ja: 'このマップには空中タイプが使えるショートカットがあります', en: 'This map has an air-only shortcut.' },
