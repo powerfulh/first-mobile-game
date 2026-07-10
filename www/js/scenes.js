@@ -36,7 +36,7 @@ import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
 	drawToast, drawEnemyHpBar,
-	drawSettingsModal, drawPath,
+	drawSettingsModal, drawPath, drawMapThumb,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
@@ -233,35 +233,6 @@ function mapSelectButtons() {
 		const startX = (LOGICAL_W - (cols * TW + (cols - 1) * GAP)) / 2;
 		return { id, x: startX + (i % perRow) * (TW + GAP), y: startY + row * (TH + GAP), w: TW, h: TH };
 	});
-}
-function drawMapThumb(map, b) {
-	ctx.fillStyle = MAP_BG_COLOR; // 플레이 배경과 같은 느낌
-	roundRect(b.x, b.y, b.w, b.h, 10);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 2;
-	ctx.stroke();
-
-	// 경로 미니 렌더 — 카드 안(이름 영역 제외)에 종횡비 유지하며 맞춤.
-	const pad = 10, nameH = 26;
-	const aw = b.w - pad * 2, ah = b.h - pad * 2 - nameH;
-	const s = Math.min(aw / LOGICAL_W, ah / LOGICAL_H);
-	const ox = b.x + pad + (aw - LOGICAL_W * s) / 2;
-	const oy = b.y + pad + (ah - LOGICAL_H * s) / 2;
-	ctx.strokeStyle = '#8a7a5a';
-	ctx.lineWidth = 4;
-	ctx.lineJoin = 'round';
-	ctx.beginPath();
-	ctx.moveTo(ox + map.path[0].x * s, oy + map.path[0].y * s);
-	for (let i = 1; i < map.path.length; i++) ctx.lineTo(ox + map.path[i].x * s, oy + map.path[i].y * s);
-	ctx.stroke();
-
-	ctx.fillStyle = '#fff';
-	ctx.font = 'bold 14px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillText(t(map.name), b.x + b.w / 2, b.y + b.h - nameH / 2);
-	ctx.textBaseline = 'alphabetic';
 }
 scenes.mapSelect = {
 	enter() {},
