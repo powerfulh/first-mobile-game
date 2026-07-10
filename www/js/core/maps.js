@@ -81,6 +81,7 @@ export const MAPS = {
 		waveComposition: {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적: wave 21부터 0.2% (+0.2%/wave → wave 40에 상한 4%)
+			barrierStartWave: Infinity, // 장벽 적 미출현 (맵3 구성에서 제외)
 			empStartWave: 111, // EMP 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
 			regenBoostWave: 60, // 재생 강화를 wave 61~70으로 — 70에 회복률 22%·출현 8% 도달 (2차 회복 강화는 기본 161~170 → 32%)
 			regenChanceBoost2Wave: 90, // 재생 출현 확률 2차 강화: wave 91~100 에 +0.4%/wave → 100에 12% 도달
