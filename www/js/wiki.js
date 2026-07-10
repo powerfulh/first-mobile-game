@@ -93,7 +93,7 @@ const ENEMY_ENTRIES = [
 		key: 'transport',
 		name: 'enemy.transport.name',
 		tagline: 'enemy.transport.tagline',
-		description: ['enemy.transport.desc1', 'enemy.transport.desc2', 'enemy.transport.desc3'],
+		description: ['enemy.transport.desc1', 'enemy.transport.desc2'],
 	},
 ];
 

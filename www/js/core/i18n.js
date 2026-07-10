@@ -126,7 +126,6 @@ const STRINGS = {
 	'enemy.transport.tagline': { ko: '맵 3 등장 예정 · 이동 중 일반 적 투하', ja: 'マップ3登場予定 · 移動中に通常の敵を投下', en: 'Coming to Map 3 · drops enemies en route' },
 	'enemy.transport.desc1': { ko: '공중 타입, 속도는 일반 적의 75%', ja: '空中タイプ、速度は通常の敵の75%', en: 'Air type; moves at 75% of normal speed' },
 	'enemy.transport.desc2': { ko: '이동 중 최대 2회, 체력이 40% 이상이면 33%를 소모해 일반 적(체력 40%)을 그 자리에 투하', ja: '移動中最大2回、HPが40%以上なら33%を消費して通常の敵(HP40%)をその場に投下', en: 'Up to twice en route, if HP ≥ 40%, spends 33% HP to drop a normal enemy (40% HP)' },
-	'enemy.transport.desc3': { ko: '투하할 때마다 중앙의 빨간 원이 하나 사라짐', ja: '投下のたびに中央の赤い円がひとつ消える', en: 'Each drop removes one central red dot' },
 	'enemy.emp.name': { ko: 'EMP 적', ja: 'EMPの敵', en: 'EMP' },
 	'enemy.emp.tagline': { ko: '맵 2 후반 등장 · 처치 시 타워 스턴', ja: 'マップ2終盤登場 · 撃破時にタワーをスタン', en: 'Map 2 late waves · stuns a tower on death' },
 	'enemy.emp.desc1': { ko: '지상 타입, HP는 일반 적의 절반', ja: '地上タイプ、HPは通常の敵の半分', en: 'Ground type; half the HP of normal enemies' },
