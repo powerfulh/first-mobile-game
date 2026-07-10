@@ -144,17 +144,36 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
 	} else if (type === 'transport') {
-		// 신규 적(transport) placeholder — 임시로 공중 적과 동일한 삼각형 (그래픽은 추후 교체)
+		// 수송 적 — 공중 적(삼각형) 기반. 각 변이 바깥으로 살짝 볼록해 통통한 느낌 + 몸체 중앙에 작은 빨간 원 두 개.
+		const verts = [
+			{ x: cx, y: cy - r },
+			{ x: cx - r * 0.9, y: cy + r * 0.6 },
+			{ x: cx + r * 0.9, y: cy + r * 0.6 },
+		];
+		const gx = cx, gy = cy + r * 0.2 / 3; // 무게중심 — 볼록 방향의 기준
 		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();
-		ctx.moveTo(cx, cy - r);
-		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
-		ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
+		ctx.moveTo(verts[0].x, verts[0].y);
+		for (let i = 0; i < 3; i++) {
+			const a = verts[i];
+			const b = verts[(i + 1) % 3];
+			const mx = (a.x + b.x) / 2;
+			const my = (a.y + b.y) / 2;
+			const d = Math.hypot(mx - gx, my - gy) || 1;
+			const bulge = r * 0.35; // 제어점 오프셋 — 실제 볼록은 절반 수준
+			ctx.quadraticCurveTo(mx + (mx - gx) / d * bulge, my + (my - gy) / d * bulge, b.x, b.y);
+		}
 		ctx.closePath();
 		ctx.fill();
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+		ctx.fillStyle = ACCENT_RED;
+		for (const ox of [-r * 0.28, r * 0.28]) {
+			ctx.beginPath();
+			ctx.arc(cx + ox, cy + r * 0.05, r * 0.16, 0, Math.PI * 2);
+			ctx.fill();
+		}
 	} else if (type === 'regen') {
 		const w = r * 1.8;
 		const x = cx - w / 2;
