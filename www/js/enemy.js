@@ -431,7 +431,8 @@ function pathProgress(e) {
 
 // 수송 적 방출 — 그 자리에서 소속 웨이브 기준 일반 지상 적(HP 40%)이 내려와 경로를 이어감.
 function spawnTransportChild(e) {
-	const hp = round1(computeBaseHpAt(e.waveNum) * 0.4);
+	const hpMax = computeBaseHpAt(e.waveNum); // 원래(만피) 체력 — HP바가 까진 상태로 보이게
+	const hp = round1(hpMax * 0.4); // 40%로 투하
 	game.entities.enemies.push({
 		x: e.x,
 		y: e.y,
@@ -443,7 +444,7 @@ function spawnTransportChild(e) {
 		speed: getEnemyBaseSpeed(e.waveNum),
 		segment: e.segment,
 		radius: 10,
-		hpMax: hp,
+		hpMax: hpMax,
 		hp: hp,
 		bobPhase: Math.random() * Math.PI * 2,
 		shielded: false,
