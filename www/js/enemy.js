@@ -17,6 +17,7 @@ const DEFAULT_WAVE = {
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
 	regenBoostWave: 190, // 재생 적 강화(회복률 +1%/wave, 출현 +0.4%/wave) 시작 직전 웨이브 — 기본 191~200 에 10웨이브 램프
+	regenChanceBoost2Wave: Infinity, // 재생 출현 확률 2차 강화(+0.4%/wave, 10웨이브 누적 +4%) 시작 직전 웨이브 — 기본 미적용
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
@@ -58,10 +59,11 @@ export function getAirHpRatio(wave) {
 export function getRegenChance(wave) {
 	const p = wparams();
 	if (wave < p.regenStartWave) return 0;
-	// 시작 웨이브부터 +step/wave 누적 (cap까지) / 강화 구간(regenBoostWave 이후 10웨이브): +0.4%/wave 추가
+	// 시작 웨이브부터 +step/wave 누적 (cap까지) / 강화 구간(regenBoostWave·regenChanceBoost2Wave 이후 각 10웨이브): +0.4%/wave 추가
 	const base = Math.min(p.regenChanceCap, (wave - p.regenStartWave + 1) * p.regenChanceStep);
 	const lateBonus = clamp((wave - p.regenBoostWave) * 0.004, 0, 0.04);
-	return base + lateBonus;
+	const lateBonus2 = clamp((wave - p.regenChanceBoost2Wave) * 0.004, 0, 0.04);
+	return base + lateBonus + lateBonus2;
 }
 
 export function getRegenHealRate(wave) {
