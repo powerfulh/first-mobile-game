@@ -28,6 +28,7 @@ export const game = {
 		zaps: [],
 		barrierSpawnFx: [],
 		shieldBreakFx: [],
+		parachuteFx: [], // 수송 적이 일반 적을 투하할 때의 낙하산 연출 { x, y, life, maxLife }
 		empDevices: [], // EMP 적 처치 지점의 스턴 장치 { x, y, target, life } — 대상 타워 스턴 유지
 	},
 	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개).
@@ -85,6 +86,7 @@ export function clearEffects() {
 	game.effects.zaps = [];
 	game.effects.barrierSpawnFx = [];
 	game.effects.shieldBreakFx = [];
+	game.effects.parachuteFx = [];
 	game.effects.empDevices = [];
 }
 

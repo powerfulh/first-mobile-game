@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss, getEffectiveSpeed,
+	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -22,7 +22,7 @@ import {
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 	getReservationChoices, reserveTowerPromotion, moveReservation, cancelReservation, processReservations,
 } from './tower.js';
-import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice, drawConfirmButton } from './ui/sprite.js';
+import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawParachuteFx, drawEmpDevice, drawConfirmButton } from './ui/sprite.js';
 import { drawTowerSprite } from './ui/sprite/tower.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
@@ -419,6 +419,7 @@ scenes.playing = {
 		for (const z of game.effects.zaps) updateZap(z, dt);
 		for (const fx of game.effects.barrierSpawnFx) updateBarrierSpawnFx(fx, dt);
 		for (const fx of game.effects.shieldBreakFx) updateShieldBreakFx(fx, dt);
+		for (const fx of game.effects.parachuteFx) updateParachuteFx(fx, dt);
 		for (const d of game.effects.empDevices) updateEmpDevice(d, dt);
 
 		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
@@ -429,6 +430,7 @@ scenes.playing = {
 		game.effects.zaps = game.effects.zaps.filter(z => !z.dead);
 		game.effects.barrierSpawnFx = game.effects.barrierSpawnFx.filter(fx => !fx.dead);
 		game.effects.shieldBreakFx = game.effects.shieldBreakFx.filter(fx => !fx.dead);
+		game.effects.parachuteFx = game.effects.parachuteFx.filter(fx => !fx.dead);
 		game.effects.empDevices = game.effects.empDevices.filter(d => !d.dead);
 
 		// 게임오버 판정을 웨이브 완료·저장보다 먼저 — 마지막 적이 골인하며 hp가 0이 된 프레임에
@@ -541,6 +543,7 @@ scenes.playing = {
 		for (const z of game.effects.zaps) drawZap(z);
 		for (const fx of game.effects.barrierSpawnFx) drawBarrierSpawnFx(fx);
 		for (const fx of game.effects.shieldBreakFx) drawShieldBreakFx(fx);
+		for (const fx of game.effects.parachuteFx) drawParachuteFx(fx);
 		for (const d of game.effects.empDevices) drawEmpDevice(d);
 
 		drawBossHpBar();

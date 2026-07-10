@@ -340,6 +340,35 @@ export function drawShieldBreakFx(fx) {
 	ctx.globalAlpha = 1;
 }
 
+// 수송 적 투하 낙하산 — 탑뷰 캐노피(원 + 방사 패널 seam). 살짝 퍼지며 페이드아웃.
+export function drawParachuteFx(fx) {
+	const t = 1 - fx.life / fx.maxLife; // 0 → 1
+	const r = 14 + t * 5; // 살짝 퍼짐
+	const alpha = Math.max(0, 1 - t);
+
+	// 캐노피 채움 (반투명 — 아래 적이 페이드와 함께 드러남)
+	ctx.globalAlpha = alpha * 0.75;
+	ctx.fillStyle = '#e8eef2';
+	ctx.beginPath();
+	ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
+	ctx.fill();
+
+	// 외곽 + 방사 패널 seam
+	ctx.globalAlpha = alpha;
+	ctx.strokeStyle = '#9fb0bd';
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(fx.x, fx.y, r, 0, Math.PI * 2);
+	for (let i = 0; i < 6; i++) {
+		const a = Math.PI * 2 * i / 6;
+		ctx.moveTo(fx.x, fx.y);
+		ctx.lineTo(fx.x + Math.cos(a) * r, fx.y + Math.sin(a) * r);
+	}
+	ctx.stroke();
+
+	ctx.globalAlpha = 1;
+}
+
 // 금지 기호 (원 + 대각선) — 비활성 표시 오버레이.
 export function drawProhibition(cx, cy, r) {
 	ctx.strokeStyle = '#e74c3c';

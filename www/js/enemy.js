@@ -368,6 +368,7 @@ export function updateEnemy(e, dt) {
 			if (e.hp >= e.hpMax * 0.4) {
 				e.hp -= e.hpMax * 0.33;
 				spawnTransportChild(e);
+				startParachuteFx(e.x, e.y);
 				e.transportSpawned++;
 			}
 		}
@@ -430,6 +431,16 @@ function pathProgress(e) {
 }
 
 // 수송 적 방출 — 그 자리에서 소속 웨이브 기준 일반 지상 적(HP 40%)이 내려와 경로를 이어감.
+// 수송 적 투하 낙하산 연출 — 투하 지점에 1회. 상태·수명은 여기서, 그리기는 ui/sprite.
+export function startParachuteFx(x, y) {
+	game.effects.parachuteFx.push({ x, y, life: 0.7, maxLife: 0.7 });
+}
+
+export function updateParachuteFx(fx, dt) {
+	fx.life -= dt;
+	if (fx.life <= 0) fx.dead = true;
+}
+
 function spawnTransportChild(e) {
 	const hpMax = computeBaseHpAt(e.waveNum); // 원래(만피) 체력 — HP바가 까진 상태로 보이게
 	const hp = round1(hpMax * 0.4); // 40%로 투하
