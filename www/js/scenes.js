@@ -9,7 +9,7 @@ import {
 	getIntermissionEnabled, getUnlockedMaps, clearEffects,
 } from './state.js';
 import { getActiveMap, MAPS } from './core/maps.js';
-import { roundRect, drawButton, hitButton } from './core/helpers.js';
+import { drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
 	updateBarrierSpawnFx, updateShieldBreakFx, updateEmpDevice, isBoss, getEffectiveSpeed,
@@ -22,7 +22,7 @@ import {
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
 	getReservationChoices, reserveTowerPromotion, moveReservation, cancelReservation, processReservations,
 } from './tower.js';
-import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice } from './ui/sprite.js';
+import { drawTowerRange, drawTowerRangesUnion, drawBarrierSpawnFx, drawShieldBreakFx, drawEmpDevice, drawConfirmButton } from './ui/sprite.js';
 import { drawTowerSprite } from './ui/sprite/tower.js';
 import {
 	updateProjectile, updateBeam, updateLink, updateSplash, updateZap,
@@ -369,22 +369,7 @@ function drawGhostTower() {
 	ctx.stroke();
 	ctx.setLineDash([]);
 	// 확정 버튼 (✅) — 배치 불가 시 흐리게(비활성)
-	const r = ghostConfirmRect();
-	ctx.globalAlpha = ok ? 1 : 0.4;
-	ctx.fillStyle = ok ? '#27ae60' : '#7f8c8d';
-	roundRect(r.x, r.y, r.w, r.h, 10);
-	ctx.fill();
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 2;
-	ctx.stroke();
-	ctx.lineWidth = 4;
-	ctx.lineJoin = 'round';
-	ctx.beginPath();
-	ctx.moveTo(r.x + 13, r.y + r.h / 2);
-	ctx.lineTo(r.x + r.w * 0.42, r.y + r.h - 14);
-	ctx.lineTo(r.x + r.w - 11, r.y + 14);
-	ctx.stroke();
-	ctx.globalAlpha = 1;
+	drawConfirmButton(ghostConfirmRect(), ok);
 }
 
 // ============ Playing scene ============

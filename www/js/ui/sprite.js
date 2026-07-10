@@ -446,6 +446,25 @@ export function drawNewBadge(btn) {
 	ctx.textAlign = 'left';
 }
 
+// 확정(✅) 버튼 — 둥근 사각 + 체크 표시. enabled=false 면 흐리게(비활성).
+export function drawConfirmButton(r, enabled) {
+	ctx.globalAlpha = enabled ? 1 : 0.4;
+	ctx.fillStyle = enabled ? '#27ae60' : '#7f8c8d';
+	roundRect(r.x, r.y, r.w, r.h, 10);
+	ctx.fill();
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+	ctx.lineWidth = 4;
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(r.x + 13, r.y + r.h / 2);
+	ctx.lineTo(r.x + r.w * 0.42, r.y + r.h - 14);
+	ctx.lineTo(r.x + r.w - 11, r.y + 14);
+	ctx.stroke();
+	ctx.globalAlpha = 1;
+}
+
 // EMP 장치 연출 — EMP 적 처치 지점의 장치 코어 + 대상 타워로 뻗는 지그재그 충격파.
 // 상태 관리·수명은 enemy.js. 지터는 매 프레임 재생성 → 전기 플리커.
 export function drawEmpDevice(d) {
