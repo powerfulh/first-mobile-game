@@ -86,6 +86,7 @@ export const MAPS = {
 			regenChanceBoost2Wave: 90, // 재생 출현 확률 2차 강화: wave 91~100 에 +0.4%/wave → 100에 12% 도달
 			densityFloorWave: 70, // 조밀도 하한 추가 강화를 wave 71~80으로 (minNarrow 0.30 @ wave 80)
 			countRampWave: 60, countCapWave: 70, // 적 수 +2→+1 전환 wave 60, 고정 wave 70 → 135마리
+			densityCeilWave: 100, // 조밀도 상한 추가 강화를 wave 101~110으로 (maxNarrow 0.90 @ wave 110)
 		},
 		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
