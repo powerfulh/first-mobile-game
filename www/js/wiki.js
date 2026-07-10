@@ -82,6 +82,7 @@ const ENEMY_ENTRIES = [
 		key: 'emp',
 		name: 'enemy.emp.name',
 		tagline: 'enemy.emp.tagline',
+		taglineParams: { map: t('map.map2.name') },
 		description: [
 			'enemy.common.spawnRises',
 			'enemy.emp.desc1',
@@ -93,6 +94,7 @@ const ENEMY_ENTRIES = [
 		key: 'transport',
 		name: 'enemy.transport.name',
 		tagline: 'enemy.transport.tagline',
+		taglineParams: { map: t('map.map3.name') },
 		description: ['enemy.transport.desc1', 'enemy.transport.desc2'],
 	},
 ];
@@ -100,7 +102,7 @@ const ENEMY_ENTRIES = [
 // 위키 표시 텍스트 다국어화 — i18n 키를 정의 직후 1회 표시 문자열로 변환. (타워 텍스트는 config.js에서, 그룹 라벨은 파생 시 변환됨)
 for (const e of ENEMY_ENTRIES) {
 	e.name = t(e.name);
-	if (e.tagline) e.tagline = t(e.tagline);
+	if (e.tagline) e.tagline = t(e.tagline, e.taglineParams);
 	if (e.description) e.description = e.description.map(line => t(line));
 }
 
