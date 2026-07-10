@@ -168,10 +168,13 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+		// 중앙 빨간 원 = 실어 나르는 화물. opts.cargo(기본 2)개 — 방출할 때마다 하나씩 사라짐.
+		const cargo = opts.cargo ?? 2;
+		const cargoXs = cargo === 2 ? [-r * 0.28, r * 0.28] : cargo === 1 ? [0] : [];
 		ctx.fillStyle = ACCENT_RED;
-		for (const ox of [-r * 0.28, r * 0.28]) {
+		for (const ox of cargoXs) {
 			ctx.beginPath();
-			ctx.arc(cx + ox, cy + r * 0.05, r * 0.16, 0, Math.PI * 2);
+			ctx.arc(cx + ox, cy + r * 0.05, r * 0.2, 0, Math.PI * 2);
 			ctx.fill();
 		}
 	} else if (type === 'regen') {
