@@ -20,6 +20,7 @@ const DEFAULT_WAVE = {
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
+	spawnIntervalStart: 1.2, spawnIntervalStep: 0.08, // 스폰 간격: wave 1 시작값에서 -step/wave (하한 0.5초 공통)
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 	densityCeilWave: 120, // 이 웨이브 이후 maxNarrow -0.01/wave (10웨이브 누적 -0.10)
@@ -144,7 +145,8 @@ export function getBossReward(wave) {
 }
 
 export function getBaseSpawnInterval(wave) {
-	return Math.max(0.5, 1.2 - (wave - 1) * 0.08);
+	const p = wparams();
+	return Math.max(0.5, p.spawnIntervalStart - (wave - 1) * p.spawnIntervalStep);
 }
 
 // 적 기본 이동 속도 — Wave에 비례 증가, ENEMY_SPEED_CAP_WAVE에서 상한 고정. spawnEnemy/spawnBoss 공용.

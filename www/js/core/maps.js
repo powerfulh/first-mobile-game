@@ -61,7 +61,7 @@ export const MAPS = {
 		},
 		unlock: { type: 'clearWave', map: 'map1', wave: 201 }, // 1번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
-	// 맵3 — 현재 맵2 복제(경로/시작 돈/BGM/웨이브 구성 동일). 고유 속성은 추후 차별화 예정.
+	// 맵3
 	map3: {
 		id: 'map3',
 		name: 'map.map3.name', // i18n 키 — 표시 시 사용처가 t()로 변환
@@ -79,17 +79,7 @@ export const MAPS = {
 		startGold: 200,
 		bgm: 'bgm2',
 		waveComposition: {
-			airStartWave: 4, airStartChance: 0.04, airChanceStep: 0.016,
-			airHpBase: 0.4,
-			regenStartWave: 71, regenChanceStep: 0.004,
-			shieldStartCap: 0.4,
-			barrierStartWave: 111,
-			empStartWave: 161,
-
-			regenHealRampWave: 120,
-			countRampWave: 31, countCapWave: 90,
-			densityFloorWave: 40,
-			densityCeilWave: 80,
+			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
 		},
 		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
