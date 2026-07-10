@@ -84,6 +84,7 @@ export const MAPS = {
 			empStartWave: 111, // EMP 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
 			regenBoostWave: 60, // 재생 강화를 wave 61~70으로 — 70에 회복률 22%·출현 8% 도달 (2차 회복 강화는 기본 161~170 → 32%)
 			regenChanceBoost2Wave: 90, // 재생 출현 확률 2차 강화: wave 91~100 에 +0.4%/wave → 100에 12% 도달
+			densityFloorWave: 70, // 조밀도 하한 추가 강화를 wave 71~80으로 (minNarrow 0.30 @ wave 80)
 		},
 		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
