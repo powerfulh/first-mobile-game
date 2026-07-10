@@ -10,8 +10,8 @@ export const MAPS = {
 		name: 'map.map1.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		// 적 이동 경로 (= 맵 생김새). drawPath/거리판정/적 이동·스폰의 단일 출처.
 		path: [
-			{ x: 60, y: 0 },
-			{ x: 60, y: 150 },
+			{ x: 8 * pathUnit, y: 0 },
+			{ x: 8 * pathUnit, y: 150 },
 			{ x: 280, y: 150 },
 			{ x: 280, y: 350 },
 			{ x: 80, y: 350 },
