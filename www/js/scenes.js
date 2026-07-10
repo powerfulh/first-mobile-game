@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, GOLD,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, GOLD, MAP_BG_COLOR,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -235,7 +235,7 @@ function mapSelectButtons() {
 	});
 }
 function drawMapThumb(map, b) {
-	ctx.fillStyle = '#2d4a2b'; // 플레이 배경과 같은 느낌
+	ctx.fillStyle = MAP_BG_COLOR; // 플레이 배경과 같은 느낌
 	roundRect(b.x, b.y, b.w, b.h, 10);
 	ctx.fill();
 	ctx.strokeStyle = '#fff';
@@ -547,7 +547,7 @@ scenes.playing = {
 	draw() {
 		updateHUD(); // dom 이라 제일 먼저
 		// 배경 잔디
-		ctx.fillStyle = '#2d4a2b';
+		ctx.fillStyle = MAP_BG_COLOR;
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
 		drawPath(getActiveMap());
 

@@ -6,7 +6,7 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, MAP_BG_COLOR,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
@@ -139,7 +139,7 @@ function drawShortcutIcon(cx, cy) {
 function drawMapUnlockIcon(cx, cy) {
 	// 미니 맵 카드 + 경로 squiggle
 	const w = 34, h = 26;
-	ctx.fillStyle = '#2d4a2b';
+	ctx.fillStyle = MAP_BG_COLOR;
 	roundRect(cx - w / 2, cy - h / 2, w, h, 4);
 	ctx.fill();
 	ctx.strokeStyle = GOLD;

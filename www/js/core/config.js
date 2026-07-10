@@ -315,6 +315,7 @@ export const ACCENT_RED = '#c0392b';
 export const GOLD = '#f1c40f';       // XP 가득·골드 비용·활성 강조
 export const INFO_BLUE = '#5dade2';  // 정보/선택/방어막 하이라이트
 export const SLATE = '#2c3e50';      // 어두운 패널/비활성 배경
+export const MAP_BG_COLOR = '#2d4a2b'; // 맵 배경 잔디 — 플레이 배경/맵 썸네일/해금 아이콘 공용
 
 export const PATH_WIDTH = 28;
 export const ENEMY_KILL_REWARD = 6;
