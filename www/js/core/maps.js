@@ -2,6 +2,7 @@
 // 맵별 고유 속성(생김새/시작 돈/BGM/특성/웨이브 구성/해금)을 한곳에 모은다.
 // 순수 데이터 leaf — 외부 import 없음(순환/계층 무관). 활성 맵은 모듈 내부 상태로 보유하고
 // resetGame/loadGame/맵 선택이 setActiveMap으로 바꾼다. 기본값 map1 → 타이틀에서도 path 렌더 유효.
+const pathUnit = 8
 
 export const MAPS = {
 	map1: {
@@ -65,15 +66,15 @@ export const MAPS = {
 		id: 'map3',
 		name: 'map.map3.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
-			{ x: 300, y: 0 },
-			{ x: 300, y: 400 },
-			{ x: 300, y: 580 },
-			{ x: 175, y: 580 },
-			{ x: 175, y: 400 },
-			{ x: 175, y: 65 },
-			{ x: 55, y: 65 },
-			{ x: 55, y: 385 },
-			{ x: 0, y: 385 },
+			{ x: 38 * pathUnit, y: 80 * pathUnit },
+			{ x: 38 * pathUnit, y: 9 * pathUnit },
+			{ x: 7 * pathUnit, y: 12 * pathUnit },
+			{ x: 7 * pathUnit, y: 45 * pathUnit },
+			{ x: 29 * pathUnit, y: 48 * pathUnit },
+			{ x: 29 * pathUnit, y: 70 * pathUnit },
+			{ x: 10 * pathUnit, y: 70 * pathUnit },
+			{ x: 10 * pathUnit, y: 55 * pathUnit },
+			{ x: 0 * pathUnit, y: 55 * pathUnit },
 		],
 		startGold: 200,
 		bgm: 'bgm2',
