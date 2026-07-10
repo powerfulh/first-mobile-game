@@ -82,6 +82,7 @@ export const MAPS = {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적: wave 21부터 0.2% (+0.2%/wave → wave 40에 상한 4%)
 			empStartWave: 111, // EMP 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
+			regenBoostWave: 60, // 재생 강화를 wave 61~70으로 — 70에 회복률 22%·출현 8% 도달 (2차 회복 강화는 기본 161~170 → 32%)
 		},
 		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},

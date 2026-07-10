@@ -16,6 +16,7 @@ const DEFAULT_WAVE = {
 	airStartWave: 6, airStartChance: 0.02, airChanceStep: 0.02, airChanceCap: 0.5,
 	airHpBase: 0.6, airHpRampWave: 31, airHpStep: 0.02, airHpCap: 1.0,
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
+	regenBoostWave: 190, // 재생 적 강화(회복률 +1%/wave, 출현 +0.4%/wave) 시작 직전 웨이브 — 기본 191~200 에 10웨이브 램프
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
@@ -57,17 +58,18 @@ export function getAirHpRatio(wave) {
 export function getRegenChance(wave) {
 	const p = wparams();
 	if (wave < p.regenStartWave) return 0;
-	// 시작 웨이브부터 +step/wave 누적 (cap까지) / Wave 191~200: +0.4%/wave 추가 (전 맵 공통)
+	// 시작 웨이브부터 +step/wave 누적 (cap까지) / 강화 구간(regenBoostWave 이후 10웨이브): +0.4%/wave 추가
 	const base = Math.min(p.regenChanceCap, (wave - p.regenStartWave + 1) * p.regenChanceStep);
-	const lateBonus = clamp((wave - 190) * 0.004, 0, 0.04);
+	const lateBonus = clamp((wave - p.regenBoostWave) * 0.004, 0, 0.04);
 	return base + lateBonus;
 }
 
 export function getRegenHealRate(wave) {
-	// 기본 12% / regenHealRampWave 이후 +1%/wave (10웨이브 누적 22%) /
-	// Wave 191~200: +1%/wave 추가 (32%, 전 맵 공통) / 그 외 구간 고정
-	const bonus1 = clamp((wave - wparams().regenHealRampWave) * 0.01, 0, 0.10);
-	const bonus2 = clamp((wave - 190) * 0.01, 0, 0.10);
+	// 기본 12% / regenHealRampWave 이후 +1%/wave (10웨이브 누적 +10%) /
+	// 강화 구간(regenBoostWave 이후 10웨이브): +1%/wave 추가 / 그 외 구간 고정
+	const p = wparams();
+	const bonus1 = clamp((wave - p.regenHealRampWave) * 0.01, 0, 0.10);
+	const bonus2 = clamp((wave - p.regenBoostWave) * 0.01, 0, 0.10);
 	return REGEN_HEAL_RATE + bonus1 + bonus2;
 }
 
