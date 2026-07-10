@@ -66,16 +66,16 @@ export const MAPS = {
 		name: 'map.map3.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
 			{ x: 300, y: 0 },
-			{ x: 300, y: 400, shortcut: true },
+			{ x: 300, y: 400 },
 			{ x: 300, y: 580 },
 			{ x: 175, y: 580 },
-			{ x: 175, y: 400, shortcut: true },
+			{ x: 175, y: 400 },
 			{ x: 175, y: 65 },
 			{ x: 55, y: 65 },
 			{ x: 55, y: 385 },
 			{ x: 0, y: 385 },
 		],
-		startGold: 150,
+		startGold: 200,
 		bgm: 'bgm2',
 		waveComposition: {
 			airStartWave: 4, airStartChance: 0.04, airChanceStep: 0.016,
