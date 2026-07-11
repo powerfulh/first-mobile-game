@@ -711,6 +711,7 @@ scenes.playing = {
 		}
 		if (game.selectedTower?.panel === 'promotion') {
 			if (hitButton(promotionCloseButton, p)) {
+				playButton();
 				game.selectedTower.panel = null;
 				return;
 			}
