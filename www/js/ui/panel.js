@@ -419,13 +419,12 @@ const promoSubtitleH = textHeight(t('panel.promote.choose'));
 const promoCardY = promoSubtitleY + promoSubtitleH + margin;
 
 const CARD_H = 84;
-const CARD_GAP = 10;
 export const promotionCardSlots = [
 	{ x: promotionPanel.x + PAD, y: promoCardY, w: promotionPanel.w - PAD * 2, h: CARD_H },
-	{ x: promotionPanel.x + PAD, y: promoCardY + CARD_H + CARD_GAP, w: promotionPanel.w - PAD * 2, h: CARD_H },
+	{ x: promotionPanel.x + PAD, y: promoCardY + CARD_H + margin, w: promotionPanel.w - PAD * 2, h: CARD_H },
 ];
 // 4티어 결과 카드 — 단일 카드라 두 슬롯 총 높이만큼 채움
-export const tier4ResultCardSlot = { x: promotionPanel.x + PAD, y: promoCardY, w: promotionPanel.w - PAD * 2, h: CARD_H * 2 + CARD_GAP };
+export const tier4ResultCardSlot = { x: promotionPanel.x + PAD, y: promoCardY, w: promotionPanel.w - PAD * 2, h: CARD_H * 2 + margin };
 
 function drawPromotionCard(slot, cfg, cost, canAfford) {
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
