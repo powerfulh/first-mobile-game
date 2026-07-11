@@ -401,7 +401,6 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 // ============ 전직 패널 ============
 // 좌표 상수는 scenes의 hit-test와 공유.
 export const promotionPanel = { ...infoPanel, h: 248, y: LOGICAL_H - 248 };
-export const promotionCloseButton = { x: promotionPanel.x + promotionPanel.w - PAD - 28, y: promotionPanel.y + PAD, w: 28, h: 28 };
 export const promotionCardSlots = [
 	{ x: promotionPanel.x + PAD, y: 448, w: promotionPanel.w - PAD * 2, h: 84 },
 	{ x: promotionPanel.x + PAD, y: 542, w: promotionPanel.w - PAD * 2, h: 84 },
@@ -494,6 +493,8 @@ function drawTier4ResultCard(slot, cfg, cost, canAfford) {
 	}
 	ctx.textBaseline = 'alphabetic';
 }
+
+export const promotionCloseButton = { x: promotionPanel.x + promotionPanel.w - PAD - 28, y: promotionPanel.y + PAD, w: 28, h: 28 };
 
 // canAfford: 카드 활성 여부 — 탭 시 실제 판정과 같은 canAffordPromotion으로 호출부가 도출해 전달.
 // choices: 표시할 선택지 뷰모델 (tower.getPromotionChoices) — tier4Cfg(합체 결과) 또는 cfgs(역할별 cfg 목록).
