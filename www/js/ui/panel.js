@@ -401,12 +401,31 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 // ============ 전직 패널 ============
 // 좌표 상수는 scenes의 hit-test와 공유.
 export const promotionPanel = { ...infoPanel, h: 248, y: LOGICAL_H - 248 };
+
+// 텍스트 글리프 높이 (현재 ctx.font 기준 ascent+descent).
+function textHeight(text) {
+	const m = ctx.measureText(text);
+	return m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+}
+
+// 전직 패널 세로 레이아웃 — 타이틀 → 서브타이틀 → 카드를 measureText 높이로 순차 파생 (로드 시 1회).
+// 각 요소 y = 이전 요소 y + 그 높이 + margin. drawPromotionPanel·카드 슬롯이 공유.
+const promoTitleY = promotionPanel.y + PAD;
+ctx.font = 'bold 18px sans-serif';
+const promoTitleH = textHeight(t('panel.promote.title'));
+const promoSubtitleY = promoTitleY + promoTitleH + margin;
+ctx.font = '12px sans-serif';
+const promoSubtitleH = textHeight(t('panel.promote.choose'));
+const promoCardY = promoSubtitleY + promoSubtitleH + margin;
+
+const CARD_H = 84;
+const CARD_GAP = 10;
 export const promotionCardSlots = [
-	{ x: promotionPanel.x + PAD, y: 448, w: promotionPanel.w - PAD * 2, h: 84 },
-	{ x: promotionPanel.x + PAD, y: 542, w: promotionPanel.w - PAD * 2, h: 84 },
+	{ x: promotionPanel.x + PAD, y: promoCardY, w: promotionPanel.w - PAD * 2, h: CARD_H },
+	{ x: promotionPanel.x + PAD, y: promoCardY + CARD_H + CARD_GAP, w: promotionPanel.w - PAD * 2, h: CARD_H },
 ];
-// 4티어 결과 카드 — 단일 카드라 영역 전체를 채움
-export const tier4ResultCardSlot = { x: promotionPanel.x + PAD, y: 432, w: promotionPanel.w - PAD * 2, h: 178 };
+// 4티어 결과 카드 — 단일 카드라 두 슬롯 총 높이만큼 채움
+export const tier4ResultCardSlot = { x: promotionPanel.x + PAD, y: promoCardY, w: promotionPanel.w - PAD * 2, h: CARD_H * 2 + CARD_GAP };
 
 function drawPromotionCard(slot, cfg, cost, canAfford) {
 	drawPanel(slot.x, slot.y, slot.w, slot.h, {
@@ -503,34 +522,32 @@ export function drawPromotionPanel(tower, canAfford, { cfgs, tier4Cfg }) {
 		radius: 12, fill: '#0f1620', stroke: GOLD, alpha: 0.92,
 	});
 
-	// 타이틀·안내문 — 패널 상단에서 윗선 기준으로 쌓임
+	// 타이틀·안내문 — 모듈 레벨 파생 y(promoTitleY / promoSubtitleY) 사용, 윗선 기준
+	const cx = promotionPanel.x + promotionPanel.w / 2;
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'top';
 	ctx.fillStyle = GOLD;
 	ctx.font = 'bold 18px sans-serif';
-	ctx.fillText(t('panel.promote.title'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + PAD);
+	ctx.fillText(t('panel.promote.title'), cx, promoTitleY);
 
-	const cost = tower.promotionCost;
+	drawCloseX(promotionCloseButton);
 
 	ctx.fillStyle = '#bcd';
 	ctx.font = '12px sans-serif';
+	ctx.textBaseline = 'top';
+	const subtitle = tier4Cfg
+		? t('panel.promote.tier4Info', { from: tower.cfg.name, to: tier4Cfg.name })
+		: t('panel.promote.choose');
+	ctx.fillText(subtitle, cx, promoSubtitleY);
+	ctx.textBaseline = 'alphabetic';
+	const cost = tower.promotionCost;
 	if (tier4Cfg) {
-		ctx.fillText(
-			t('panel.promote.tier4Info', { from: tower.cfg.name, to: tier4Cfg.name }),
-			promotionPanel.x + promotionPanel.w / 2,
-			promotionPanel.y + 40,
-		);
-		ctx.textBaseline = 'alphabetic';
 		drawTier4ResultCard(tier4ResultCardSlot, tier4Cfg, cost, canAfford);
 	} else {
-		ctx.fillText(t('panel.promote.choose'), promotionPanel.x + promotionPanel.w / 2, promotionPanel.y + 40);
-		ctx.textBaseline = 'alphabetic';
 		for (let i = 0; i < cfgs.length && i < promotionCardSlots.length; i++) {
 			drawPromotionCard(promotionCardSlots[i], cfgs[i], cost, canAfford);
 		}
 	}
-
-	drawCloseX(promotionCloseButton);
 }
 
 const fmtHp = (v) => Math.max(0, v).toLocaleString(undefined, { maximumFractionDigits: 1 });
