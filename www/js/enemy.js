@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, ENEMY_SLOW_SPEED_FLOOR, AIR_COLOR, ACCENT_RED,
-	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
+	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
@@ -238,6 +238,9 @@ export function spawnEnemy(spawner) {
 	}
 	if (kind === 'emp' && !game.modal && !hasSeenIntro(EMP_INTRO_KEY)) {
 		game.modal = { type: 'empIntro' };
+	}
+	if (kind === 'transport' && !game.modal && !hasSeenIntro(TRANSPORT_INTRO_KEY)) {
+		game.modal = { type: 'transportIntro' };
 	}
 }
 

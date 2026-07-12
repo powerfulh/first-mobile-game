@@ -5,7 +5,7 @@ import { ctx } from '../core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY,
 	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, MAP_BG_COLOR,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
@@ -288,6 +288,13 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawEnemySprite('emp', cx, cy, 14),
 		title: 'intro.emp.title',
 		lines: ['intro.emp.line1', 'intro.emp.line2', 'intro.emp.line3'],
+	}),
+
+	transportIntro: makeIntro({
+		key: TRANSPORT_INTRO_KEY, accent: AIR_COLOR,
+		drawIcon: (cx, cy) => drawEnemySprite('transport', cx, cy, 14),
+		title: 'intro.transport.title',
+		lines: ['intro.transport.line1', 'intro.transport.line2', 'intro.transport.line3'],
 	}),
 
 	parallelIntro: makeIntro({
