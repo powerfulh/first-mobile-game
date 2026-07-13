@@ -77,7 +77,7 @@ export const MAPS = {
 			{ x: 0 * pathUnit, y: 55 * pathUnit },
 		],
 		startGold: 200,
-		bgm: 'bgm2',
+		bgm: 'bgm3',
 		waveComposition: {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적: wave 21부터 0.2% (+0.2%/wave → wave 40에 상한 4%)
