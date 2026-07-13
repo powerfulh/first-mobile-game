@@ -23,8 +23,8 @@ android {
         applicationId "com.powerful.promotd"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 29      // 정수, Play Store 업로드 시마다 +1 (재사용 불가)
-        versionName "1.5.4" // 사용자에게 보이는 버전. 패치마다 마지막 자리, 기능 추가는 가운데 자리, 큰 개편은 첫 자리 올림
+        versionCode 30      // 정수, Play Store 업로드 시마다 +1 (재사용 불가)
+        versionName "1.5.5" // 사용자에게 보이는 버전. 패치마다 마지막 자리, 기능 추가는 가운데 자리, 큰 개편은 첫 자리 올림
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
