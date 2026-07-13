@@ -10,7 +10,7 @@ export const TOWER = {
 	cost: 50,
 	radius: 14,
 	projectileSpeed: 280,
-	promotionCosts: [125, 250, 1000, 3000, 3500], // [t0→t1 … t3→t4, t4→t5]
+	promotionCosts: [125, 250, 1000, 2500, 3500], // [t0→t1 … t4→t5]
 	xpThresholds:   [20,  40,  200,  500,  1000],
 	buffRates:      [0.10, 0.10, 0.20, 0.30, 0.40, 0.45], // 받는 타워 티어 (t0~t5)
 	maxTier: 5,
