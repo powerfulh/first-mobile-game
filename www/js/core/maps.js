@@ -3,6 +3,10 @@
 // 순수 데이터 leaf — 외부 import 없음(순환/계층 무관). 활성 맵은 모듈 내부 상태로 보유하고
 // resetGame/loadGame/맵 선택이 setActiveMap으로 바꾼다. 기본값 map1 → 타이틀에서도 path 렌더 유효.
 const pathUnit = 8
+const bottom = 80
+const rightSide = 42 // 길은 다 보이게
+const allow1top = 9
+const allow1horiz = 7
 
 export const MAPS = {
 	map1: {
@@ -66,10 +70,10 @@ export const MAPS = {
 		id: 'map3',
 		name: 'map.map3.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
-			{ x: 38 * pathUnit, y: 80 * pathUnit },
-			{ x: 38 * pathUnit, y: 9 * pathUnit },
-			{ x: 7 * pathUnit, y: 12 * pathUnit },
-			{ x: 7 * pathUnit, y: 45 * pathUnit },
+			{ x: 38 * pathUnit, y: bottom * pathUnit },
+			{ x: 38 * pathUnit, y: allow1top * pathUnit },
+			{ x: allow1horiz * pathUnit, y: 12 * pathUnit },
+			{ x: allow1horiz * pathUnit, y: 45 * pathUnit },
 			{ x: 29 * pathUnit, y: 48 * pathUnit },
 			{ x: 29 * pathUnit, y: 70 * pathUnit },
 			{ x: 10 * pathUnit, y: 70 * pathUnit },
@@ -97,15 +101,18 @@ export const MAPS = {
 		id: 'map4',
 		name: 'map.map4.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
-			{ x: 38 * pathUnit, y: 80 * pathUnit },
-			{ x: 38 * pathUnit, y: 9 * pathUnit },
-			{ x: 7 * pathUnit, y: 12 * pathUnit },
-			{ x: 7 * pathUnit, y: 45 * pathUnit },
-			{ x: 29 * pathUnit, y: 48 * pathUnit },
-			{ x: 29 * pathUnit, y: 70 * pathUnit },
-			{ x: 10 * pathUnit, y: 70 * pathUnit },
-			{ x: 10 * pathUnit, y: 55 * pathUnit },
-			{ x: 0 * pathUnit, y: 55 * pathUnit },
+			{ x: 0 * pathUnit, y: 60 * pathUnit },
+			{ x: rightSide * pathUnit, y: 60 * pathUnit },
+			{ x: rightSide * pathUnit, y: allow1top * pathUnit },
+			{ x: allow1horiz * pathUnit, y: allow1top * pathUnit },
+			{ x: allow1horiz * pathUnit, y: 50 * pathUnit },
+			{ x: 15 * pathUnit, y: 50 * pathUnit },
+			{ x: 20 * pathUnit, y: 45 * pathUnit },
+			{ x: 20 * pathUnit, y: (10 + allow1top) * pathUnit },
+			{ x: 33 * pathUnit, y: (10 + allow1top) * pathUnit },
+			{ x: 33 * pathUnit, y: 55 * pathUnit, underpass: true },
+			{ x: 33 * pathUnit, y: 65 * pathUnit, underpass: true },
+			{ x: 33 * pathUnit, y: bottom * pathUnit },
 		],
 		startGold: 200,
 		bgm: 'bgm3',
