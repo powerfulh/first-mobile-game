@@ -1,6 +1,6 @@
 import {
 	SAVE_KEY, BEST_WAVE_KEY,
-	INTRO_KEYS, SHORTCUT_INTRO_KEY,
+	INTRO_KEYS, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
@@ -78,6 +78,13 @@ function maybeShowShortcutIntro() {
 	}
 }
 
+// 지하도(path에 underpass 마커 보유) 맵 최초 진입 시 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
+function maybeShowUnderpassIntro() {
+	if (!game.modal && getActiveMap().path?.some(p => p.underpass) && !hasSeenIntro(UNDERPASS_INTRO_KEY)) {
+		game.modal = { type: 'underpassIntro' };
+	}
+}
+
 // 일시적 시각 효과(game.effects) 전부 비움 — resetGame/loadGame/jumpToWave 공용.
 export function clearEffects() {
 	game.effects.beams = [];
@@ -121,6 +128,7 @@ export function resetGame(mapId = 'map1') {
 	game.ghostTower = null;
 	game.gameOverKiller = null;
 	maybeShowShortcutIntro();
+	maybeShowUnderpassIntro();
 }
 
 export function saveGame() {
@@ -228,6 +236,7 @@ export function loadGame(data) {
 	}
 	checkMapUnlocks(); // 불러온 진행이 이미 해금 조건을 충족하면 반영
 	maybeShowShortcutIntro();
+	maybeShowUnderpassIntro();
 }
 
 // ============ Intro 플래그 ============
