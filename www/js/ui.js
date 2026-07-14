@@ -12,9 +12,20 @@ export function drawPath(map, alpha = 1) {
 	ctx.strokeStyle = '#8a7a5a';
 	ctx.lineWidth = PATH_WIDTH;
 	ctx.lineJoin = 'round';
+	// 지하도(underpass) 구간은 노면이 없음 — 그 구간만 펜을 떼고 이어 그림 (표현은 drawUnderpass)
 	ctx.beginPath();
-	ctx.moveTo(path[0].x, path[0].y);
-	for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+	let penDown = false;
+	for (let i = 0; i < path.length - 1; i++) {
+		if (path[i].underpass && path[i + 1].underpass) {
+			penDown = false;
+			continue;
+		}
+		if (!penDown) {
+			ctx.moveTo(path[i].x, path[i].y);
+			penDown = true;
+		}
+		ctx.lineTo(path[i + 1].x, path[i + 1].y);
+	}
 	ctx.stroke();
 
 	// 공중 지름길 — 정규 경로와 구분되게 공중색 점선. 구간은 path의 shortcut 마커에서 파생.
@@ -38,45 +49,58 @@ export function drawPath(map, alpha = 1) {
 	ctx.globalAlpha = 1;
 }
 
-// 지하도 — underpass 마커 구간의 지형 덮개 + 양끝 입구 아치. 마커 없는 맵에선 no-op.
-// 호출 순서가 핵심: 지상 적 본체 다음, 공중 적 이전에 그려 지하도 진행 중인 지상 적(마크링 포함)을 덮개가 가림.
+// 지하도 — 그 구간의 노면은 없고(drawPath가 제외) 길이 지하로 내려감.
+// 지상을 덮지 않으므로 교차하는 다른 길을 가리지 않음 (고가처럼 보이는 문제 방지).
+// 표현 = 지하 경로 힌트 점선 + 양끝 입구. 지하도 안의 적은 렌더 스킵(scenes)으로 숨김.
+// 지상 적 본체 다음에 호출 — 입구에 반쯤 걸친 적을 어두운 굴이 가려 출입 연출이 자연스럽다.
 export function drawUnderpass(map) {
 	for (const seg of underpassSegments(map)) {
 		const ang = Math.atan2(seg.b.y - seg.a.y, seg.b.x - seg.a.x);
-		// 덮개 — 배경 지형(잔디)이 길 위를 덮은 느낌. 정규 길보다 살짝 넓게.
-		ctx.strokeStyle = MAP_BG_COLOR;
-		ctx.lineWidth = PATH_WIDTH + 8;
+		// 지하 경로 힌트 — 지형·교차로 위로 은은한 점선 (연결 안내 + 배치 완화 구간 표시)
+		ctx.globalAlpha = 0.28;
+		ctx.strokeStyle = '#17120d';
+		ctx.lineWidth = 4;
+		ctx.setLineDash([5, 9]);
 		ctx.beginPath();
 		ctx.moveTo(seg.a.x, seg.a.y);
 		ctx.lineTo(seg.b.x, seg.b.y);
 		ctx.stroke();
-		// 덮개 가장자리 절개선 — 지형과의 경계
-		const nx = Math.cos(ang + Math.PI / 2);
-		const ny = Math.sin(ang + Math.PI / 2);
-		ctx.strokeStyle = '#22371f';
-		ctx.lineWidth = 2;
-		for (const s of [-1, 1]) {
-			const off = (PATH_WIDTH + 8) / 2 * s;
-			ctx.beginPath();
-			ctx.moveTo(seg.a.x + nx * off, seg.a.y + ny * off);
-			ctx.lineTo(seg.b.x + nx * off, seg.b.y + ny * off);
-			ctx.stroke();
-		}
-		// 입구 아치 (양끝) — 바깥쪽으로 볼록한 어두운 굴 입구 + 길색 테두리.
-		// 진입하는 적이 어두운 입구에 겹치며 사라지고, 출구에서 겹치며 나타나는 연출.
-		for (const m of [{ p: seg.a, out: ang + Math.PI }, { p: seg.b, out: ang }]) {
-			ctx.fillStyle = '#17120d';
-			ctx.beginPath();
-			ctx.arc(m.p.x, m.p.y, PATH_WIDTH / 2, m.out - Math.PI / 2, m.out + Math.PI / 2);
-			ctx.closePath();
-			ctx.fill();
-			ctx.strokeStyle = '#8a7a5a';
-			ctx.lineWidth = 3;
-			ctx.beginPath();
-			ctx.arc(m.p.x, m.p.y, PATH_WIDTH / 2, m.out - Math.PI / 2, m.out + Math.PI / 2);
-			ctx.stroke();
-		}
+		ctx.setLineDash([]);
+		ctx.globalAlpha = 1;
+		drawUnderpassPortal(seg.a, ang + Math.PI);
+		drawUnderpassPortal(seg.b, ang);
 	}
+}
+
+// 지하도 입구 1개 — out = 바깥 접근로 방향. 콘크리트 문틀 + 꺼진 경사 노면 + 어두운 굴 순으로 겹침.
+function drawUnderpassPortal(p, out) {
+	const ux = Math.cos(out);
+	const uy = Math.sin(out);
+	const nx = -uy;
+	const ny = ux;
+	const halfW = PATH_WIDTH / 2;
+	// (from~to)×(±half) 사각형 — from/to 는 입구점 기준 바깥(+)/지하(-) 방향 거리
+	const quad = (from, to, half) => {
+		ctx.beginPath();
+		ctx.moveTo(p.x + ux * from + nx * half, p.y + uy * from + ny * half);
+		ctx.lineTo(p.x + ux * from - nx * half, p.y + uy * from - ny * half);
+		ctx.lineTo(p.x + ux * to - nx * half, p.y + uy * to - ny * half);
+		ctx.lineTo(p.x + ux * to + nx * half, p.y + uy * to + ny * half);
+		ctx.closePath();
+		ctx.fill();
+	};
+	// 콘크리트 문틀 — 입구 뒤(지하 쪽)를 가로지르는 마감 바. 길보다 살짝 넓어 구조물 느낌.
+	ctx.fillStyle = '#77828a';
+	quad(0, -7, halfW + 5);
+	// 내려가는 경사 — 입구 앞 노면이 한 단계 어둡게 꺼짐
+	ctx.fillStyle = '#4a4132';
+	quad(14, 0, halfW);
+	// 굴의 어둠 — 바깥으로 볼록한 반원. 지상 적이 여기 겹치며 사라지고 나타남.
+	ctx.fillStyle = '#17120d';
+	ctx.beginPath();
+	ctx.arc(p.x, p.y, halfW, out - Math.PI / 2, out + Math.PI / 2);
+	ctx.closePath();
+	ctx.fill();
 }
 
 // 맵 선택 썸네일 카드 — 맵 경로를 축소 렌더 + 하단 맵 이름. b = { x, y, w, h }.

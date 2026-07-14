@@ -521,10 +521,10 @@ scenes.playing = {
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
-		// 지상 적 → 지하도 덮개 → 공중 적 순서 — 지하도 진행 중인 지상 적은 덮개에 가려지고,
-		// 공중 적(장벽 포함)은 지하도 위로 지나가므로 덮개 이후에 그림.
+		// 지상 적 → 지하도 입구 → 공중 적 순서 — 지하도 진행 중인 지상 적은 그리지 않고(지하에 있음),
+		// 입구를 지상 적 뒤에 그려 입구에 걸친 적이 어둠에 겹치며 드나드는 연출. 공중 적(장벽 포함)은 그 위로.
 		for (const e of game.entities.enemies) {
-			if (e.ga !== 'air') drawEnemy(e);
+			if (e.ga !== 'air' && !isInUnderpass(e)) drawEnemy(e);
 		}
 		drawUnderpass(getActiveMap());
 		for (const e of game.entities.enemies) {
