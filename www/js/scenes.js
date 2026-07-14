@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed,
+	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed, isInUnderpass,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -36,7 +36,7 @@ import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
 	drawToast, drawEnemyHpBar,
-	drawSettingsModal, drawPath, drawMapThumb,
+	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
@@ -266,7 +266,7 @@ scenes.mapSelect = {
 };
 
 function enterSandbox() {
-	resetGame('map3');
+	resetGame(Object.keys(MAPS).at(-1)); // 항상 최신(마지막 정의) 맵에서 테스트
 	game.sandbox = true;
 	game.gold = 999999;
 	game.hp = 999999;
@@ -521,9 +521,17 @@ scenes.playing = {
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
-		for (const e of game.entities.enemies) drawEnemy(e);
+		// 지상 적 → 지하도 입구 → 공중 적 순서 — 지하도 진행 중인 지상 적은 그리지 않고(지하에 있음),
+		// 입구를 지상 적 뒤에 그려 입구에 걸친 적이 어둠에 겹치며 드나드는 연출. 공중 적(장벽 포함)은 그 위로.
+		for (const e of game.entities.enemies) {
+			if (e.ga !== 'air' && !isInUnderpass(e)) drawEnemy(e);
+		}
+		drawUnderpass(getActiveMap());
+		for (const e of game.entities.enemies) {
+			if (e.ga === 'air') drawEnemy(e);
+		}
 		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지.
-		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음.
+		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음. 지하도 안 적도 HP바는 표시 — 본체만 숨고 위치·체력은 읽힘.
 		for (const e of game.entities.enemies) {
 			if (e.kind === 'barrier' || isBoss(e)) continue;
 			drawEnemyHpBar(e);

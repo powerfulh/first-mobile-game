@@ -6,7 +6,7 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, MAP_BG_COLOR,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
@@ -154,6 +154,32 @@ function drawMapUnlockIcon(cx, cy) {
 	ctx.lineTo(cx + 6, cy);
 	ctx.lineTo(cx + 6, cy + 8);
 	ctx.stroke();
+}
+
+function drawUnderpassIcon(cx, cy) {
+	// 미니 지하도 단면 — 노면이 어두워지며 문틀 아래로 들어가고, 지하 구간은 점선
+	const h = 12;
+	const frameX = cx - 2;
+	ctx.fillStyle = '#8a7a5a';
+	ctx.fillRect(cx - 32, cy - h / 2, 30, h);
+	ctx.fillStyle = '#17120d';
+	for (let i = 0; i < 4; i++) {
+		ctx.globalAlpha = 0.75 * (i + 1) / 4;
+		ctx.fillRect(frameX - 24 + i * 6, cy - h / 2, 6, h);
+	}
+	ctx.globalAlpha = 1;
+	ctx.fillStyle = '#77828a';
+	ctx.fillRect(frameX, cy - h / 2 - 3, 6, h + 6);
+	ctx.strokeStyle = '#17120d';
+	ctx.globalAlpha = 0.45;
+	ctx.lineWidth = 3;
+	ctx.setLineDash([4, 6]);
+	ctx.beginPath();
+	ctx.moveTo(frameX + 10, cy);
+	ctx.lineTo(cx + 32, cy);
+	ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.globalAlpha = 1;
 }
 
 // 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
@@ -329,6 +355,14 @@ export const INTRO_MODALS = {
 		drawIcon: drawShortcutIcon,
 		title: 'intro.shortcut.title',
 		lines: ['intro.shortcut.line1', 'intro.shortcut.line2'],
+		lineSize: 12, lineStart: 150, lineGap: 26,
+	}),
+
+	underpassIntro: makeIntro({
+		key: UNDERPASS_INTRO_KEY, accent: '#77828a',
+		drawIcon: drawUnderpassIcon,
+		title: 'intro.underpass.title',
+		lines: ['intro.underpass.line1', 'intro.underpass.line2'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };
