@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole, fusionRecipesWithMaterial,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR, RESOLVER_BUFF_SECONDS,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments, underpassSegments } from './core/helpers.js';
@@ -474,7 +474,7 @@ function resolverBuffMult(tower) {
 }
 
 // 리솔버(5티어) — 적이 아닌 아군 타워를 겨냥한다. 사거리 내 타워 중 웨이브 누적 데미지 최고(자신·이미 버프중 제외)를
-// 골라 그 타워 위치에 그 타워의 사거리만큼 스윕 데미지를 주고, 10초간 공격력·공속 2배 버프를 건다.
+// 골라 그 타워 위치에 그 타워의 사거리만큼 스윕 데미지를 주고, RESOLVER_BUFF_SECONDS간 공격력·공속 2배 버프를 건다.
 function updateResolver(tower) {
 	const range = tower.range;
 	let target = null;
@@ -506,7 +506,7 @@ function updateResolver(tower) {
 	spawnZap(target.x, target.y, target.range, tower.cfg.color);
 	spawnLink(tower.x, tower.y, target.x, target.y, '#8fd8ff'); // 리솔버→타워 에너지 연결선
 
-	target.resolverBuff = 11; // 초
+	target.resolverBuff = RESOLVER_BUFF_SECONDS;
 	recomputeStats(); // 대상 버프 반영 → 스탯 캐시 갱신
 	tower.cooldown = 1 / tower.fireRate;
 }

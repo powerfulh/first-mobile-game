@@ -331,6 +331,8 @@ export const EMP_STUN_RANGE = 80; // EMP 적 처치 지점 기준 장치 대상 
 export const EMP_COLOR = '#1a5276'; // EMP 테마색 (짙은 파랑) — 적 결속 에너지·장치 글로우·스턴 타워 본체 공용
 export const EMP_STUN_SECONDS = 2; // EMP 장치 유지 = 대상 타워 스턴 시간
 
+export const RESOLVER_BUFF_SECONDS = 11; // 리솔버 버프(공격력·공속 2배) 지속 시간
+
 export const SAVE_KEY = 'td_save_v1';
 export const BEST_WAVE_KEY = 'td_best_wave';
 export const UNLOCKED_MAPS_KEY = 'td_unlocked_maps';
