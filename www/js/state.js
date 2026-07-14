@@ -283,9 +283,8 @@ export function unlockMap(id) {
 	return true; // 신규 해금
 }
 
-// 해금 조건 평가 — 웨이브 진입/세이브 로드 시 호출. 'clearWave': 특정 맵 N웨이브 돌파 시 해금. (샌드박스 제외)
+// 해금 조건 평가 — 웨이브 진입/세이브 로드 시 호출. 'clearWave': 특정 맵 N웨이브 돌파 시 해금. (샌드박스 포함 — 웨이브 점프로도 해금 가능)
 export function checkMapUnlocks() {
-	if (game.sandbox) return;
 	for (const id in MAPS) {
 		const u = MAPS[id].unlock;
 		if (u && u.type === 'clearWave' && game.mapId === u.map && game.wave >= u.wave) {
