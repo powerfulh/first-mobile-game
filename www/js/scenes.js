@@ -12,7 +12,7 @@ import { getActiveMap, MAPS } from './core/maps.js';
 import { drawButton, hitButton } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
-	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed,
+	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed, isInUnderpass,
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
@@ -36,7 +36,7 @@ import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton,
 	drawToast, drawEnemyHpBar,
-	drawSettingsModal, drawPath, drawMapThumb,
+	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
 import { INTRO_MODALS } from './ui/intro-modals.js';
 import {
@@ -521,11 +521,19 @@ scenes.playing = {
 		}
 
 		for (const tower of game.entities.towers) drawTower(tower);
-		for (const e of game.entities.enemies) drawEnemy(e);
-		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지.
-		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음.
+		// 지상 적 → 지하도 덮개 → 공중 적 순서 — 지하도 진행 중인 지상 적은 덮개에 가려지고,
+		// 공중 적(장벽 포함)은 지하도 위로 지나가므로 덮개 이후에 그림.
 		for (const e of game.entities.enemies) {
-			if (e.kind === 'barrier' || isBoss(e)) continue;
+			if (e.ga !== 'air') drawEnemy(e);
+		}
+		drawUnderpass(getActiveMap());
+		for (const e of game.entities.enemies) {
+			if (e.ga === 'air') drawEnemy(e);
+		}
+		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지.
+		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음. 지하도 안 적은 본체와 함께 HP바도 숨김.
+		for (const e of game.entities.enemies) {
+			if (e.kind === 'barrier' || isBoss(e) || isInUnderpass(e)) continue;
 			drawEnemyHpBar(e);
 		}
 		if (game.selectedEnemy) {

@@ -261,6 +261,13 @@ export function spawnBarrier(x, y, wave) {
 	});
 }
 
+// 지하도 진행 중 판정 — 지상 타입이 underpass 마커 사이 구간을 걷는 중.
+// 이 동안 렌더에서 덮개에 가려지고(HP바 포함) 타워가 조준·타격하지 못함 (마킹 무시).
+export function isInUnderpass(e) {
+	if (e.ga !== 'ground' || e.segment < 0 || !e.path) return false;
+	return !!(e.path[e.segment]?.underpass && e.path[e.segment + 1]?.underpass);
+}
+
 // 장벽 적 처치 시 호출 — 즉시 생성 대신 짧은 애니메이션 후 spawnBarrier.
 // wave: 죽은 장벽 적의 웨이브 — 생성될 장벽 HP 기준.
 export function startBarrierSpawn(x, y, wave) {

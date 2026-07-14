@@ -1,6 +1,6 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR } from './core/config.js';
-import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
+import { roundRect, drawButton, drawPanel, shortcutCutSegments, underpassSegments } from './core/helpers.js';
 import { drawEnemySprite, drawNewBadge } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
@@ -36,6 +36,47 @@ export function drawPath(map, alpha = 1) {
 		}
 	}
 	ctx.globalAlpha = 1;
+}
+
+// 지하도 — underpass 마커 구간의 지형 덮개 + 양끝 입구 아치. 마커 없는 맵에선 no-op.
+// 호출 순서가 핵심: 지상 적 본체 다음, 공중 적 이전에 그려 지하도 진행 중인 지상 적(마크링 포함)을 덮개가 가림.
+export function drawUnderpass(map) {
+	for (const seg of underpassSegments(map)) {
+		const ang = Math.atan2(seg.b.y - seg.a.y, seg.b.x - seg.a.x);
+		// 덮개 — 배경 지형(잔디)이 길 위를 덮은 느낌. 정규 길보다 살짝 넓게.
+		ctx.strokeStyle = MAP_BG_COLOR;
+		ctx.lineWidth = PATH_WIDTH + 8;
+		ctx.beginPath();
+		ctx.moveTo(seg.a.x, seg.a.y);
+		ctx.lineTo(seg.b.x, seg.b.y);
+		ctx.stroke();
+		// 덮개 가장자리 절개선 — 지형과의 경계
+		const nx = Math.cos(ang + Math.PI / 2);
+		const ny = Math.sin(ang + Math.PI / 2);
+		ctx.strokeStyle = '#22371f';
+		ctx.lineWidth = 2;
+		for (const s of [-1, 1]) {
+			const off = (PATH_WIDTH + 8) / 2 * s;
+			ctx.beginPath();
+			ctx.moveTo(seg.a.x + nx * off, seg.a.y + ny * off);
+			ctx.lineTo(seg.b.x + nx * off, seg.b.y + ny * off);
+			ctx.stroke();
+		}
+		// 입구 아치 (양끝) — 바깥쪽으로 볼록한 어두운 굴 입구 + 길색 테두리.
+		// 진입하는 적이 어두운 입구에 겹치며 사라지고, 출구에서 겹치며 나타나는 연출.
+		for (const m of [{ p: seg.a, out: ang + Math.PI }, { p: seg.b, out: ang }]) {
+			ctx.fillStyle = '#17120d';
+			ctx.beginPath();
+			ctx.arc(m.p.x, m.p.y, PATH_WIDTH / 2, m.out - Math.PI / 2, m.out + Math.PI / 2);
+			ctx.closePath();
+			ctx.fill();
+			ctx.strokeStyle = '#8a7a5a';
+			ctx.lineWidth = 3;
+			ctx.beginPath();
+			ctx.arc(m.p.x, m.p.y, PATH_WIDTH / 2, m.out - Math.PI / 2, m.out + Math.PI / 2);
+			ctx.stroke();
+		}
+	}
 }
 
 // 맵 선택 썸네일 카드 — 맵 경로를 축소 렌더 + 하단 맵 이름. b = { x, y, w, h }.

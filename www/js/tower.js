@@ -4,12 +4,12 @@ import {
 	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
-import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments } from './core/helpers.js';
+import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments, underpassSegments } from './core/helpers.js';
 import { getActiveMap } from './core/maps.js';
 import {
 	applyTowerHit, fireInstantBeam, fireLineBeam, spawnZap, spawnLink,
 } from './attack.js';
-import { isBlockedByBarrier, isEmpStunned } from './enemy.js';
+import { isBlockedByBarrier, isEmpStunned, isInUnderpass } from './enemy.js';
 import { drawTier4Halo, drawTier5Halo, drawHourglassIcon } from './ui/sprite.js';
 import { drawEnergyBall, drawTowerSprite } from './ui/sprite/tower.js';
 import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
@@ -217,22 +217,30 @@ function applyTowerPriorityOnPromote(tower, oldRole) {
 }
 
 // ============ Placement ============
-// 점→폴리라인 최단거리 (poly 없으면 Infinity). 배치 겹침 판정용.
-function distanceToPolyline(x, y, poly) {
-	if (!poly) return Infinity;
+// 정규 경로까지 최단 거리 — 지하도 구간은 제외 (적이 지하로 지나므로 숏컷처럼 아래 완화 판정만 적용).
+function distanceToPath(x, y) {
+	const path = getActiveMap().path;
+	if (!path) return Infinity;
 	let min = Infinity;
-	for (let i = 0; i < poly.length - 1; i++) {
-		const d = pointToSegmentDist(x, y, poly[i].x, poly[i].y, poly[i + 1].x, poly[i + 1].y);
-		if (d < min) min = d;
+	for (let i = 0; i < path.length - 1; i++) {
+		if (path[i].underpass && path[i + 1].underpass) continue;
+		min = Math.min(min, pointToSegmentDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y));
 	}
 	return min;
 }
-const distanceToPath = (x, y) => distanceToPolyline(x, y, getActiveMap().path);
 // 지름길 가로지르기 선분(shortcut 마커 파생)까지 최단 거리 — 없으면 Infinity. 배치 판정은 정규 경로보다 완화.
 function distanceToShortcut(x, y) {
 	let min = Infinity;
 	for (const cut of shortcutCutSegments(getActiveMap())) {
 		min = Math.min(min, pointToSegmentDist(x, y, cut.a.x, cut.a.y, cut.b.x, cut.b.y));
+	}
+	return min;
+}
+// 지하도 선분까지 최단 거리 — 없으면 Infinity. 적이 지하로 지나므로 숏컷과 동일하게 완화.
+function distanceToUnderpass(x, y) {
+	let min = Infinity;
+	for (const seg of underpassSegments(getActiveMap())) {
+		min = Math.min(min, pointToSegmentDist(x, y, seg.a.x, seg.a.y, seg.b.x, seg.b.y));
 	}
 	return min;
 }
@@ -245,6 +253,8 @@ export function canPlaceTower(x, y) {
 	if (distanceToPath(x, y) < PATH_WIDTH / 2 + TOWER.radius + 2) return false;
 	// 지름길은 얇고 공중 전용이라 완화 — 살짝 겹침까지 허용 (정규 경로보다 느슨)
 	if (distanceToShortcut(x, y) < TOWER.radius + 3) return false;
+	// 지하도는 적이 지하로 지나므로 지름길과 동일하게 완화
+	if (distanceToUnderpass(x, y) < TOWER.radius + 3) return false;
 	for (const tower of game.entities.towers) {
 		if (Math.hypot(x - tower.x, y - tower.y) < TOWER.radius * 2 + 4) return false;
 	}
@@ -561,6 +571,7 @@ export function updateTower(tower, dt) {
 		for (const e of game.entities.enemies) {
 			if (e.dead) continue;
 			if (e.kind === 'barrier') continue;
+			if (isInUnderpass(e)) continue; // 지하도 진행 중 — 마킹돼 있어도 조준 불가
 			if (e.ga === 'ground' ? !tower.canGround : !tower.canAir) continue;
 			const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 			if (d < minRange) continue;
@@ -591,6 +602,7 @@ export function updateTower(tower, dt) {
 				for (const e of game.entities.enemies) {
 					if (e.dead) continue;
 					if (!allowed.includes(e.ga)) continue;
+					if (isInUnderpass(e)) continue; // 지하도 안 적은 광역 스윕도 닿지 않음
 					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 					if (d > hitRange) continue;
 					if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;

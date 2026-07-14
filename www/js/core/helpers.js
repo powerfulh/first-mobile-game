@@ -21,6 +21,18 @@ export function pointToSegmentDist(px, py, ax, ay, bx, by) {
 	return Math.hypot(px - cx, py - cy);
 }
 
+// 지하도 선분 목록 — path의 인접 underpass 마커 쌍(연속 구간)마다 { a, b } 선분을 파생.
+// 그리기(ui.drawUnderpass)·배치 판정(tower.canPlaceTower) 공용.
+// 숏컷과 달리 이동 분기는 없음 — 정규 경로 그대로 지나가되 그 구간에서 숨고 조준 불가(enemy.isInUnderpass).
+export function underpassSegments(map) {
+	const path = map.path;
+	const segments = [];
+	for (let i = 0; i < path.length - 1; i++) {
+		if (path[i].underpass && path[i + 1].underpass) segments.push({ a: path[i], b: path[i + 1] });
+	}
+	return segments;
+}
+
 // 지름길 가로지르기 선분 목록 — path의 인접 shortcut 마커 쌍마다 { a, b } 선분을 파생.
 // 양끝 인셋 = PATH_WIDTH/2 - 2: 컬럼 안쪽 모서리보다 2px 더 들어가 정규길과 살짝만 걸치게.
 // 그리기(ui.drawPath)·배치 판정(tower.canPlaceTower) 공용 — 이동 규칙(모든 인접 마커 쌍이 비행 구간)과 자동 동기화.
