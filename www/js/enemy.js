@@ -262,7 +262,8 @@ export function spawnBarrier(x, y, wave) {
 }
 
 // 지하도 진행 중 판정 — 지상 타입이 underpass 마커 사이 구간을 걷는 중.
-// 이 동안 렌더에서 덮개에 가려지고(HP바 포함) 타워가 조준·타격하지 못함 (마킹 무시).
+// 이 동안 렌더에서 덮개에 가려지고(HP바 포함) 타워가 조준하지 못함 (마킹 무시).
+// 조준만 불가 — 비조준 공격(areaSweep·스플래시·이미 발사된 투사체)의 범위에 있으면 맞음.
 export function isInUnderpass(e) {
 	if (e.ga !== 'ground' || e.segment < 0 || !e.path) return false;
 	return !!(e.path[e.segment]?.underpass && e.path[e.segment + 1]?.underpass);

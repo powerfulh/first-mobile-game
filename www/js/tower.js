@@ -602,7 +602,7 @@ export function updateTower(tower, dt) {
 				for (const e of game.entities.enemies) {
 					if (e.dead) continue;
 					if (!allowed.includes(e.ga)) continue;
-					if (isInUnderpass(e)) continue; // 지하도 안 적은 광역 스윕도 닿지 않음
+					// 지하도 안 적도 범위에 있으면 맞음 — 조준만 불가, 비조준 광역은 유효
 					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
 					if (d > hitRange) continue;
 					if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
