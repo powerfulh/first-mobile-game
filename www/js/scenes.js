@@ -266,7 +266,7 @@ scenes.mapSelect = {
 };
 
 function enterSandbox() {
-	resetGame('map3');
+	resetGame(Object.keys(MAPS).at(-1)); // 항상 최신(마지막 정의) 맵에서 테스트
 	game.sandbox = true;
 	game.gold = 999999;
 	game.hp = 999999;
