@@ -110,7 +110,7 @@ export const MAPS = {
 			{ x: 20 * pathUnit, y: 45 * pathUnit },
 			{ x: 20 * pathUnit, y: (10 + allow1top) * pathUnit },
 			{ x: 33 * pathUnit, y: (10 + allow1top) * pathUnit },
-			{ x: 33 * pathUnit, y: 55 * pathUnit, underpass: true },
+			{ x: 33 * pathUnit, y: 50 * pathUnit, underpass: true },
 			{ x: 33 * pathUnit, y: 65 * pathUnit, underpass: true },
 			{ x: 33 * pathUnit, y: bottom * pathUnit },
 		],
