@@ -1,6 +1,6 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR } from './core/config.js';
-import { roundRect, drawButton, drawPanel, shortcutCutSegments, underpassSegments } from './core/helpers.js';
+import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
 import { drawEnemySprite, drawNewBadge } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
@@ -54,21 +54,30 @@ export function drawPath(map, alpha = 1) {
 // 표현 = 지하 경로 힌트 점선 + 양끝 입구. 지하도 안의 적은 렌더 스킵(scenes)으로 숨김.
 // 지상 적 본체 다음에 호출 — 입구에 반쯤 걸친 적을 어두운 굴이 가려 출입 연출이 자연스럽다.
 export function drawUnderpass(map) {
-	for (const seg of underpassSegments(map)) {
-		const ang = Math.atan2(seg.b.y - seg.a.y, seg.b.x - seg.a.x);
+	const path = map.path;
+	for (let i = 0; i < path.length - 1; i++) {
+		if (!(path[i].underpass && path[i + 1].underpass)) continue;
+		const a = path[i];
+		const b = path[i + 1];
 		// 지하 경로 힌트 — 지형·교차로 위로 은은한 점선 (연결 안내 + 배치 완화 구간 표시)
 		ctx.globalAlpha = 0.28;
 		ctx.strokeStyle = '#17120d';
 		ctx.lineWidth = 4;
 		ctx.setLineDash([5, 9]);
 		ctx.beginPath();
-		ctx.moveTo(seg.a.x, seg.a.y);
-		ctx.lineTo(seg.b.x, seg.b.y);
+		ctx.moveTo(a.x, a.y);
+		ctx.lineTo(b.x, b.y);
 		ctx.stroke();
 		ctx.setLineDash([]);
 		ctx.globalAlpha = 1;
-		drawUnderpassPortal(seg.a, ang + Math.PI);
-		drawUnderpassPortal(seg.b, ang);
+		// 입구 그림자 방향 = 인접 접근로 세그먼트 방향 — 사선 접근로에서도 노면과 정렬.
+		// 경로 끝이라 인접 세그먼트가 없으면 지하도 축으로 폴백.
+		const prev = path[i - 1];
+		const next = path[i + 2];
+		const outA = prev ? Math.atan2(prev.y - a.y, prev.x - a.x) : Math.atan2(a.y - b.y, a.x - b.x);
+		const outB = next ? Math.atan2(next.y - b.y, next.x - b.x) : Math.atan2(b.y - a.y, b.x - a.x);
+		drawUnderpassPortal(a, outA);
+		drawUnderpassPortal(b, outB);
 	}
 }
 
