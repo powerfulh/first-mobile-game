@@ -26,7 +26,7 @@ const STRINGS = {
 	'map.map1.name': { ko: '시작', ja: 'スタート', en: 'Start' },
 	'map.map2.name': { ko: '구름 다리', ja: '雲の橋', en: 'Cloud Bridge' },
 	'map.map3.name': { ko: '사다리꼴', ja: '台形', en: 'Trapezoid' },
-	'map.map4.name': { ko: '맵 4', ja: 'マップ4', en: 'Map 4' }, // placeholder — 고유 이름은 추후
+	'map.map4.name': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
