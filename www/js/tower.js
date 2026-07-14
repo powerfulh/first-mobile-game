@@ -468,7 +468,7 @@ export function processReservations() {
 }
 
 // ============ Update / Fire ============
-// 리솔버 버프(공격력·공속 2배, 10초) 배수 — 미버프면 1. getEffective*가 캐시 계산 시 반영.
+// 리솔버 버프(공격력·공속 2배) 배수 — 미버프면 1. getEffective*가 캐시 계산 시 반영.
 function resolverBuffMult(tower) {
 	return tower.resolverBuff > 0 ? 2 : 1;
 }
@@ -506,7 +506,7 @@ function updateResolver(tower) {
 	spawnZap(target.x, target.y, target.range, tower.cfg.color);
 	spawnLink(tower.x, tower.y, target.x, target.y, '#8fd8ff'); // 리솔버→타워 에너지 연결선
 
-	target.resolverBuff = 10; // 초
+	target.resolverBuff = 11; // 초
 	recomputeStats(); // 대상 버프 반영 → 스탯 캐시 갱신
 	tower.cooldown = 1 / tower.fireRate;
 }
