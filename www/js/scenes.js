@@ -531,9 +531,9 @@ scenes.playing = {
 			if (e.ga === 'air') drawEnemy(e);
 		}
 		// HP바는 본체를 모두 그린 뒤 별도 패스로 — 뭉친 적끼리 가림 방지.
-		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음. 지하도 안 적은 본체와 함께 HP바도 숨김.
+		// 보스(고정 UI)·장벽(자체 표현)은 HP바 없음. 지하도 안 적도 HP바는 표시 — 본체만 숨고 위치·체력은 읽힘.
 		for (const e of game.entities.enemies) {
-			if (e.kind === 'barrier' || isBoss(e) || isInUnderpass(e)) continue;
+			if (e.kind === 'barrier' || isBoss(e)) continue;
 			drawEnemyHpBar(e);
 		}
 		if (game.selectedEnemy) {
