@@ -241,7 +241,7 @@ const STRINGS = {
 	'intro.mapUnlock.line3': { ko: '게임 시작에서 선택하세요.', ja: 'ゲーム開始から選択してください。', en: 'Choose it from Start.' },
 	'intro.underpass.title': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'intro.underpass.line1': { ko: '이 맵의 길 일부는 지하로 지나갑니다', ja: 'このマップの道の一部は地下を通ります', en: 'Part of this map\'s road runs underground.' },
-	'intro.underpass.line2': { ko: '지하 구간의 적은 타워가 볼 수 없습니다', ja: '地下区間の敵はタワーから見えません', en: 'Towers can\'t see enemies underground.' },
+	'intro.underpass.line2': { ko: '지하 구간의 지상 적은 타워가 볼 수 없습니다', ja: '地下区間の地上の敵はタワーから見えません', en: 'Towers can\'t see ground enemies underground.' },
 	'intro.shortcut.title': { ko: '공중 지름길', ja: '空中ショートカット', en: 'Air Shortcut' },
 	'intro.shortcut.line1': { ko: '이 맵에는 공중 타입이 이용할 수 있는 지름길이 있습니다', ja: 'このマップには空中タイプが使えるショートカットがあります', en: 'This map has an air-only shortcut.' },
 	'intro.shortcut.line2': { ko: '정규 경로와 번갈아 이용합니다', ja: '通常ルートと交互に利用します', en: 'Used alternately with the regular route.' },
