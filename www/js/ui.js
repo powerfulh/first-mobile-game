@@ -72,7 +72,10 @@ export function drawUnderpass(map) {
 	}
 }
 
-// 지하도 입구 1개 — out = 바깥 접근로 방향. 콘크리트 문틀 + 꺼진 경사 노면 + 어두운 굴 순으로 겹침.
+// 지하도 입구 1개 — out = 바깥 접근로 방향.
+// 진입부터 문틀까지의 접근로 노면 위에 어둠을 단계적으로 진하게 겹쳐 '점점 지하로 내려감'을 표현하고,
+// 문틀(콘크리트 마감 바)에서 끝. 문틀 너머(지하 구간)는 노면 없음 — 경로 점선 힌트만.
+// 지상 적 다음에 그려지므로 문틀 직전의 깊은 어둠·문틀이 드나드는 적의 경계를 가려줌.
 function drawUnderpassPortal(p, out) {
 	const ux = Math.cos(out);
 	const uy = Math.sin(out);
@@ -89,18 +92,18 @@ function drawUnderpassPortal(p, out) {
 		ctx.closePath();
 		ctx.fill();
 	};
-	// 콘크리트 문틀 — 입구 뒤(지하 쪽)를 가로지르는 마감 바. 길보다 살짝 넓어 구조물 느낌.
+	// 진입 → 문틀: 내리막 어둠 — 문틀에 가까울수록 진해지는 밴드 (노면이 깊어짐)
+	const STEP = 6;
+	const BANDS = 5;
+	ctx.fillStyle = '#17120d';
+	for (let i = 0; i < BANDS; i++) {
+		ctx.globalAlpha = 0.75 * (i + 1) / BANDS;
+		quad((BANDS - i) * STEP, (BANDS - i - 1) * STEP, halfW);
+	}
+	ctx.globalAlpha = 1;
+	// 문틀 — 입구를 마감하는 콘크리트 바. 길보다 살짝 넓어 구조물 느낌.
 	ctx.fillStyle = '#77828a';
 	quad(0, -7, halfW + 5);
-	// 내려가는 경사 — 입구 앞 노면이 한 단계 어둡게 꺼짐
-	ctx.fillStyle = '#4a4132';
-	quad(14, 0, halfW);
-	// 굴의 어둠 — 바깥으로 볼록한 반원. 지상 적이 여기 겹치며 사라지고 나타남.
-	ctx.fillStyle = '#17120d';
-	ctx.beginPath();
-	ctx.arc(p.x, p.y, halfW, out - Math.PI / 2, out + Math.PI / 2);
-	ctx.closePath();
-	ctx.fill();
 }
 
 // 맵 선택 썸네일 카드 — 맵 경로를 축소 렌더 + 하단 맵 이름. b = { x, y, w, h }.
