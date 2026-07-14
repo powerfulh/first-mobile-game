@@ -71,17 +71,19 @@ function persistBestWave(wave) {
 	} catch (e) {}
 }
 
-// 공중 지름길(path에 shortcut 마커 보유) 맵 최초 진입 시 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
-function maybeShowShortcutIntro() {
-	if (!game.modal && getActiveMap().path?.some(p => p.shortcut) && !hasSeenIntro(SHORTCUT_INTRO_KEY)) {
-		game.modal = { type: 'shortcutIntro' };
-	}
-}
-
-// 지하도(path에 underpass 마커 보유) 맵 최초 진입 시 안내 모달 (한 번만). resetGame/loadGame 끝에서 호출.
-function maybeShowUnderpassIntro() {
-	if (!game.modal && getActiveMap().path?.some(p => p.underpass) && !hasSeenIntro(UNDERPASS_INTRO_KEY)) {
-		game.modal = { type: 'underpassIntro' };
+// 맵 지형 인트로 — path 마커(지름길/지하도 등) 보유 맵 최초 진입 시 1회 안내 모달.
+// resetGame/loadGame 끝에서 호출. 새 지형 마커 추가 시 이 테이블에 항목 하나만 추가.
+const MAP_FEATURE_INTROS = [
+	{ marker: 'shortcut', key: SHORTCUT_INTRO_KEY, modal: 'shortcutIntro' },
+	{ marker: 'underpass', key: UNDERPASS_INTRO_KEY, modal: 'underpassIntro' },
+];
+function maybeShowMapFeatureIntro() {
+	if (game.modal) return;
+	for (const f of MAP_FEATURE_INTROS) {
+		if (getActiveMap().path?.some(p => p[f.marker]) && !hasSeenIntro(f.key)) {
+			game.modal = { type: f.modal };
+			return; // 모달은 한 번에 하나 — 남은 지형 인트로는 다음 진입 때
+		}
 	}
 }
 
@@ -127,8 +129,7 @@ export function resetGame(mapId = 'map1') {
 	game.airShortcutNext = false;
 	game.ghostTower = null;
 	game.gameOverKiller = null;
-	maybeShowShortcutIntro();
-	maybeShowUnderpassIntro();
+	maybeShowMapFeatureIntro();
 }
 
 export function saveGame() {
@@ -235,8 +236,7 @@ export function loadGame(data) {
 		spawnBoss();
 	}
 	checkMapUnlocks(); // 불러온 진행이 이미 해금 조건을 충족하면 반영
-	maybeShowShortcutIntro();
-	maybeShowUnderpassIntro();
+	maybeShowMapFeatureIntro();
 }
 
 // ============ Intro 플래그 ============
