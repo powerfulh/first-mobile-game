@@ -362,7 +362,7 @@ export const INTRO_MODALS = {
 		key: UNDERPASS_INTRO_KEY, accent: '#77828a',
 		drawIcon: drawUnderpassIcon,
 		title: 'intro.underpass.title',
-		lines: ['intro.underpass.line1', 'intro.underpass.line2', 'intro.underpass.line3'],
+		lines: ['intro.underpass.line1', 'intro.underpass.line2'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };
