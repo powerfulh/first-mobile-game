@@ -123,7 +123,7 @@ export const MAPS = {
 			empStartWave: 111,
 			transportStartWave: 151,
 			densityFloorWave: 70,
-			countRampWave: 60, countCapWave: 70,
+			countCapWave: 70, // 적 수 고정 wave 70 → 115마리 (+2→+1 완화는 기본 wave 40)
 			densityCeilWave: 100,
 		},
 		unlock: { type: 'clearWave', map: 'map3', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
