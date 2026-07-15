@@ -120,11 +120,11 @@ export const MAPS = {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05,
 			regenStartWave: Infinity, // 재생 적 미출현 (맵4 구성에서 제외)
 			barrierStartWave: Infinity,
-			empStartWave: 71, // EMP 적: wave 71부터 0.4% (+0.4%/wave → wave 80에 상한 4%)
-			transportStartWave: 151,
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (minNarrow 0.30 @ wave 50)
-			countCapWave: 70, // 적 수 고정 wave 70 → 115마리 (+2→+1 완화는 기본 wave 40)
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70). 방어막 상한 확장(101~110)은 공통 유지
+			countCapWave: 70, // 적 수 고정 wave 70 → 115마리 (+2→+1 완화는 기본 wave 40)
+			empStartWave: 71, empChanceCap: 0.08, // EMP 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
+			transportStartWave: 151,
 		},
 		unlock: { type: 'clearWave', map: 'map3', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
