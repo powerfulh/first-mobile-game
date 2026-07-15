@@ -118,8 +118,7 @@ export const MAPS = {
 		bgm: 'bgm3',
 		waveComposition: {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05,
-			regenStartWave: Infinity, // 재생 적 미출현 (맵4 구성에서 제외)
-			barrierStartWave: Infinity,
+			regenStartWave: Infinity, // 재생 적 미출현 (맵4 구성에서 제외). 장벽 적은 기본값(151~160) 그대로 출현
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (minNarrow 0.30 @ wave 50)
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70). 방어막 상한 확장(101~110)은 공통 유지
 			countCapWave: 70, // 적 수 고정 wave 70 → 115마리 (+2→+1 완화는 기본 wave 40)
