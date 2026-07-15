@@ -115,7 +115,7 @@ export const MAPS = {
 			{ x: 33 * pathUnit, y: bottom * pathUnit },
 		],
 		startGold: 200,
-		bgm: 'bgm3',
+		bgm: 'bgm4',
 		waveComposition: {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05,
 			regenStartWave: Infinity, // 재생 적 미출현 (맵4 구성에서 제외). 장벽 적은 기본값(151~160) 그대로 출현
