@@ -118,12 +118,10 @@ export const MAPS = {
 		bgm: 'bgm3',
 		waveComposition: {
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05,
-			regenStartWave: 21,
+			regenStartWave: Infinity, // 재생 적 미출현 (맵4 구성에서 제외)
 			barrierStartWave: Infinity,
 			empStartWave: 111,
 			transportStartWave: 151,
-			regenBoostWave: 60,
-			regenChanceBoost2Wave: 90,
 			densityFloorWave: 70,
 			countRampWave: 60, countCapWave: 70,
 			densityCeilWave: 100,
