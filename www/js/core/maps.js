@@ -124,7 +124,7 @@ export const MAPS = {
 			transportStartWave: 151,
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (minNarrow 0.30 @ wave 50)
 			countCapWave: 70, // 적 수 고정 wave 70 → 115마리 (+2→+1 완화는 기본 wave 40)
-			densityCeilWave: 100,
+			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70). 방어막 상한 확장(101~110)은 공통 유지
 		},
 		unlock: { type: 'clearWave', map: 'map3', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
