@@ -375,15 +375,17 @@ function drawGhostTower() {
 // ============ Playing scene ============
 scenes.playing = {
 	controlsOpen: false, // 좌하단 접이식 컨트롤(일시정지·추가 웨이브) 펼침 여부
+	settingsOpen: false, // 설정 모달 — 가장 권력있는 모달, game.modal 인트로 중에도 이전 버튼으로 띄울 수 있음 (타이틀 씬과 동형)
 	enter() {
 		// 호출자가 resetGame() 또는 loadGame() 호출
 		this.controlsOpen = false;
+		this.settingsOpen = false;
 	},
 	update(dt) {
 		updateToast(dt);
 		syncBattleMusic(game.bossActive, getActiveMap().bgm); // 보스 ↔ 맵 BGM 전환
 		if (game.modal) return;
-		if (game.settingsOpen) return;
+		if (this.settingsOpen) return;
 		if (game.paused) return;
 		if (game.holdDelete) {
 			game.holdDelete.accumulated += dt;
@@ -608,7 +610,7 @@ scenes.playing = {
 			ctx.fillText(t('hint.holdDelete'), LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
-		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
+		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !this.settingsOpen && !game.ghostTower) {
 			const showBadge = !hasSeenIntro(PARALLEL_INTRO_KEY);
 			// 접힌 상태에선 토글만 — 안쪽 버튼의 미열람 배지는 토글이 대신 표시
 			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && showBadge);
@@ -628,13 +630,13 @@ scenes.playing = {
 			if (intro) intro.draw(game.modal);
 		}
 
-		if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
+		if (this.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
 		if (game.toast) drawToast(game.toast);
 	},
 	pointerDown(p) {
-		if (game.settingsOpen) {
-			if (settingsModalTap(p, playingSettingsButtons)) game.settingsOpen = false;
+		if (this.settingsOpen) {
+			if (settingsModalTap(p, playingSettingsButtons)) this.settingsOpen = false;
 			return;
 		}
 		if (game.modal) {
@@ -825,7 +827,7 @@ scenes.playing = {
 		}
 	},
 	pointerMove(p) {
-		if (game.settingsOpen) { volumePointerMove(p); return; }
+		if (this.settingsOpen) { volumePointerMove(p); return; }
 		moveGhostTower(p.x, p.y);
 	},
 	pointerUp() {
@@ -838,8 +840,8 @@ scenes.playing = {
 	},
 	backButton() {
 		// 설정 열린 상태 → 닫기
-		if (game.settingsOpen) {
-			game.settingsOpen = false;
+		if (this.settingsOpen) {
+			this.settingsOpen = false;
 			return;
 		}
 		// 고스트(2단계 배치) 진행 중 → 취소
@@ -863,7 +865,7 @@ scenes.playing = {
 			return;
 		}
 		// 기본 → 설정 열기
-		game.settingsOpen = true;
+		this.settingsOpen = true;
 	},
 	keyDown(e) {
 		// 데스크탑에서 백 버튼 대체 — backButton과 동일 로직
