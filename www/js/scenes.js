@@ -9,7 +9,7 @@ import {
 	getIntermissionEnabled, getUnlockedMaps, clearEffects,
 } from './state.js';
 import { getActiveMap, MAPS } from './core/maps.js';
-import { drawButton, hitButton } from './core/helpers.js';
+import { drawButton, hitButton, clamp } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
 	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed, isInUnderpass,
@@ -35,6 +35,7 @@ import { setToast, updateToast } from './toast.js';
 import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton, hudToggleButton, drawHudToggleButton, statsButton, drawStatsButton,
+	STATS_PANEL_W, STATS_PANEL_H, drawStatsLayer,
 	drawToast, drawEnemyHpBar,
 	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
@@ -376,10 +377,15 @@ function drawGhostTower() {
 scenes.playing = {
 	controlsOpen: false, // 좌하단 접이식 컨트롤(일시정지·추가 웨이브) 펼침 여부
 	settingsOpen: false, // 설정 모달 — 가장 권력있는 모달, game.modal 인트로 중에도 이전 버튼으로 띄울 수 있음 (타이틀 씬과 동형)
+	statsOpen: false, // 통계 레이어(PIP) — 게임은 계속 진행, 바깥 탭/이전 버튼으로 닫음
+	statsRect: { x: 8, y: 64, w: STATS_PANEL_W, h: STATS_PANEL_H }, // 위치는 드래그로 이동 (세션 동안 유지)
+	statsDrag: null, // 진행 중 이동 드래그 { dx, dy } — 터치점과 패널 좌상단의 오프셋
 	enter() {
 		// 호출자가 resetGame() 또는 loadGame() 호출
 		this.controlsOpen = false;
 		this.settingsOpen = false;
+		this.statsOpen = false;
+		this.statsDrag = null;
 	},
 	update(dt) {
 		updateToast(dt);
@@ -610,7 +616,7 @@ scenes.playing = {
 			ctx.fillText(t('hint.holdDelete'), LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
-		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !this.settingsOpen && !game.ghostTower) {
+		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !this.settingsOpen && !this.statsOpen && !game.ghostTower) {
 			const showBadge = !hasSeenIntro(PARALLEL_INTRO_KEY);
 			// 접힌 상태에선 토글만 — 안쪽 버튼의 미열람 배지는 토글이 대신 표시
 			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && showBadge);
@@ -631,6 +637,8 @@ scenes.playing = {
 			if (intro) intro.draw(game.modal);
 		}
 
+		if (this.statsOpen) drawStatsLayer(this.statsRect);
+
 		if (this.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
 		if (game.toast) drawToast(game.toast);
@@ -638,6 +646,16 @@ scenes.playing = {
 	pointerDown(p) {
 		if (this.settingsOpen) {
 			if (settingsModalTap(p, playingSettingsButtons)) this.settingsOpen = false;
+			return;
+		}
+		// 통계 레이어(PIP) — 바깥 탭은 닫기, 안쪽 탭은 이동 드래그 시작
+		if (this.statsOpen) {
+			if (!hitButton(this.statsRect, p)) {
+				this.statsOpen = false;
+				playButton();
+				return;
+			}
+			this.statsDrag = { dx: p.x - this.statsRect.x, dy: p.y - this.statsRect.y };
 			return;
 		}
 		if (game.modal) {
@@ -655,8 +673,10 @@ scenes.playing = {
 			playButton();
 			return;
 		}
-		// 통계 버튼 — 기능은 추후 연결. 탭만 소비해 빈 곳 터치(배치 고스트 등)로 새지 않게.
+		// 통계 버튼 — 컨트롤을 접고 통계 레이어 열기 (내용은 추후)
 		if (this.controlsOpen && !game.selectedTower && hitButton(statsButton, p)) {
+			this.controlsOpen = false;
+			this.statsOpen = true;
 			playButton();
 			return;
 		}
@@ -834,20 +854,34 @@ scenes.playing = {
 	},
 	pointerMove(p) {
 		if (this.settingsOpen) { volumePointerMove(p); return; }
+		if (this.statsOpen) {
+			if (this.statsDrag) {
+				this.statsRect.x = clamp(p.x - this.statsDrag.dx, 0, LOGICAL_W - this.statsRect.w);
+				this.statsRect.y = clamp(p.y - this.statsDrag.dy, 0, LOGICAL_H - this.statsRect.h);
+			}
+			return;
+		}
 		moveGhostTower(p.x, p.y);
 	},
 	pointerUp() {
 		volumePointerUp();
+		this.statsDrag = null;
 		if (game.ghostTower) game.ghostTower.dragging = false;
 	},
 	pointerCancel() {
 		volumePointerUp();
+		this.statsDrag = null;
 		if (game.ghostTower) game.ghostTower.dragging = false;
 	},
 	backButton() {
 		// 설정 열린 상태 → 닫기
 		if (this.settingsOpen) {
 			this.settingsOpen = false;
+			return;
+		}
+		// 통계 레이어 열린 상태 → 닫기
+		if (this.statsOpen) {
+			this.statsOpen = false;
 			return;
 		}
 		// 고스트(2단계 배치) 진행 중 → 취소

@@ -260,6 +260,17 @@ export function drawStatsButton() {
 	ctx.fillRect(x + 9, y + 34, 26, 2);
 }
 
+// ============ 통계 레이어 (PIP) ============
+// 게임을 멈추지 않는 소형 오버레이 — 통계와 현재 맵을 같이 보는 컨셉.
+// 드래그로 화면 내 자유 이동 (위치·열림 상태는 scenes.playing 보유), 바깥 탭·이전 버튼으로 닫음.
+// 내용은 추후 — 크기(STATS_PANEL_W/H)도 내용과 함께 확정.
+export const STATS_PANEL_W = 150;
+export const STATS_PANEL_H = 100;
+
+export function drawStatsLayer(rect) {
+	drawPanel(rect.x, rect.y, rect.w, rect.h, { radius: 10, alpha: 0.85 });
+}
+
 // ============ Next-wave button ============
 // 일시정지 버튼 바로 위 (버튼 rect는 접이식 컨트롤 섹션에서 정의).
 // enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부, triple: 삼각형 3개 표시(병렬 2개 이상 진행 중)
