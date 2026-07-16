@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, GOLD, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, STATS_INTRO_KEY, GOLD, MAP_BG_COLOR,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -618,14 +618,15 @@ scenes.playing = {
 		}
 
 		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !this.settingsOpen && !this.statsOpen && !game.ghostTower) {
-			const showBadge = !hasSeenIntro(PARALLEL_INTRO_KEY);
-			// 접힌 상태에선 토글만 — 안쪽 버튼의 미열람 배지는 토글이 대신 표시
-			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && showBadge);
+			const parallelBadge = !hasSeenIntro(PARALLEL_INTRO_KEY);
+			const statsBadge = !hasSeenIntro(STATS_INTRO_KEY);
+			// 접힌 상태에선 토글만 — 안쪽 버튼들의 미열람 배지는 토글이 대신 표시
+			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && (parallelBadge || statsBadge));
 			if (this.controlsOpen) {
-				drawStatsButton();
+				drawStatsButton(statsBadge);
 				drawNextWaveButton({
 					enabled: canCallExtraWave(),
-					showBadge,
+					showBadge: parallelBadge,
 					triple: game.waves.length >= 2,
 				});
 				drawPauseButton(game.paused);
@@ -683,11 +684,15 @@ scenes.playing = {
 			playButton();
 			return;
 		}
-		// 통계 버튼 — 컨트롤을 접고 통계 레이어 열기 (내용은 추후)
+		// 통계 버튼 — 첫 탭(미열람)은 레이어 대신 안내 모달 (병렬 웨이브 버튼과 동일 패턴)
 		if (this.controlsOpen && !game.selectedTower && hitButton(statsButton, p)) {
+			playButton();
+			if (!hasSeenIntro(STATS_INTRO_KEY)) {
+				game.modal = { type: 'statsIntro' };
+				return;
+			}
 			this.controlsOpen = false;
 			this.statsOpen = true;
-			playButton();
 			return;
 		}
 		if (this.controlsOpen && !game.selectedTower && hitButton(pauseButton, p)) {

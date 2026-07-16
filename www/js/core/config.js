@@ -350,6 +350,7 @@ export const QUEUE_INTRO_KEY = 'td_seen_queue_intro'; // 전직 예약 안내 �
 export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(병렬 호출) 안내 모달
 export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 안내 모달 (airShortcut 맵 최초 진입)
 export const UNDERPASS_INTRO_KEY = 'td_seen_underpass_intro'; // 지하도 안내 모달 (underpass 맵 최초 진입)
+export const STATS_INTRO_KEY = 'td_seen_stats_intro'; // 통계 레이어 안내 모달 (통계 버튼 최초 탭)
 
 // 인트로 플래그 키 전체. resetLocalData가 이 배열을 spread 해 초기화 누락을 막는다.
 // 새 인트로 추가 시 위 상수 정의와 이 배열에 함께 등록할 것.
@@ -357,6 +358,7 @@ export const INTRO_KEYS = [
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
 	TRANSPORT_INTRO_KEY, QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY,
+	STATS_INTRO_KEY,
 ];
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.

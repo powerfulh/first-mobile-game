@@ -248,8 +248,8 @@ export function drawPauseButton(paused) {
 }
 
 // ============ Stats button ============
-// 통계 버튼 — 막대그래프 아이콘. 기능은 추후 연결 (현재 탭은 소비만).
-export function drawStatsButton() {
+// 통계 버튼 — 막대그래프 아이콘. showBadge: 안내 미열람 ? 배지.
+export function drawStatsButton(showBadge) {
 	drawHudButtonBg(statsButton);
 	ctx.fillStyle = '#fff';
 	const { x, y } = statsButton;
@@ -258,6 +258,7 @@ export function drawStatsButton() {
 	ctx.fillRect(x + 27, y + 26, 6, 7);
 	// 바닥선
 	ctx.fillRect(x + 9, y + 34, 26, 2);
+	if (showBadge) drawNewBadge(statsButton);
 }
 
 // ============ 통계 레이어 (PIP) ============
