@@ -285,10 +285,10 @@ export function drawStatsLayer(rect, ranked) {
 		ctx.fillStyle = '#fff';
 		ctx.textAlign = 'left';
 		ctx.fillText(t(ranked[i].cfg.name), rect.x + 30, cy);
-		// 웨이브 누적 데미지 — 우측 정렬
+		// 웨이브 누적 데미지 — 우측 정렬, 콤마 포맷
 		ctx.fillStyle = '#cdd';
 		ctx.textAlign = 'right';
-		ctx.fillText(String(Math.round(ranked[i].waveDamage)), rect.x + rect.w - 10, cy);
+		ctx.fillText(Math.round(ranked[i].waveDamage).toLocaleString(), rect.x + rect.w - 10, cy);
 	}
 	ctx.textBaseline = 'alphabetic';
 }

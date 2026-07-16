@@ -378,7 +378,8 @@ scenes.playing = {
 	controlsOpen: false, // 좌하단 접이식 컨트롤(일시정지·추가 웨이브) 펼침 여부
 	settingsOpen: false, // 설정 모달 — 가장 권력있는 모달, game.modal 인트로 중에도 이전 버튼으로 띄울 수 있음 (타이틀 씬과 동형)
 	statsOpen: false, // 통계 레이어(PIP) — 게임은 계속 진행, 바깥 탭/이전 버튼으로 닫음
-	statsRect: { x: 8, y: 64, w: STATS_PANEL_W, h: STATS_PANEL_H }, // 위치는 드래그로 이동 (세션 동안 유지)
+	// 기본 위치 = 화면 정중앙. 이후 드래그로 이동 (세션 동안 유지)
+	statsRect: { x: (LOGICAL_W - STATS_PANEL_W) / 2, y: (LOGICAL_H - STATS_PANEL_H) / 2, w: STATS_PANEL_W, h: STATS_PANEL_H },
 	statsDrag: null, // 진행 중 이동 드래그 { dx, dy } — 터치점과 패널 좌상단의 오프셋
 	enter() {
 		// 호출자가 resetGame() 또는 loadGame() 호출
