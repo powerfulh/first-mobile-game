@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, GOLD, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, STATS_INTRO_KEY, GOLD, MAP_BG_COLOR,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -9,7 +9,7 @@ import {
 	getIntermissionEnabled, getUnlockedMaps, clearEffects,
 } from './state.js';
 import { getActiveMap, MAPS } from './core/maps.js';
-import { drawButton, hitButton } from './core/helpers.js';
+import { drawButton, hitButton, clamp } from './core/helpers.js';
 import {
 	spawnEnemy, updateEnemy, drawEnemy, drawBossHpBar,
 	updateBarrierSpawnFx, updateShieldBreakFx, updateParachuteFx, updateEmpDevice, isBoss, getEffectiveSpeed, isInUnderpass,
@@ -34,7 +34,8 @@ import { updateHUD } from './hud.js';
 import { setToast, updateToast } from './toast.js';
 import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
-	nextWaveButton, drawNextWaveButton,
+	nextWaveButton, drawNextWaveButton, hudToggleButton, drawHudToggleButton, statsButton, drawStatsButton,
+	STATS_PANEL_W, STATS_PANEL_H, drawStatsLayer, drawTowerRankBadge,
 	drawToast, drawEnemyHpBar,
 	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
@@ -374,14 +375,24 @@ function drawGhostTower() {
 
 // ============ Playing scene ============
 scenes.playing = {
+	controlsOpen: false, // 좌하단 접이식 컨트롤(일시정지·추가 웨이브) 펼침 여부
+	settingsOpen: false, // 설정 모달 — 가장 권력있는 모달, game.modal 인트로 중에도 이전 버튼으로 띄울 수 있음 (타이틀 씬과 동형)
+	statsOpen: false, // 통계 레이어(PIP) — 게임은 계속 진행, 바깥 탭/이전 버튼으로 닫음
+	// 기본 위치 = 화면 정중앙. 이후 드래그로 이동 (세션 동안 유지)
+	statsRect: { x: (LOGICAL_W - STATS_PANEL_W) / 2, y: (LOGICAL_H - STATS_PANEL_H) / 2, w: STATS_PANEL_W, h: STATS_PANEL_H },
+	statsDrag: null, // 진행 중 이동 드래그 { dx, dy } — 터치점과 패널 좌상단의 오프셋
 	enter() {
 		// 호출자가 resetGame() 또는 loadGame() 호출
+		this.controlsOpen = false;
+		this.settingsOpen = false;
+		this.statsOpen = false;
+		this.statsDrag = null;
 	},
 	update(dt) {
 		updateToast(dt);
 		syncBattleMusic(game.bossActive, getActiveMap().bgm); // 보스 ↔ 맵 BGM 전환
 		if (game.modal) return;
-		if (game.settingsOpen) return;
+		if (this.settingsOpen) return;
 		if (game.paused) return;
 		if (game.holdDelete) {
 			game.holdDelete.accumulated += dt;
@@ -606,13 +617,20 @@ scenes.playing = {
 			ctx.fillText(t('hint.holdDelete'), LOGICAL_W / 2, LOGICAL_H - 12);
 		}
 
-		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
-			drawNextWaveButton({
-				enabled: canCallExtraWave(),
-				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
-				triple: game.waves.length >= 2,
-			});
-			drawPauseButton(game.paused);
+		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !this.settingsOpen && !this.statsOpen && !game.ghostTower) {
+			const parallelBadge = !hasSeenIntro(PARALLEL_INTRO_KEY);
+			const statsBadge = !hasSeenIntro(STATS_INTRO_KEY);
+			// 접힌 상태에선 토글만 — 안쪽 버튼들의 미열람 배지는 토글이 대신 표시
+			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && (parallelBadge || statsBadge));
+			if (this.controlsOpen) {
+				drawStatsButton(statsBadge);
+				drawNextWaveButton({
+					enabled: canCallExtraWave(),
+					showBadge: parallelBadge,
+					triple: game.waves.length >= 2,
+				});
+				drawPauseButton(game.paused);
+			}
 		}
 		if (game.paused) drawPausedOverlay();
 
@@ -621,13 +639,34 @@ scenes.playing = {
 			if (intro) intro.draw(game.modal);
 		}
 
-		if (game.settingsOpen) drawSettingsModal(playingSettingsButtons);
+		if (this.statsOpen) {
+			// 웨이브 누적 데미지 상위 10 — 데미지 없는 타워는 집계 제외
+			const ranked = game.entities.towers
+				.filter(tw => tw.waveDamage > 0)
+				.sort((a, b) => b.waveDamage - a.waveDamage)
+				.slice(0, 10);
+			// 맵상 배지 (예약 표시와 같은 자리) → 그 위에 레이어
+			for (let i = 0; i < ranked.length; i++) drawTowerRankBadge(ranked[i], i + 1);
+			drawStatsLayer(this.statsRect, ranked);
+		}
+
+		if (this.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
 		if (game.toast) drawToast(game.toast);
 	},
 	pointerDown(p) {
-		if (game.settingsOpen) {
-			if (settingsModalTap(p, playingSettingsButtons)) game.settingsOpen = false;
+		if (this.settingsOpen) {
+			if (settingsModalTap(p, playingSettingsButtons)) this.settingsOpen = false;
+			return;
+		}
+		// 통계 레이어(PIP) — 바깥 탭은 닫기, 안쪽 탭은 이동 드래그 시작
+		if (this.statsOpen) {
+			if (!hitButton(this.statsRect, p)) {
+				this.statsOpen = false;
+				playButton();
+				return;
+			}
+			this.statsDrag = { dx: p.x - this.statsRect.x, dy: p.y - this.statsRect.y };
 			return;
 		}
 		if (game.modal) {
@@ -640,14 +679,30 @@ scenes.playing = {
 			return;
 		}
 
-		if (!game.selectedTower && hitButton(pauseButton, p)) {
+		if (!game.selectedTower && hitButton(hudToggleButton, p)) {
+			this.controlsOpen = !this.controlsOpen;
+			playButton();
+			return;
+		}
+		// 통계 버튼 — 첫 탭(미열람)은 레이어 대신 안내 모달 (병렬 웨이브 버튼과 동일 패턴)
+		if (this.controlsOpen && !game.selectedTower && hitButton(statsButton, p)) {
+			playButton();
+			if (!hasSeenIntro(STATS_INTRO_KEY)) {
+				game.modal = { type: 'statsIntro' };
+				return;
+			}
+			this.controlsOpen = false;
+			this.statsOpen = true;
+			return;
+		}
+		if (this.controlsOpen && !game.selectedTower && hitButton(pauseButton, p)) {
 			game.paused = !game.paused;
 			playPauseToggle(game.paused);
 			return;
 		}
 		// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 호출.
 		// 첫 탭(미열람)은 호출 대신 안내 모달. 이후엔 비활성 시 무동작(보스 사유면 토스트).
-		if (!game.selectedTower && hitButton(nextWaveButton, p)) {
+		if (this.controlsOpen && !game.selectedTower && hitButton(nextWaveButton, p)) {
 			if (!hasSeenIntro(PARALLEL_INTRO_KEY)) {
 				playButton();
 				game.modal = { type: 'parallelIntro' };
@@ -813,21 +868,35 @@ scenes.playing = {
 		}
 	},
 	pointerMove(p) {
-		if (game.settingsOpen) { volumePointerMove(p); return; }
+		if (this.settingsOpen) { volumePointerMove(p); return; }
+		if (this.statsOpen) {
+			if (this.statsDrag) {
+				this.statsRect.x = clamp(p.x - this.statsDrag.dx, 0, LOGICAL_W - this.statsRect.w);
+				this.statsRect.y = clamp(p.y - this.statsDrag.dy, 0, LOGICAL_H - this.statsRect.h);
+			}
+			return;
+		}
 		moveGhostTower(p.x, p.y);
 	},
 	pointerUp() {
 		volumePointerUp();
+		this.statsDrag = null;
 		if (game.ghostTower) game.ghostTower.dragging = false;
 	},
 	pointerCancel() {
 		volumePointerUp();
+		this.statsDrag = null;
 		if (game.ghostTower) game.ghostTower.dragging = false;
 	},
 	backButton() {
 		// 설정 열린 상태 → 닫기
-		if (game.settingsOpen) {
-			game.settingsOpen = false;
+		if (this.settingsOpen) {
+			this.settingsOpen = false;
+			return;
+		}
+		// 통계 레이어 열린 상태 → 닫기
+		if (this.statsOpen) {
+			this.statsOpen = false;
 			return;
 		}
 		// 고스트(2단계 배치) 진행 중 → 취소
@@ -851,7 +920,7 @@ scenes.playing = {
 			return;
 		}
 		// 기본 → 설정 열기
-		game.settingsOpen = true;
+		this.settingsOpen = true;
 	},
 	keyDown(e) {
 		// 데스크탑에서 백 버튼 대체 — backButton과 동일 로직

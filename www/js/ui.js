@@ -1,7 +1,7 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR } from './core/config.js';
 import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
-import { drawEnemySprite, drawNewBadge } from './ui/sprite.js';
+import { drawEnemySprite, drawNewBadge, drawTrophyIcon, drawBarChartIcon } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
 
@@ -189,10 +189,14 @@ export function drawWaveSpawnSummary(counts = {}) {
 	ctx.textBaseline = 'alphabetic';
 }
 
-// ============ Pause button ============
-export const pauseButton = { x: 8, y: 592, w: 44, h: 44 };
+// ============ HUD 좌하단 접이식 컨트롤 ============
+// 기본은 토글(🔼)만 노출 — 누르면 위로 일시정지·추가 웨이브 버튼이 펼쳐짐 (상태는 scenes.playing 보유).
+export const hudToggleButton = { x: 8, y: 592, w: 44, h: 44 };
+export const pauseButton = { x: 8, y: 540, w: 44, h: 44 };
+export const nextWaveButton = { x: 8, y: 488, w: 44, h: 44 };
+export const statsButton = { x: 8, y: 436, w: 44, h: 44 };
 
-// 좌하단 사각 컨트롤 버튼 배경 (일시정지·추가 웨이브 공용) — 둥근 사각 + 반투명 흰 테두리.
+// 좌하단 사각 컨트롤 버튼 배경 (토글·일시정지·추가 웨이브 공용) — 둥근 사각 + 반투명 흰 테두리.
 function drawHudButtonBg(rect) {
 	ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
 	roundRect(rect.x, rect.y, rect.w, rect.h, 8);
@@ -200,6 +204,28 @@ function drawHudButtonBg(rect) {
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
+}
+
+// 접이식 토글 버튼 — 접힘: 위로 펼치기(▲), 펼침: 아래로 접기(▼).
+// showBadge: 접힌 상태에서 안쪽 버튼(추가 웨이브)의 미열람 배지를 대신 노출.
+export function drawHudToggleButton(open, showBadge) {
+	drawHudButtonBg(hudToggleButton);
+	const cx = hudToggleButton.x + hudToggleButton.w / 2;
+	const cy = hudToggleButton.y + hudToggleButton.h / 2;
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	if (open) {
+		ctx.moveTo(cx - 9, cy - 5);
+		ctx.lineTo(cx + 9, cy - 5);
+		ctx.lineTo(cx, cy + 7);
+	} else {
+		ctx.moveTo(cx - 9, cy + 5);
+		ctx.lineTo(cx + 9, cy + 5);
+		ctx.lineTo(cx, cy - 7);
+	}
+	ctx.closePath();
+	ctx.fill();
+	if (showBadge) drawNewBadge(hudToggleButton);
 }
 
 export function drawPauseButton(paused) {
@@ -221,10 +247,88 @@ export function drawPauseButton(paused) {
 	}
 }
 
-// ============ Next-wave button ============
-// 일시정지 버튼 바로 위.
-export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
+// ============ Stats button ============
+// 통계 버튼 — 막대그래프 아이콘(모달과 공용 스프라이트). showBadge: 안내 미열람 ? 배지.
+export function drawStatsButton(showBadge) {
+	drawHudButtonBg(statsButton);
+	drawBarChartIcon(statsButton.x + statsButton.w / 2, statsButton.y + statsButton.h / 2 + 2);
+	if (showBadge) drawNewBadge(statsButton);
+}
 
+// ============ 통계 레이어 (PIP) ============
+// 게임을 멈추지 않는 소형 오버레이 — 통계와 현재 맵을 같이 보는 컨셉.
+// 드래그로 화면 내 자유 이동 (위치·열림 상태는 scenes.playing 보유), 바깥 탭·이전 버튼으로 닫음.
+// 내용: 웨이브 누적 데미지 상위 타워 목록 (최대 10등). 1~3등은 등수 대신 트로피.
+export const STATS_PANEL_W = 150;
+export const STATS_PANEL_H = 206; // 순위 10줄 + 하단 이동 안내 문구
+const STATS_ROW_H = 17;
+
+// 최대 폭을 넘는 텍스트를 말줄임(…) 처리 — 현재 ctx.font 기준 measureText.
+function ellipsize(text, maxW) {
+	if (ctx.measureText(text).width <= maxW) return text;
+	let s = text;
+	while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+	return s + '…';
+}
+
+// ranked: 웨이브 누적 데미지 내림차순 상위 타워 배열 (인덱스 = 등수 - 1). 산출은 호출부(scenes).
+export function drawStatsLayer(rect, ranked) {
+	drawPanel(rect.x, rect.y, rect.w, rect.h, { radius: 10, alpha: 0.85 });
+	ctx.font = '12px sans-serif';
+	ctx.textBaseline = 'middle';
+	for (let i = 0; i < ranked.length; i++) {
+		const cy = rect.y + 12 + i * STATS_ROW_H + STATS_ROW_H / 2;
+		if (i < 3) {
+			drawTrophyIcon(rect.x + 17, cy, i);
+		} else {
+			ctx.fillStyle = '#cdd';
+			ctx.textAlign = 'right';
+			ctx.fillText(`${i + 1}.`, rect.x + 24, cy);
+		}
+		// 웨이브 누적 데미지(우측 정렬, 콤마 포맷)가 차지하고 남는 폭에 타워명 — 긴 이름(다국어)은 말줄임
+		const dmg = Math.round(ranked[i].waveDamage).toLocaleString();
+		const dmgW = ctx.measureText(dmg).width;
+		ctx.fillStyle = '#fff';
+		ctx.textAlign = 'left';
+		ctx.fillText(ellipsize(t(ranked[i].cfg.name), rect.w - 40 - dmgW - 6), rect.x + 30, cy);
+		ctx.fillStyle = '#cdd';
+		ctx.textAlign = 'right';
+		ctx.fillText(dmg, rect.x + rect.w - 10, cy);
+	}
+	// 하단 이동 안내
+	ctx.font = '10px sans-serif';
+	ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+	ctx.textAlign = 'center';
+	ctx.fillText(t('stats.dragHint'), rect.x + rect.w / 2, rect.y + rect.h - 11);
+	ctx.textBaseline = 'alphabetic';
+}
+
+// 맵 위 등수 배지 — 통계 레이어가 떠 있는 동안 집계된 타워의 중심점에 정확히 겹쳐 표시.
+// 크기는 타워(반지름 14)보다 약간 작게.
+export function drawTowerRankBadge(tower, rank) {
+	const cx = tower.x;
+	const cy = tower.y;
+	if (rank <= 3) {
+		ctx.save();
+		ctx.translate(cx, cy);
+		ctx.scale(1.7, 1.7);
+		drawTrophyIcon(0, 0.5, rank - 1); // 아이콘 시각적 중심 보정
+		ctx.restore();
+		return;
+	}
+	ctx.font = 'bold 20px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.strokeStyle = '#000';
+	ctx.lineWidth = 4;
+	ctx.strokeText(String(rank), cx, cy);
+	ctx.fillStyle = '#fff';
+	ctx.fillText(String(rank), cx, cy);
+	ctx.textBaseline = 'alphabetic';
+}
+
+// ============ Next-wave button ============
+// 일시정지 버튼 바로 위 (버튼 rect는 접이식 컨트롤 섹션에서 정의).
 // enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부, triple: 삼각형 3개 표시(병렬 2개 이상 진행 중)
 // — 모두 호출부(scenes)에서 계산해 전달.
 export function drawNextWaveButton({ enabled, showBadge, triple }) {

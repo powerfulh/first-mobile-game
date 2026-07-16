@@ -45,7 +45,6 @@ export const game = {
 	modal: null,
 	paused: false,
 	holdDelete: null,
-	settingsOpen: false, // 가장 권력있는 모달, `modal` 에 인트로 중이여도 이전 버튼으로 여전히 띄울 수 있음
 	sandbox: false,
 	sandboxShieldsEnabled: true,
 	toast: null,
@@ -120,7 +119,6 @@ export function resetGame(mapId = 'map1') {
 	game.modal = null;
 	game.paused = false;
 	game.holdDelete = null;
-	game.settingsOpen = false;
 	game.sandbox = false;
 	game.sandboxShieldsEnabled = true;
 	game.toast = null;

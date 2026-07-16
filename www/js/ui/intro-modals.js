@@ -6,11 +6,11 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, MAP_BG_COLOR,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
-import { drawEnemySprite, drawHourglassIcon } from './sprite.js';
+import { drawEnemySprite, drawHourglassIcon, drawBarChartIcon } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 표준 모달 레이아웃 (대부분 공유, tier4만 별도)
@@ -363,6 +363,20 @@ export const INTRO_MODALS = {
 		drawIcon: drawUnderpassIcon,
 		title: 'intro.underpass.title',
 		lines: ['intro.underpass.line1', 'intro.underpass.line2'],
+		lineSize: 12, lineStart: 150, lineGap: 26,
+	}),
+
+	statsIntro: makeIntro({
+		key: STATS_INTRO_KEY, accent: GOLD,
+		drawIcon: (cx, cy) => {
+			ctx.save();
+			ctx.translate(cx, cy);
+			ctx.scale(1.8, 1.8); // 버튼 아이콘을 모달용으로 확대 (queueIntro와 동일 방식)
+			drawBarChartIcon(0, 0);
+			ctx.restore();
+		},
+		title: 'intro.stats.title',
+		lines: ['intro.stats.line1', 'intro.stats.line2'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };
