@@ -10,7 +10,7 @@ import {
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
-import { drawEnemySprite, drawHourglassIcon } from './sprite.js';
+import { drawEnemySprite, drawHourglassIcon, drawBarChartIcon } from './sprite.js';
 import { t } from '../core/i18n.js';
 
 // 표준 모달 레이아웃 (대부분 공유, tier4만 별도)
@@ -180,15 +180,6 @@ function drawUnderpassIcon(cx, cy) {
 	ctx.stroke();
 	ctx.setLineDash([]);
 	ctx.globalAlpha = 1;
-}
-
-function drawStatsIntroIcon(cx, cy) {
-	// 막대그래프 — 통계 버튼 아이콘의 확대판
-	ctx.fillStyle = '#fff';
-	ctx.fillRect(cx - 22, cy - 2, 12, 18);
-	ctx.fillRect(cx - 6, cy - 14, 12, 30);
-	ctx.fillRect(cx + 10, cy + 6, 12, 10);
-	ctx.fillRect(cx - 26, cy + 18, 52, 3);
 }
 
 // 데이터 → { key, panel, confirmBtn, draw }. 특수 본문은 drawExtra(panel, cx)로.
@@ -377,9 +368,15 @@ export const INTRO_MODALS = {
 
 	statsIntro: makeIntro({
 		key: STATS_INTRO_KEY, accent: GOLD,
-		drawIcon: drawStatsIntroIcon,
+		drawIcon: (cx, cy) => {
+			ctx.save();
+			ctx.translate(cx, cy);
+			ctx.scale(1.8, 1.8); // 버튼 아이콘을 모달용으로 확대 (queueIntro와 동일 방식)
+			drawBarChartIcon(0, 0);
+			ctx.restore();
+		},
 		title: 'intro.stats.title',
-		lines: ['intro.stats.line1', 'intro.stats.line2', 'intro.stats.line3'],
+		lines: ['intro.stats.line1', 'intro.stats.line3'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };

@@ -493,6 +493,16 @@ export function drawHourglassIcon(cx, cy, spin = false, alpha = 1) {
 	ctx.restore();
 }
 
+// 막대그래프 아이콘 — 통계 버튼·통계 인트로 모달 공용 (모달은 scale 확대 사용).
+export function drawBarChartIcon(cx, cy) {
+	ctx.fillStyle = '#fff';
+	ctx.fillRect(cx - 13, cy - 2, 6, 11);
+	ctx.fillRect(cx - 3, cy - 9, 6, 18);
+	ctx.fillRect(cx + 7, cy + 2, 6, 7);
+	// 바닥선
+	ctx.fillRect(cx - 15, cy + 9, 30, 2);
+}
+
 // 트로피 아이콘 — 통계 순위 1~3등 표시 공용 (레이어 목록·맵 위 배지). tier: 0 금 / 1 은 / 2 동.
 export function drawTrophyIcon(cx, cy, tier = 0) {
 	const colors = ['#f1c40f', '#c0c5ce', '#cd7f32'];

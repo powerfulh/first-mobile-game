@@ -1,7 +1,7 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
 import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR } from './core/config.js';
 import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
-import { drawEnemySprite, drawNewBadge, drawTrophyIcon } from './ui/sprite.js';
+import { drawEnemySprite, drawNewBadge, drawTrophyIcon, drawBarChartIcon } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
 
@@ -248,16 +248,10 @@ export function drawPauseButton(paused) {
 }
 
 // ============ Stats button ============
-// 통계 버튼 — 막대그래프 아이콘. showBadge: 안내 미열람 ? 배지.
+// 통계 버튼 — 막대그래프 아이콘(모달과 공용 스프라이트). showBadge: 안내 미열람 ? 배지.
 export function drawStatsButton(showBadge) {
 	drawHudButtonBg(statsButton);
-	ctx.fillStyle = '#fff';
-	const { x, y } = statsButton;
-	ctx.fillRect(x + 11, y + 22, 6, 11);
-	ctx.fillRect(x + 19, y + 15, 6, 18);
-	ctx.fillRect(x + 27, y + 26, 6, 7);
-	// 바닥선
-	ctx.fillRect(x + 9, y + 34, 26, 2);
+	drawBarChartIcon(statsButton.x + statsButton.w / 2, statsButton.y + statsButton.h / 2 + 2);
 	if (showBadge) drawNewBadge(statsButton);
 }
 

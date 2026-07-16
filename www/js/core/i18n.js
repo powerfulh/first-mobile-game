@@ -242,7 +242,6 @@ const STRINGS = {
 	'stats.dragHint': { ko: '드래그해서 이동', ja: 'ドラッグで移動', en: 'Drag to move' },
 	'intro.stats.title': { ko: '통계', ja: '統計', en: 'Stats' },
 	'intro.stats.line1': { ko: '웨이브 누적 데미지 상위 10 타워를 보여줍니다', ja: 'ウェーブ累積ダメージ上位10タワーを表示します', en: 'Shows the top 10 towers by wave damage.' },
-	'intro.stats.line2': { ko: '게임은 멈추지 않고, 레이어는 드래그로 옮길 수 있습니다', ja: 'ゲームは止まらず、レイヤーはドラッグで移動できます', en: 'The game keeps running; drag the layer to move it.' },
 	'intro.stats.line3': { ko: '바깥을 누르거나 이전 버튼으로 닫습니다', ja: '外側タップか戻るボタンで閉じます', en: 'Tap outside or press back to close.' },
 	'intro.underpass.title': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'intro.underpass.line1': { ko: '이 맵의 길 일부는 지하로 지나갑니다', ja: 'このマップの道の一部は地下を通ります', en: 'Part of this map\'s road runs underground.' },
