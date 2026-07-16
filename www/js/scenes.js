@@ -34,7 +34,7 @@ import { updateHUD } from './hud.js';
 import { setToast, updateToast } from './toast.js';
 import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
-	nextWaveButton, drawNextWaveButton, hudToggleButton, drawHudToggleButton,
+	nextWaveButton, drawNextWaveButton, hudToggleButton, drawHudToggleButton, statsButton, drawStatsButton,
 	drawToast, drawEnemyHpBar,
 	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
@@ -615,6 +615,7 @@ scenes.playing = {
 			// 접힌 상태에선 토글만 — 안쪽 버튼의 미열람 배지는 토글이 대신 표시
 			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && showBadge);
 			if (this.controlsOpen) {
+				drawStatsButton();
 				drawNextWaveButton({
 					enabled: canCallExtraWave(),
 					showBadge,
@@ -651,6 +652,11 @@ scenes.playing = {
 
 		if (!game.selectedTower && hitButton(hudToggleButton, p)) {
 			this.controlsOpen = !this.controlsOpen;
+			playButton();
+			return;
+		}
+		// 통계 버튼 — 기능은 추후 연결. 탭만 소비해 빈 곳 터치(배치 고스트 등)로 새지 않게.
+		if (this.controlsOpen && !game.selectedTower && hitButton(statsButton, p)) {
 			playButton();
 			return;
 		}

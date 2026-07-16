@@ -194,6 +194,7 @@ export function drawWaveSpawnSummary(counts = {}) {
 export const hudToggleButton = { x: 8, y: 592, w: 44, h: 44 };
 export const pauseButton = { x: 8, y: 540, w: 44, h: 44 };
 export const nextWaveButton = { x: 8, y: 488, w: 44, h: 44 };
+export const statsButton = { x: 8, y: 436, w: 44, h: 44 };
 
 // 좌하단 사각 컨트롤 버튼 배경 (토글·일시정지·추가 웨이브 공용) — 둥근 사각 + 반투명 흰 테두리.
 function drawHudButtonBg(rect) {
@@ -244,6 +245,19 @@ export function drawPauseButton(paused) {
 		ctx.fillRect(pauseButton.x + 13, pauseButton.y + 11, 5, 22);
 		ctx.fillRect(pauseButton.x + 26, pauseButton.y + 11, 5, 22);
 	}
+}
+
+// ============ Stats button ============
+// 통계 버튼 — 막대그래프 아이콘. 기능은 추후 연결 (현재 탭은 소비만).
+export function drawStatsButton() {
+	drawHudButtonBg(statsButton);
+	ctx.fillStyle = '#fff';
+	const { x, y } = statsButton;
+	ctx.fillRect(x + 11, y + 22, 6, 11);
+	ctx.fillRect(x + 19, y + 15, 6, 18);
+	ctx.fillRect(x + 27, y + 26, 6, 7);
+	// 바닥선
+	ctx.fillRect(x + 9, y + 34, 26, 2);
 }
 
 // ============ Next-wave button ============
