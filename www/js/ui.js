@@ -189,10 +189,13 @@ export function drawWaveSpawnSummary(counts = {}) {
 	ctx.textBaseline = 'alphabetic';
 }
 
-// ============ Pause button ============
-export const pauseButton = { x: 8, y: 592, w: 44, h: 44 };
+// ============ HUD 좌하단 접이식 컨트롤 ============
+// 기본은 토글(🔼)만 노출 — 누르면 위로 일시정지·추가 웨이브 버튼이 펼쳐짐 (상태는 scenes.playing 보유).
+export const hudToggleButton = { x: 8, y: 592, w: 44, h: 44 };
+export const pauseButton = { x: 8, y: 540, w: 44, h: 44 };
+export const nextWaveButton = { x: 8, y: 488, w: 44, h: 44 };
 
-// 좌하단 사각 컨트롤 버튼 배경 (일시정지·추가 웨이브 공용) — 둥근 사각 + 반투명 흰 테두리.
+// 좌하단 사각 컨트롤 버튼 배경 (토글·일시정지·추가 웨이브 공용) — 둥근 사각 + 반투명 흰 테두리.
 function drawHudButtonBg(rect) {
 	ctx.fillStyle = 'rgba(26, 37, 53, 0.85)';
 	roundRect(rect.x, rect.y, rect.w, rect.h, 8);
@@ -200,6 +203,28 @@ function drawHudButtonBg(rect) {
 	ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
+}
+
+// 접이식 토글 버튼 — 접힘: 위로 펼치기(▲), 펼침: 아래로 접기(▼).
+// showBadge: 접힌 상태에서 안쪽 버튼(추가 웨이브)의 미열람 배지를 대신 노출.
+export function drawHudToggleButton(open, showBadge) {
+	drawHudButtonBg(hudToggleButton);
+	const cx = hudToggleButton.x + hudToggleButton.w / 2;
+	const cy = hudToggleButton.y + hudToggleButton.h / 2;
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	if (open) {
+		ctx.moveTo(cx - 9, cy - 5);
+		ctx.lineTo(cx + 9, cy - 5);
+		ctx.lineTo(cx, cy + 7);
+	} else {
+		ctx.moveTo(cx - 9, cy + 5);
+		ctx.lineTo(cx + 9, cy + 5);
+		ctx.lineTo(cx, cy - 7);
+	}
+	ctx.closePath();
+	ctx.fill();
+	if (showBadge) drawNewBadge(hudToggleButton);
 }
 
 export function drawPauseButton(paused) {
@@ -222,9 +247,7 @@ export function drawPauseButton(paused) {
 }
 
 // ============ Next-wave button ============
-// 일시정지 버튼 바로 위.
-export const nextWaveButton = { x: 8, y: 540, w: 44, h: 44 };
-
+// 일시정지 버튼 바로 위 (버튼 rect는 접이식 컨트롤 섹션에서 정의).
 // enabled: 활성/흐림 여부, showBadge: ? 배지 표시 여부, triple: 삼각형 3개 표시(병렬 2개 이상 진행 중)
 // — 모두 호출부(scenes)에서 계산해 전달.
 export function drawNextWaveButton({ enabled, showBadge, triple }) {

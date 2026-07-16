@@ -34,7 +34,7 @@ import { updateHUD } from './hud.js';
 import { setToast, updateToast } from './toast.js';
 import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
-	nextWaveButton, drawNextWaveButton,
+	nextWaveButton, drawNextWaveButton, hudToggleButton, drawHudToggleButton,
 	drawToast, drawEnemyHpBar,
 	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
@@ -374,8 +374,10 @@ function drawGhostTower() {
 
 // ============ Playing scene ============
 scenes.playing = {
+	controlsOpen: false, // 좌하단 접이식 컨트롤(일시정지·추가 웨이브) 펼침 여부
 	enter() {
 		// 호출자가 resetGame() 또는 loadGame() 호출
+		this.controlsOpen = false;
 	},
 	update(dt) {
 		updateToast(dt);
@@ -607,12 +609,17 @@ scenes.playing = {
 		}
 
 		if (!game.selectedTower && !game.selectedEnemy && !game.modal && !game.settingsOpen && !game.ghostTower) {
-			drawNextWaveButton({
-				enabled: canCallExtraWave(),
-				showBadge: !hasSeenIntro(PARALLEL_INTRO_KEY),
-				triple: game.waves.length >= 2,
-			});
-			drawPauseButton(game.paused);
+			const showBadge = !hasSeenIntro(PARALLEL_INTRO_KEY);
+			// 접힌 상태에선 토글만 — 안쪽 버튼의 미열람 배지는 토글이 대신 표시
+			drawHudToggleButton(this.controlsOpen, !this.controlsOpen && showBadge);
+			if (this.controlsOpen) {
+				drawNextWaveButton({
+					enabled: canCallExtraWave(),
+					showBadge,
+					triple: game.waves.length >= 2,
+				});
+				drawPauseButton(game.paused);
+			}
 		}
 		if (game.paused) drawPausedOverlay();
 
@@ -640,14 +647,19 @@ scenes.playing = {
 			return;
 		}
 
-		if (!game.selectedTower && hitButton(pauseButton, p)) {
+		if (!game.selectedTower && hitButton(hudToggleButton, p)) {
+			this.controlsOpen = !this.controlsOpen;
+			playButton();
+			return;
+		}
+		if (this.controlsOpen && !game.selectedTower && hitButton(pauseButton, p)) {
 			game.paused = !game.paused;
 			playPauseToggle(game.paused);
 			return;
 		}
 		// 추가 웨이브 — 현재 웨이브를 유지한 채 다음 웨이브를 병렬로 호출.
 		// 첫 탭(미열람)은 호출 대신 안내 모달. 이후엔 비활성 시 무동작(보스 사유면 토스트).
-		if (!game.selectedTower && hitButton(nextWaveButton, p)) {
+		if (this.controlsOpen && !game.selectedTower && hitButton(nextWaveButton, p)) {
 			if (!hasSeenIntro(PARALLEL_INTRO_KEY)) {
 				playButton();
 				game.modal = { type: 'parallelIntro' };
