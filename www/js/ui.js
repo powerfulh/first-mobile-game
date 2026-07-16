@@ -268,6 +268,14 @@ export const STATS_PANEL_W = 150;
 export const STATS_PANEL_H = 206; // 순위 10줄 + 하단 이동 안내 문구
 const STATS_ROW_H = 17;
 
+// 최대 폭을 넘는 텍스트를 말줄임(…) 처리 — 현재 ctx.font 기준 measureText.
+function ellipsize(text, maxW) {
+	if (ctx.measureText(text).width <= maxW) return text;
+	let s = text;
+	while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+	return s + '…';
+}
+
 // ranked: 웨이브 누적 데미지 내림차순 상위 타워 배열 (인덱스 = 등수 - 1). 산출은 호출부(scenes).
 export function drawStatsLayer(rect, ranked) {
 	drawPanel(rect.x, rect.y, rect.w, rect.h, { radius: 10, alpha: 0.85 });
@@ -282,13 +290,15 @@ export function drawStatsLayer(rect, ranked) {
 			ctx.textAlign = 'right';
 			ctx.fillText(`${i + 1}.`, rect.x + 24, cy);
 		}
+		// 웨이브 누적 데미지(우측 정렬, 콤마 포맷)가 차지하고 남는 폭에 타워명 — 긴 이름(다국어)은 말줄임
+		const dmg = Math.round(ranked[i].waveDamage).toLocaleString();
+		const dmgW = ctx.measureText(dmg).width;
 		ctx.fillStyle = '#fff';
 		ctx.textAlign = 'left';
-		ctx.fillText(t(ranked[i].cfg.name), rect.x + 30, cy);
-		// 웨이브 누적 데미지 — 우측 정렬, 콤마 포맷
+		ctx.fillText(ellipsize(t(ranked[i].cfg.name), rect.w - 40 - dmgW - 6), rect.x + 30, cy);
 		ctx.fillStyle = '#cdd';
 		ctx.textAlign = 'right';
-		ctx.fillText(Math.round(ranked[i].waveDamage).toLocaleString(), rect.x + rect.w - 10, cy);
+		ctx.fillText(dmg, rect.x + rect.w - 10, cy);
 	}
 	// 하단 이동 안내
 	ctx.font = '10px sans-serif';
