@@ -376,7 +376,7 @@ export const INTRO_MODALS = {
 			ctx.restore();
 		},
 		title: 'intro.stats.title',
-		lines: ['intro.stats.line1', 'intro.stats.line3'],
+		lines: ['intro.stats.line1', 'intro.stats.line2'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 };
