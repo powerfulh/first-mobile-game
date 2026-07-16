@@ -265,7 +265,7 @@ export function drawStatsButton() {
 // 드래그로 화면 내 자유 이동 (위치·열림 상태는 scenes.playing 보유), 바깥 탭·이전 버튼으로 닫음.
 // 내용: 웨이브 누적 데미지 상위 타워 목록 (최대 10등). 1~3등은 등수 대신 트로피.
 export const STATS_PANEL_W = 150;
-export const STATS_PANEL_H = 190;
+export const STATS_PANEL_H = 206; // 순위 10줄 + 하단 이동 안내 문구
 const STATS_ROW_H = 17;
 
 // ranked: 웨이브 누적 데미지 내림차순 상위 타워 배열 (인덱스 = 등수 - 1). 산출은 호출부(scenes).
@@ -290,6 +290,11 @@ export function drawStatsLayer(rect, ranked) {
 		ctx.textAlign = 'right';
 		ctx.fillText(Math.round(ranked[i].waveDamage).toLocaleString(), rect.x + rect.w - 10, cy);
 	}
+	// 하단 이동 안내
+	ctx.font = '10px sans-serif';
+	ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+	ctx.textAlign = 'center';
+	ctx.fillText(t('stats.dragHint'), rect.x + rect.w / 2, rect.y + rect.h - 11);
 	ctx.textBaseline = 'alphabetic';
 }
 

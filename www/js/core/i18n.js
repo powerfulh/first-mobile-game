@@ -239,6 +239,7 @@ const STRINGS = {
 	'intro.mapUnlock.title': { ko: '새로운 맵 해금!', ja: '新しいマップ解放!', en: 'New Map Unlocked!' },
 	'intro.mapUnlock.line2': { ko: '{name} 맵이 해금되었습니다.', ja: '{name}マップが解放されました。', en: 'The {name} map is now available.' },
 	'intro.mapUnlock.line3': { ko: '게임 시작에서 선택하세요.', ja: 'ゲーム開始から選択してください。', en: 'Choose it from Start.' },
+	'stats.dragHint': { ko: '드래그해서 이동', ja: 'ドラッグで移動', en: 'Drag to move' },
 	'intro.underpass.title': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'intro.underpass.line1': { ko: '이 맵의 길 일부는 지하로 지나갑니다', ja: 'このマップの道の一部は地下を通ります', en: 'Part of this map\'s road runs underground.' },
 	'intro.underpass.line2': { ko: '지하 구간의 지상 적은 타워가 볼 수 없습니다', ja: '地下区間の地上の敵はタワーから見えません', en: 'Towers can\'t see ground enemies underground.' },
