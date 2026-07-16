@@ -195,6 +195,7 @@ export function drawTowerInfoPanel(tower, promotionState, queueBadge) {
 	if (tower.canAir) activeTypes.push('air');
 	const atkText = activeTypes.length ? activeTypes.map(a => atkLabels[a] || a).join('/') : t('common.none');
 	ctx.fillText(t('panel.targets', { types: atkText }), sx + 160, sy + specFontSize + margin);
+	// 일본어에서 겹치는 문제가 있으니 추후 일본 사용자 발생 시 개선 고려
 	const wave = round1(tower.waveDamage);
 	ctx.fillText(t('panel.waveDamage', { dmg: wave.toLocaleString() }), sx, sy + specFontSize*2 + margin*2);
 	const total = round1(tower.totalDamage);
