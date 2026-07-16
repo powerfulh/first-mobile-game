@@ -1,7 +1,7 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR, TOWER } from './core/config.js';
 import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
-import { drawEnemySprite, drawNewBadge } from './ui/sprite.js';
+import { drawEnemySprite, drawNewBadge, drawTrophyIcon } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
 import { t } from './core/i18n.js';
 
@@ -263,12 +263,49 @@ export function drawStatsButton() {
 // ============ 통계 레이어 (PIP) ============
 // 게임을 멈추지 않는 소형 오버레이 — 통계와 현재 맵을 같이 보는 컨셉.
 // 드래그로 화면 내 자유 이동 (위치·열림 상태는 scenes.playing 보유), 바깥 탭·이전 버튼으로 닫음.
-// 내용은 추후 — 크기(STATS_PANEL_W/H)도 내용과 함께 확정.
+// 내용: 웨이브 누적 데미지 상위 타워 목록 (최대 10등). 1~3등은 등수 대신 트로피.
 export const STATS_PANEL_W = 150;
-export const STATS_PANEL_H = 100;
+export const STATS_PANEL_H = 190;
+const STATS_ROW_H = 17;
 
-export function drawStatsLayer(rect) {
+// ranked: 웨이브 누적 데미지 내림차순 상위 타워 배열 (인덱스 = 등수 - 1). 산출은 호출부(scenes).
+export function drawStatsLayer(rect, ranked) {
 	drawPanel(rect.x, rect.y, rect.w, rect.h, { radius: 10, alpha: 0.85 });
+	ctx.font = '12px sans-serif';
+	ctx.textBaseline = 'middle';
+	for (let i = 0; i < ranked.length; i++) {
+		const cy = rect.y + 12 + i * STATS_ROW_H + STATS_ROW_H / 2;
+		if (i < 3) {
+			drawTrophyIcon(rect.x + 17, cy, i);
+		} else {
+			ctx.fillStyle = '#cdd';
+			ctx.textAlign = 'right';
+			ctx.fillText(`${i + 1}.`, rect.x + 24, cy);
+		}
+		ctx.fillStyle = '#fff';
+		ctx.textAlign = 'left';
+		ctx.fillText(t(ranked[i].cfg.name), rect.x + 30, cy);
+	}
+	ctx.textBaseline = 'alphabetic';
+}
+
+// 맵 위 등수 배지 — 통계 레이어가 떠 있는 동안 집계된 타워 위에 표시 (예약 모래시계와 같은 자리).
+export function drawTowerRankBadge(tower, rank) {
+	const cx = tower.x;
+	const cy = tower.y - TOWER.radius - 12;
+	if (rank <= 3) {
+		drawTrophyIcon(cx, cy, rank - 1);
+		return;
+	}
+	ctx.font = 'bold 12px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.strokeStyle = '#000';
+	ctx.lineWidth = 3;
+	ctx.strokeText(String(rank), cx, cy);
+	ctx.fillStyle = '#fff';
+	ctx.fillText(String(rank), cx, cy);
+	ctx.textBaseline = 'alphabetic';
 }
 
 // ============ Next-wave button ============

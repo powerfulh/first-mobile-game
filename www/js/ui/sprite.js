@@ -493,6 +493,33 @@ export function drawHourglassIcon(cx, cy, spin = false, alpha = 1) {
 	ctx.restore();
 }
 
+// 트로피 아이콘 — 통계 순위 1~3등 표시 공용 (레이어 목록·맵 위 배지). tier: 0 금 / 1 은 / 2 동.
+export function drawTrophyIcon(cx, cy, tier = 0) {
+	const colors = ['#f1c40f', '#c0c5ce', '#cd7f32'];
+	const c = colors[tier] || colors[0];
+	ctx.fillStyle = c;
+	// 컵 몸통 — 위가 넓은 사다리꼴
+	ctx.beginPath();
+	ctx.moveTo(cx - 5, cy - 6);
+	ctx.lineTo(cx + 5, cy - 6);
+	ctx.lineTo(cx + 3, cy);
+	ctx.lineTo(cx - 3, cy);
+	ctx.closePath();
+	ctx.fill();
+	// 손잡이 — 양옆 반원
+	ctx.strokeStyle = c;
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.arc(cx - 5.5, cy - 4, 2.5, Math.PI / 2, Math.PI * 1.5);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.arc(cx + 5.5, cy - 4, 2.5, -Math.PI / 2, Math.PI / 2);
+	ctx.stroke();
+	// 기둥 + 받침
+	ctx.fillRect(cx - 1, cy, 2, 3);
+	ctx.fillRect(cx - 4, cy + 3, 8, 2);
+}
+
 // 신규 기능 ? 배지 — 버튼 우상단 모서리. 미열람 안내가 걸린 버튼(추가 웨이브·예약 등) 공용.
 export function drawNewBadge(btn) {
 	const bx = btn.x + btn.w - 3;

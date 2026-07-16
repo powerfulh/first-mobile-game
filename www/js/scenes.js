@@ -35,7 +35,7 @@ import { setToast, updateToast } from './toast.js';
 import {
 	drawWaveSpawnSummary, pauseButton, drawPauseButton, drawPausedOverlay,
 	nextWaveButton, drawNextWaveButton, hudToggleButton, drawHudToggleButton, statsButton, drawStatsButton,
-	STATS_PANEL_W, STATS_PANEL_H, drawStatsLayer,
+	STATS_PANEL_W, STATS_PANEL_H, drawStatsLayer, drawTowerRankBadge,
 	drawToast, drawEnemyHpBar,
 	drawSettingsModal, drawPath, drawMapThumb, drawUnderpass,
 } from './ui.js';
@@ -637,7 +637,16 @@ scenes.playing = {
 			if (intro) intro.draw(game.modal);
 		}
 
-		if (this.statsOpen) drawStatsLayer(this.statsRect);
+		if (this.statsOpen) {
+			// 웨이브 누적 데미지 상위 10 — 데미지 없는 타워는 집계 제외
+			const ranked = game.entities.towers
+				.filter(tw => tw.waveDamage > 0)
+				.sort((a, b) => b.waveDamage - a.waveDamage)
+				.slice(0, 10);
+			// 맵상 배지 (예약 표시와 같은 자리) → 그 위에 레이어
+			for (let i = 0; i < ranked.length; i++) drawTowerRankBadge(ranked[i], i + 1);
+			drawStatsLayer(this.statsRect, ranked);
+		}
 
 		if (this.settingsOpen) drawSettingsModal(playingSettingsButtons);
 
