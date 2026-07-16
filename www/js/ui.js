@@ -1,5 +1,5 @@
 import { ctx, hudOverlapLogical } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR, TOWER } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, PATH_WIDTH, AIR_COLOR, INFO_BLUE, SLATE, MAP_BG_COLOR } from './core/config.js';
 import { roundRect, drawButton, drawPanel, shortcutCutSegments } from './core/helpers.js';
 import { drawEnemySprite, drawNewBadge, drawTrophyIcon } from './ui/sprite.js';
 import { settingsView, SLIDER_TRACK, CHECKBOX_X, CHECKBOX_H, CHECKBOX_BOX } from './settings-modal.js';
@@ -285,23 +285,32 @@ export function drawStatsLayer(rect, ranked) {
 		ctx.fillStyle = '#fff';
 		ctx.textAlign = 'left';
 		ctx.fillText(t(ranked[i].cfg.name), rect.x + 30, cy);
+		// 웨이브 누적 데미지 — 우측 정렬
+		ctx.fillStyle = '#cdd';
+		ctx.textAlign = 'right';
+		ctx.fillText(String(Math.round(ranked[i].waveDamage)), rect.x + rect.w - 10, cy);
 	}
 	ctx.textBaseline = 'alphabetic';
 }
 
-// 맵 위 등수 배지 — 통계 레이어가 떠 있는 동안 집계된 타워 위에 표시 (예약 모래시계와 같은 자리).
+// 맵 위 등수 배지 — 통계 레이어가 떠 있는 동안 집계된 타워의 중심점에 정확히 겹쳐 표시.
+// 크기는 타워(반지름 14)보다 약간 작게.
 export function drawTowerRankBadge(tower, rank) {
 	const cx = tower.x;
-	const cy = tower.y - TOWER.radius - 12;
+	const cy = tower.y;
 	if (rank <= 3) {
-		drawTrophyIcon(cx, cy, rank - 1);
+		ctx.save();
+		ctx.translate(cx, cy);
+		ctx.scale(1.7, 1.7);
+		drawTrophyIcon(0, 0.5, rank - 1); // 아이콘 시각적 중심 보정
+		ctx.restore();
 		return;
 	}
-	ctx.font = 'bold 12px sans-serif';
+	ctx.font = 'bold 20px sans-serif';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	ctx.strokeStyle = '#000';
-	ctx.lineWidth = 3;
+	ctx.lineWidth = 4;
 	ctx.strokeText(String(rank), cx, cy);
 	ctx.fillStyle = '#fff';
 	ctx.fillText(String(rank), cx, cy);
