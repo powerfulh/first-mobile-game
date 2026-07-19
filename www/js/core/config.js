@@ -334,6 +334,7 @@ export const EMP_STUN_SECONDS = 2; // EMP 장치 유지 = 대상 타워 스턴 �
 export const RESOLVER_BUFF_SECONDS = 11; // 리솔버 버프(공격력·공속 2배) 지속 시간
 
 // 충격 분산 적 — 피격 시 분산 횟수 1 소모, 들어온 데미지를 고정값으로 치환.
+export const SHOCK_HP_RATIO = 0.75; // 체력 배율 (일반 지상 적 대비)
 export const SHOCK_CHARGES_MAX = 3; // 분산 횟수 최대치 (= 공전 플라즈마 실드 수)
 export const SHOCK_REGEN_SECONDS = 0.5; // 횟수가 최대 미만일 때 1 회복에 걸리는 시간
 export const SHOCK_FIXED_DAMAGE = 0.1; // 분산 발동 시 실제로 들어가는 고정 데미지

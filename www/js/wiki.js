@@ -1,5 +1,8 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, TOWER_ROLES, fusionRecipesWithMaterial, ACCENT_RED, INFO_BLUE, SLATE } from './core/config.js';
+import {
+	LOGICAL_W, LOGICAL_H, TOWER_ROLES, fusionRecipesWithMaterial, ACCENT_RED, INFO_BLUE, SLATE,
+	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FIXED_DAMAGE,
+} from './core/config.js';
 import { roundRect, hitButton, clamp } from './core/helpers.js';
 import { changeScene } from './scenes.js';
 import { drawEnemySprite } from './ui/sprite.js';
@@ -102,6 +105,13 @@ const ENEMY_ENTRIES = [
 		name: 'enemy.shockDisperser.name',
 		tagline: 'enemy.shockDisperser.tagline',
 		description: ['enemy.shockDisperser.desc1', 'enemy.shockDisperser.desc2', 'enemy.shockDisperser.desc3'],
+		// 실제 게임 상수와 연동 — 밸런스 수치가 바뀌면 위키도 자동 반영
+		descriptionParams: {
+			hp: SHOCK_HP_RATIO * 100,
+			max: SHOCK_CHARGES_MAX,
+			sec: SHOCK_REGEN_SECONDS,
+			dmg: SHOCK_FIXED_DAMAGE,
+		},
 	},
 ];
 
@@ -109,7 +119,7 @@ const ENEMY_ENTRIES = [
 for (const e of ENEMY_ENTRIES) {
 	e.name = t(e.name);
 	if (e.tagline) e.tagline = t(e.tagline, e.taglineParams);
-	if (e.description) e.description = e.description.map(line => t(line));
+	if (e.description) e.description = e.description.map(line => t(line, e.descriptionParams));
 }
 
 // ============ 씬 상태 ============
