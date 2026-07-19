@@ -7,6 +7,7 @@ const bottom = 80
 const rightSide = 42 // 길은 다 보이게
 const allow1top = 9
 const allow1horiz = 7
+const middleX = 22
 
 export const MAPS = {
 	map1: {
@@ -15,8 +16,8 @@ export const MAPS = {
 		// 적 이동 경로 (= 맵 생김새). drawPath/거리판정/적 이동·스폰의 단일 출처.
 		path: [
 			{ x: 8 * pathUnit, y: 0 },
-			{ x: 8 * pathUnit, y: 150 },
-			{ x: 280, y: 150 },
+			{ x: 8 * pathUnit, y: 19 * pathUnit },
+			{ x: 280, y: 19 * pathUnit },
 			{ x: 280, y: 350 },
 			{ x: 80, y: 350 },
 			{ x: 80, y: 540 },
@@ -96,7 +97,7 @@ export const MAPS = {
 		},
 		unlock: { type: 'clearWave', map: 'map2', wave: 201 }, // 2번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
-	// 맵4 — placeholder: 현재 맵3 복제(경로/시작 돈/BGM/웨이브 구성 동일). 고유 속성은 추후 차별화 예정.
+	// 맵4
 	map4: {
 		id: 'map4',
 		name: 'map.map4.name', // i18n 키 — 표시 시 사용처가 t()로 변환
@@ -126,6 +127,20 @@ export const MAPS = {
 			transportStartWave: 91, // 수송 적: wave 91부터 0.4% (+0.4%/wave → wave 100에 상한 4%)
 		},
 		unlock: { type: 'clearWave', map: 'map3', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
+	},
+	map5: {
+		id: 'map5',
+		name: 'map.map5.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: 0 * pathUnit, y: 0 * pathUnit },
+			{ x: middleX * pathUnit, y: middleX * pathUnit },
+		],
+		startGold: 250,
+		bgm: 'normal',
+		waveComposition: {
+			
+		},
+		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
 
