@@ -104,6 +104,7 @@ const ENEMY_ENTRIES = [
 		key: 'shockDisperser',
 		name: 'enemy.shockDisperser.name',
 		tagline: 'enemy.shockDisperser.tagline',
+		taglineParams: { map: t('map.map5.name') },
 		description: ['enemy.shockDisperser.desc1', 'enemy.shockDisperser.desc2', 'enemy.shockDisperser.desc3'],
 		// 실제 게임 상수와 연동 — 밸런스 수치가 바뀌면 위키도 자동 반영
 		descriptionParams: {

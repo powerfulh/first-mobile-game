@@ -305,11 +305,11 @@ export function drawShockShieldFx(cx, cy, r, lifeRatio) {
 	ctx.globalAlpha = 0.7 * lifeRatio;
 	ctx.fillStyle = '#5dade2';
 	ctx.beginPath();
-	ctx.moveTo(cx, cy - s);
-	ctx.quadraticCurveTo(cx + s, cy - s, cx + s, cy - s * 0.3); // 오른쪽 어깨
-	ctx.quadraticCurveTo(cx + s, cy + s * 0.5, cx, cy + s);     // 오른쪽 변 → 하단 꼭짓점
-	ctx.quadraticCurveTo(cx - s, cy + s * 0.5, cx - s, cy - s * 0.3); // 왼쪽 변
-	ctx.quadraticCurveTo(cx - s, cy - s, cx, cy - s);           // 왼쪽 어깨
+	ctx.moveTo(cx - s * 0.85, cy - s * 0.75);
+	ctx.lineTo(cx + s * 0.85, cy - s * 0.75);                       // 상단 평평한 변
+	ctx.lineTo(cx + s * 0.85, cy);                                  // 오른쪽 직선 변
+	ctx.quadraticCurveTo(cx + s * 0.75, cy + s * 0.55, cx, cy + s); // 오른쪽 하단 → 꼭짓점
+	ctx.quadraticCurveTo(cx - s * 0.75, cy + s * 0.55, cx - s * 0.85, cy); // 왼쪽 하단
 	ctx.closePath();
 	ctx.fill();
 	ctx.globalAlpha = Math.min(1, lifeRatio * 1.3);
