@@ -4,9 +4,11 @@
 // resetGame/loadGame/맵 선택이 setActiveMap으로 바꾼다. 기본값 map1 → 타이틀에서도 path 렌더 유효.
 const pathUnit = 8
 const bottom = 80
+const rightX = 45
 const rightSide = 42 // 길은 다 보이게
 const allow1top = 9
-const allow1horiz = 7
+const allow1left = 7
+const allow1right = 38
 const middleX = 22
 
 export const MAPS = {
@@ -73,8 +75,8 @@ export const MAPS = {
 		path: [
 			{ x: 38 * pathUnit, y: bottom * pathUnit },
 			{ x: 38 * pathUnit, y: allow1top * pathUnit },
-			{ x: allow1horiz * pathUnit, y: 12 * pathUnit },
-			{ x: allow1horiz * pathUnit, y: 45 * pathUnit },
+			{ x: allow1left * pathUnit, y: 12 * pathUnit },
+			{ x: allow1left * pathUnit, y: 45 * pathUnit },
 			{ x: 29 * pathUnit, y: 48 * pathUnit },
 			{ x: 29 * pathUnit, y: 70 * pathUnit },
 			{ x: 10 * pathUnit, y: 70 * pathUnit },
@@ -105,8 +107,8 @@ export const MAPS = {
 			{ x: 0 * pathUnit, y: 60 * pathUnit },
 			{ x: rightSide * pathUnit, y: 60 * pathUnit },
 			{ x: rightSide * pathUnit, y: allow1top * pathUnit },
-			{ x: allow1horiz * pathUnit, y: allow1top * pathUnit },
-			{ x: allow1horiz * pathUnit, y: 50 * pathUnit },
+			{ x: allow1left * pathUnit, y: allow1top * pathUnit },
+			{ x: allow1left * pathUnit, y: 50 * pathUnit },
 			{ x: 15 * pathUnit, y: 50 * pathUnit },
 			{ x: 20 * pathUnit, y: 45 * pathUnit },
 			{ x: 20 * pathUnit, y: (10 + allow1top) * pathUnit },
@@ -134,6 +136,19 @@ export const MAPS = {
 		path: [
 			{ x: 0 * pathUnit, y: 0 * pathUnit },
 			{ x: middleX * pathUnit, y: middleX * pathUnit },
+			{ x: middleX * pathUnit, y: 30 * pathUnit, underpass: true },
+			{ x: middleX * pathUnit, y: 45 * pathUnit, underpass: true },
+			{ x: middleX * pathUnit, y: 55 * pathUnit },
+			{ x: 27 * pathUnit, y: 60 * pathUnit },
+			{ x: 33 * pathUnit, y: 60 * pathUnit },
+			{ x: allow1right * pathUnit, y: 55 * pathUnit },
+			{ x: allow1right * pathUnit, y: 37 * pathUnit, shortcut: true },
+			{ x: allow1right * pathUnit, y: middleX * pathUnit },
+			{ x: 25 * pathUnit, y: allow1top * pathUnit },
+			{ x: 12 * pathUnit, y: 22 * pathUnit },
+			{ x: 12 * pathUnit, y: 37 * pathUnit, shortcut: true },
+			{ x: 12 * pathUnit, y: 70 * pathUnit },
+			{ x: rightX * pathUnit, y: 70 * pathUnit },
 		],
 		startGold: 250,
 		bgm: 'normal',
