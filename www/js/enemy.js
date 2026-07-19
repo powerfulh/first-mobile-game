@@ -2,11 +2,12 @@ import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, ENEMY_SLOW_SPEED_FLOOR, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY,
+	SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FX_SECONDS,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, round1, clamp } from './core/helpers.js';
-import { drawEnemySprite } from './ui/sprite.js';
+import { drawEnemySprite, drawShockShieldFx } from './ui/sprite.js';
 import { getNarrowRange } from './wave.js';
 import { t } from './core/i18n.js';
 
@@ -21,6 +22,7 @@ const DEFAULT_WAVE = {
 	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	transportStartWave: Infinity, transportChanceStep: 0.004, transportChanceCap: 0.04, // 신규 적(transport) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
+	shockStartWave: Infinity, shockChanceStep: 0.004, shockChanceCap: 0.04, // 신규 적(shockDisperser) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	spawnIntervalStart: 1.2, spawnIntervalStep: 0.08, // 스폰 간격: wave 1 시작값에서 -step/wave (하한 0.5초 공통)
@@ -88,6 +90,13 @@ export function getTransportChance(wave) {
 	const p = wparams();
 	if (wave < p.transportStartWave) return 0;
 	return Math.min(p.transportChanceCap, (wave - p.transportStartWave + 1) * p.transportChanceStep);
+}
+
+// 신규 적(shockDisperser) 출현 확률 — 시작 웨이브에 step, 이후 +step/wave 누적 (cap까지). 기본은 미출현.
+export function getShockDisperserChance(wave) {
+	const p = wparams();
+	if (wave < p.shockStartWave) return 0;
+	return Math.min(p.shockChanceCap, (wave - p.shockStartWave + 1) * p.shockChanceStep);
 }
 
 export function getBarrierSpawnerChance(wave) {
@@ -175,7 +184,8 @@ export function spawnEnemy(spawner) {
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
 	let kind, spriteType, ga;
-	if (Math.random() < getTransportChance(wave)) { kind = 'transport'; spriteType = 'transport'; ga = 'air'; }
+	if (Math.random() < getShockDisperserChance(wave)) { kind = 'shockDisperser'; spriteType = 'shockDisperser'; ga = 'ground'; }
+	else if (Math.random() < getTransportChance(wave)) { kind = 'transport'; spriteType = 'transport'; ga = 'air'; }
 	else if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; }
 	else if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
 	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
@@ -186,6 +196,7 @@ export function spawnEnemy(spawner) {
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
 	let hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
 	if (kind === 'emp') hp = round1(baseHp * 0.5); // EMP 적 — 일반 적의 절반
+	if (kind === 'shockDisperser') hp = round1(baseHp * 0.75); // 충격 분산 적 — 일반 적의 75%
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5
 		: kind === 'transport' ? baseSpeed * 0.75
@@ -220,6 +231,10 @@ export function spawnEnemy(spawner) {
 		// 수송 적 — 경로 진행률 임계 2개(9~11%, 19~21% 랜덤)에서 일반 적 방출 시도. 방출 수만큼 화물(빨간 원) 감소.
 		transportEvents: kind === 'transport' ? [0.09 + Math.random() * 0.02, 0.19 + Math.random() * 0.02] : null,
 		transportSpawned: 0,
+		// 충격 분산 적 — 피격 시 1 소모해 데미지를 0.1로 고정, 3 미만이면 0.5초마다 1 회복 (applyTowerHit/updateEnemy).
+		shockCharges: kind === 'shockDisperser' ? SHOCK_CHARGES_MAX : 0,
+		shockRegenTimer: 0,
+		shockFxLife: 0, // 분산 발동 시 방패 이펙트 잔여 수명 (초)
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 — 분류 키 = 스프라이트 종류 (요약이 스프라이트로 표시)
@@ -368,6 +383,18 @@ export function updateEnemy(e, dt) {
 	// e.regenDisabled/e.slowFactor는 지난 프레임 오라 타워들(updateTower)이 push한 값 (scenes가 매 프레임 리셋)
 	if (e.kind === 'regen' && !e.regenDisabled && e.hp < e.hpMax) {
 		e.hp = Math.min(e.hpMax, e.hp + e.hpMax * e.regenRate * dt);
+	}
+	// 충격 분산 적 — 횟수가 최대보다 적으면 SHOCK_REGEN_SECONDS마다 1씩 회복. 방패 이펙트 수명도 여기서 감쇠.
+	if (e.kind === 'shockDisperser') {
+		if (e.shockCharges < SHOCK_CHARGES_MAX) {
+			e.shockRegenTimer += dt;
+			while (e.shockRegenTimer >= SHOCK_REGEN_SECONDS && e.shockCharges < SHOCK_CHARGES_MAX) {
+				e.shockRegenTimer -= SHOCK_REGEN_SECONDS;
+				e.shockCharges++;
+			}
+			if (e.shockCharges >= SHOCK_CHARGES_MAX) e.shockRegenTimer = 0;
+		}
+		if (e.shockFxLife > 0) e.shockFxLife = Math.max(0, e.shockFxLife - dt);
 	}
 	// 수송 적 이벤트 — 진행률이 임계를 넘으면 그 자리에 일반 적 방출.
 	// 숏컷 비행 중이면 그 이벤트는 생략(소멸). 체력 40% 미만이면 방출 없이 소멸.
@@ -631,6 +658,7 @@ function enemyName(kind) {
 		case 'barrier': return t('enemy.barrier');
 		case 'barrierSpawner': return t('enemy.barrierSpawner.name');
 		case 'transport': return t('enemy.transport.name');
+		case 'shockDisperser': return t('enemy.shockDisperser.name');
 		case 'emp': return t('enemy.emp.name');
 		case 'regen': return t('enemy.regen.name');
 		case 'air': return t('enemy.air.name');
@@ -741,7 +769,11 @@ function drawEnemyBody(e) {
 	const bobY = e.ga === 'air' ? e.y + Math.sin(performance.now() / 250 + (e.bobPhase || 0)) * 2 - 3 : e.y;
 	const opts = { shielded: e.shielded };
 	if (e.kind === 'transport') opts.cargo = 2 - (e.transportSpawned || 0); // 방출한 만큼 빨간 원 감소
+	if (e.kind === 'shockDisperser') opts.shockCharges = e.shockCharges; // 공전 실드 = 남은 분산 횟수
 	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, opts);
+	if (e.kind === 'shockDisperser' && e.shockFxLife > 0) {
+		drawShockShieldFx(e.x, bobY, e.radius, e.shockFxLife / SHOCK_FX_SECONDS); // 분산 발동 — 방패가 몸체에 겹쳐짐
+	}
 	if (e.marked) drawMarkRing(e);
 }
 

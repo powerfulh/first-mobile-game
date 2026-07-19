@@ -101,7 +101,7 @@ const ENEMY_ENTRIES = [
 		key: 'shockDisperser',
 		name: 'enemy.shockDisperser.name',
 		tagline: 'enemy.shockDisperser.tagline',
-		description: ['enemy.shockDisperser.desc1'],
+		description: ['enemy.shockDisperser.desc1', 'enemy.shockDisperser.desc2', 'enemy.shockDisperser.desc3'],
 	},
 ];
 

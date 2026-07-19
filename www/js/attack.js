@@ -1,5 +1,5 @@
 import { ctx } from './core/canvas.js';
-import { LOGICAL_W, LOGICAL_H, ENEMY_KILL_REWARD, ACCENT_RED, GOLD, SLATE } from './core/config.js';
+import { LOGICAL_W, LOGICAL_H, ENEMY_KILL_REWARD, ACCENT_RED, GOLD, SLATE, SHOCK_FIXED_DAMAGE, SHOCK_FX_SECONDS } from './core/config.js';
 import { game } from './state.js';
 import { pointToSegmentDist, round1 } from './core/helpers.js';
 import {
@@ -13,7 +13,13 @@ import {
 export function applyTowerHit(shooter, target, damage) {
 	if (!target || target.dead) return;
 	// 방어막 감소량은 스폰 시 그 적의 웨이브 기준으로 고정(target.shieldReduction).
-	const effective = target.shielded ? Math.max(0, damage - target.shieldReduction) : damage;
+	let effective = target.shielded ? Math.max(0, damage - target.shieldReduction) : damage;
+	// 충격 분산 적 — 분산 횟수가 남아 있으면 1 소모해 들어온 데미지를 고정값으로 치환 (방패 이펙트 1회).
+	if (target.shockCharges > 0) {
+		target.shockCharges--;
+		target.shockFxLife = SHOCK_FX_SECONDS;
+		effective = SHOCK_FIXED_DAMAGE;
+	}
 	const hpBefore = target.hp;
 	const dealt = Math.min(effective, hpBefore);
 	const xpGain = Math.min(damage, hpBefore); // XP는 방어막 감소 무시

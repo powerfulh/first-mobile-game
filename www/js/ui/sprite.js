@@ -247,7 +247,9 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.arc(cx, cy, bodyR, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.stroke();
-		// 플라즈마 실드 — 궤도 위 호 3개, 넓은 반투명 광채 위에 밝은 코어 선
+		// 플라즈마 실드 — 궤도 위 호, 넓은 반투명 광채 위에 밝은 코어 선.
+		// 개수는 남은 분산 횟수와 동기화 (opts.shockCharges, 위키 등 미지정 시 최대치 3).
+		const shields = opts.shockCharges ?? 3;
 		const orbitR = r * 1.5;
 		const spin = performance.now() / 900;
 		const span = 0.85; // 실드 호 절반 폭 (라디안)
@@ -255,7 +257,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 			ctx.strokeStyle = color;
 			ctx.lineWidth = width;
 			ctx.globalAlpha = alpha;
-			for (let i = 0; i < 3; i++) {
+			for (let i = 0; i < shields; i++) {
 				const a = spin + i * (Math.PI * 2 / 3);
 				ctx.beginPath();
 				ctx.arc(cx, cy, orbitR, a - span / 2, a + span / 2);
@@ -294,6 +296,27 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.lineTo(cx, inY + inR);
 		ctx.stroke();
 	}
+}
+
+// 충격 분산 발동 연출 — 적 위에 겹쳐지는 방패 모양. 사라지며 살짝 커지고 페이드아웃.
+// lifeRatio: 남은 수명 비율 (1 → 0). 상태·수명은 enemy.js(e.shockFxLife).
+export function drawShockShieldFx(cx, cy, r, lifeRatio) {
+	const s = r * (1.4 + 0.4 * (1 - lifeRatio));
+	ctx.globalAlpha = 0.7 * lifeRatio;
+	ctx.fillStyle = '#5dade2';
+	ctx.beginPath();
+	ctx.moveTo(cx, cy - s);
+	ctx.quadraticCurveTo(cx + s, cy - s, cx + s, cy - s * 0.3); // 오른쪽 어깨
+	ctx.quadraticCurveTo(cx + s, cy + s * 0.5, cx, cy + s);     // 오른쪽 변 → 하단 꼭짓점
+	ctx.quadraticCurveTo(cx - s, cy + s * 0.5, cx - s, cy - s * 0.3); // 왼쪽 변
+	ctx.quadraticCurveTo(cx - s, cy - s, cx, cy - s);           // 왼쪽 어깨
+	ctx.closePath();
+	ctx.fill();
+	ctx.globalAlpha = Math.min(1, lifeRatio * 1.3);
+	ctx.strokeStyle = '#aed6f1';
+	ctx.lineWidth = 2;
+	ctx.stroke();
+	ctx.globalAlpha = 1;
 }
 
 // 장벽 생성 연출 — 장벽 적 처치 후 장벽이 나타나기까지의 fx. 상태 관리·수명은 enemy.js.
