@@ -156,6 +156,7 @@ export const MAPS = {
 			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달
 			barrierStartWave: Infinity, // 장벽 적 미출현 (맵5 구성에서 제외)
 			shockStartWave: 151, // 충격 분산 적: wave 151부터 0.4% (+0.4%/wave → wave 160에 상한 4%)
+			shieldBoostWave: Infinity, // 방어막 데미지 감소 강화(기본 130~145) 없음 — 최종 -3.0 유지
 		},
 		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},

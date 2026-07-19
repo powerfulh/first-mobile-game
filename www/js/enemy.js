@@ -24,6 +24,7 @@ const DEFAULT_WAVE = {
 	transportStartWave: Infinity, transportChanceStep: 0.004, transportChanceCap: 0.04, // 신규 적(transport) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	shockStartWave: Infinity, shockChanceStep: 0.004, shockChanceCap: 0.04, // 신규 적(shockDisperser) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
+	shieldBoostWave: 130, // 이 웨이브 이후 방어막 데미지 감소 +0.1/wave (15웨이브 누적 +1.5) — Infinity면 강화 없음
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 Wave 81~90 램프로 0.4까지 확장
 	spawnIntervalStart: 1.2, spawnIntervalStep: 0.08, // 스폰 간격: wave 1 시작값에서 -step/wave (하한 0.5초 공통)
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
@@ -128,10 +129,11 @@ export function getShieldChance(wave, spawnInterval) {
 }
 
 // 방어막 적이 피격당 받는 피해 감소량 (flat). applyTowerHit·적 정보 패널 공용.
-// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / Wave 130~145: 추가 +0.1/wave (+1.5, 최종 4.5).
+// Wave 51~70: 1.1 → 3.0으로 매 웨이브 +0.1 (3.0 상한) / shieldBoostWave 이후 15웨이브: 추가 +0.1/wave (+1.5, 기본 130~145 → 최종 4.5).
 export function getShieldReduction(wave) {
+	const p = wparams();
 	return clamp(1 + (wave - 50) * 0.1, 1, 3)
-		+ clamp((wave - 130) * 0.1, 0, 1.5);
+		+ clamp((wave - p.shieldBoostWave) * 0.1, 0, 1.5);
 }
 
 // ============ Boss wave helpers ============
