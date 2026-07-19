@@ -153,7 +153,7 @@ export const MAPS = {
 		startGold: 250,
 		bgm: 'normal',
 		waveComposition: {
-			
+			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달
 		},
 		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
 	},
