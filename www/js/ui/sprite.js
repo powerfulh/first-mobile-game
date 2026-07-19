@@ -225,6 +225,44 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.beginPath();
 		ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
 		ctx.fill();
+	} else if (type === 'shockDisperser') {
+		// 충격 분산 적 — 일반 적(빨강 원) 기반이지만 더 작고, 120도마다 뾰족한 돌기 3개.
+		// 주위를 플라즈마 실드 3개(빛나는 호)가 공전.
+		const bodyR = r * 0.72;
+		const halfBase = 0.42; // 돌기 밑변 절반 (라디안)
+		ctx.fillStyle = ACCENT_RED;
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		for (let i = 0; i < 3; i++) {
+			const a = -Math.PI / 2 + i * (Math.PI * 2 / 3);
+			ctx.beginPath();
+			ctx.moveTo(cx + Math.cos(a - halfBase) * bodyR * 0.9, cy + Math.sin(a - halfBase) * bodyR * 0.9);
+			ctx.lineTo(cx + Math.cos(a) * r * 1.15, cy + Math.sin(a) * r * 1.15);
+			ctx.lineTo(cx + Math.cos(a + halfBase) * bodyR * 0.9, cy + Math.sin(a + halfBase) * bodyR * 0.9);
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+		}
+		ctx.beginPath();
+		ctx.arc(cx, cy, bodyR, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.stroke();
+		// 플라즈마 실드 — 궤도 위 호 3개, 넓은 반투명 광채 위에 밝은 코어 선
+		const orbitR = r * 1.5;
+		const spin = performance.now() / 900;
+		const span = 0.85; // 실드 호 절반 폭 (라디안)
+		for (const [width, alpha, color] of [[4, 0.35, '#5dade2'], [1.5, 0.9, '#aed6f1']]) {
+			ctx.strokeStyle = color;
+			ctx.lineWidth = width;
+			ctx.globalAlpha = alpha;
+			for (let i = 0; i < 3; i++) {
+				const a = spin + i * (Math.PI * 2 / 3);
+				ctx.beginPath();
+				ctx.arc(cx, cy, orbitR, a - span / 2, a + span / 2);
+				ctx.stroke();
+			}
+		}
+		ctx.globalAlpha = 1;
 	} else if (type === 'barrierSpawner') {
 		ctx.fillStyle = AIR_COLOR;
 		ctx.beginPath();

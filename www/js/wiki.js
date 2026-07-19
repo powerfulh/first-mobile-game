@@ -97,6 +97,12 @@ const ENEMY_ENTRIES = [
 		taglineParams: { map: t('map.map3.name') },
 		description: ['enemy.transport.desc1', 'enemy.transport.desc2'],
 	},
+	{
+		key: 'shockDisperser',
+		name: 'enemy.shockDisperser.name',
+		tagline: 'enemy.shockDisperser.tagline',
+		description: ['enemy.shockDisperser.desc1'],
+	},
 ];
 
 // 위키 표시 텍스트 다국어화 — i18n 키를 정의 직후 1회 표시 문자열로 변환. (타워 텍스트는 config.js에서, 그룹 라벨은 파생 시 변환됨)
