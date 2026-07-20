@@ -5,7 +5,7 @@ import { ctx } from '../core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY,
 	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, MAP_BG_COLOR,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
@@ -321,6 +321,13 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawEnemySprite('transport', cx, cy, 14),
 		title: 'intro.transport.title',
 		lines: ['intro.transport.line1', 'intro.transport.line2', 'intro.transport.line3'],
+	}),
+
+	shockIntro: makeIntro({
+		key: SHOCK_INTRO_KEY, accent: '#5dade2', // 플라즈마 실드와 같은 톤
+		drawIcon: (cx, cy) => drawEnemySprite('shockDisperser', cx, cy, 14),
+		title: 'intro.shock.title',
+		lines: ['intro.shock.line1', 'intro.shock.line2', 'intro.shock.line3'],
 	}),
 
 	parallelIntro: makeIntro({
