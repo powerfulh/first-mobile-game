@@ -222,12 +222,24 @@ scenes.title = {
 // ============ Map select scene ============
 // 해금 맵이 2개 이상일 때만 '게임 시작'에서 진입(1개면 바로 playing). 맵 탭 → resetGame(맵) → playing.
 // 버튼은 단순 라벨 대신 맵 경로를 축소 렌더한 썸네일 카드. 화면 폭에 맞게 줄바꿈, 행·전체 블록 중앙 정렬.
-function mapSelectButtons() {
-	const ids = getUnlockedMaps();
+// 해금 맵이 페이지 크기(4)를 넘으면 하단 ◀ ▶로 페이징 — 초과 행이 세로 공간(640)을 넘치기 때문.
+const MAPS_PER_PAGE = 4;
+const MAP_NAV_H = 72; // 페이징 시 그리드 아래에 확보하는 내비 영역 높이
+const mapPagePrevBtn = { x: 40, y: LOGICAL_H - 52, w: 56, h: 36 };
+const mapPageNextBtn = { x: LOGICAL_W - 96, y: LOGICAL_H - 52, w: 56, h: 36 };
+
+function mapPageCount() {
+	return Math.ceil(getUnlockedMaps().length / MAPS_PER_PAGE);
+}
+
+function mapSelectButtons(page) {
+	const paged = mapPageCount() > 1;
+	const ids = getUnlockedMaps().slice(page * MAPS_PER_PAGE, (page + 1) * MAPS_PER_PAGE);
 	const TW = 150, TH = 250, GAP = 24;
 	const perRow = Math.max(1, Math.floor((LOGICAL_W + GAP) / (TW + GAP)));
 	const rows = Math.ceil(ids.length / perRow);
-	const startY = (LOGICAL_H - (rows * TH + (rows - 1) * GAP)) / 2;
+	const availH = paged ? LOGICAL_H - MAP_NAV_H : LOGICAL_H;
+	const startY = (availH - (rows * TH + (rows - 1) * GAP)) / 2;
 	return ids.map((id, i) => {
 		const row = Math.floor(i / perRow);
 		const cols = Math.min(perRow, ids.length - row * perRow); // 마지막 행은 남은 개수만큼 중앙 정렬
@@ -236,15 +248,40 @@ function mapSelectButtons() {
 	});
 }
 scenes.mapSelect = {
-	enter() {},
+	page: 0,
+	enter() {
+		this.page = 0;
+	},
 	update() {},
 	draw() {
 		ctx.fillStyle = '#1a2e1a';
 		ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-		for (const b of mapSelectButtons()) drawMapThumb(MAPS[b.id], b);
+		for (const b of mapSelectButtons(this.page)) drawMapThumb(MAPS[b.id], b);
+		const pages = mapPageCount();
+		if (pages > 1) {
+			if (this.page > 0) drawButton(mapPagePrevBtn, [{ label: '◀' }]);
+			if (this.page < pages - 1) drawButton(mapPageNextBtn, [{ label: '▶' }]);
+			ctx.fillStyle = '#cdd';
+			ctx.font = '14px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(`${this.page + 1} / ${pages}`, LOGICAL_W / 2, mapPagePrevBtn.y + mapPagePrevBtn.h / 2);
+			ctx.textBaseline = 'alphabetic';
+		}
 	},
 	pointerDown(p) {
-		for (const b of mapSelectButtons()) {
+		const pages = mapPageCount();
+		if (pages > 1) {
+			if (this.page > 0 && hitButton(mapPagePrevBtn, p)) {
+				this.page--;
+				return;
+			}
+			if (this.page < pages - 1 && hitButton(mapPageNextBtn, p)) {
+				this.page++;
+				return;
+			}
+		}
+		for (const b of mapSelectButtons(this.page)) {
 			if (hitButton(b, p)) {
 				resetGame(b.id);
 				changeScene('playing');
