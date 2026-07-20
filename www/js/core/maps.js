@@ -157,6 +157,7 @@ export const MAPS = {
 			densityFloorWave: 30, // 조밀도 하한 추가 강화를 wave 31~40으로 (minNarrow 0.30 @ wave 40)
 			regenStartWave: 41, regenChanceStep: 0.004, // 재생 적: wave 41부터 0.4% (+0.4%/wave → wave 50에 상한 4%)
 			transportStartWave: 61, // 수송 적: wave 61부터 0.4% (+0.4%/wave → wave 70에 상한 4%)
+			densityCeilWave: 70, // 조밀도 상한 추가 강화를 wave 71~80으로 (maxNarrow 0.90 @ wave 80)
 			barrierStartWave: Infinity, // 장벽 적 미출현 (맵5 구성에서 제외)
 			shockStartWave: 151, // 충격 분산 적: wave 151부터 0.4% (+0.4%/wave → wave 160에 상한 4%)
 			shieldBoostWave: Infinity, // 방어막 데미지 감소 강화(기본 130~145) 없음 — 최종 -3.0 유지
