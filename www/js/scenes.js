@@ -273,10 +273,12 @@ scenes.mapSelect = {
 		const pages = mapPageCount();
 		if (pages > 1) {
 			if (this.page > 0 && hitButton(mapPagePrevBtn, p)) {
+				playButton();
 				this.page--;
 				return;
 			}
 			if (this.page < pages - 1 && hitButton(mapPageNextBtn, p)) {
+				playButton();
 				this.page++;
 				return;
 			}
