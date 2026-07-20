@@ -30,6 +30,7 @@ const DEFAULT_WAVE = {
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 	densityCeilWave: 120, // 이 웨이브 이후 maxNarrow -0.01/wave (10웨이브 누적 -0.10)
+	densityLateWave: 170, // 이 웨이브 이후 minNarrow·maxNarrow 각각 -0.01/wave (10웨이브 누적 -0.10)
 };
 
 export function wparams() {
