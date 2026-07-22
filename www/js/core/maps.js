@@ -164,7 +164,33 @@ export const MAPS = {
 			shockStartWave: 141, shockChanceCap: 0.08, // 충격 분산 적: wave 141부터 0.4% (+0.4%/wave → wave 160에 상한 8%)
 			shieldBoostWave: Infinity, // 방어막 데미지 감소 강화(기본 130~145) 없음 — 최종 -3.0 유지
 		},
-		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
+		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
+	},
+	map6: {
+		id: 'map6',
+		name: 'map.map6.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: 0 * pathUnit, y: 0 * pathUnit },
+			{ x: middleX * pathUnit, y: middleX * pathUnit },
+			{ x: middleX * pathUnit, y: 30 * pathUnit, underpass: true },
+			{ x: middleX * pathUnit, y: 45 * pathUnit, underpass: true },
+			{ x: middleX * pathUnit, y: 55 * pathUnit },
+			{ x: 27 * pathUnit, y: 60 * pathUnit },
+			{ x: 33 * pathUnit, y: 60 * pathUnit },
+			{ x: allow1right * pathUnit, y: 55 * pathUnit },
+			{ x: allow1right * pathUnit, y: 37 * pathUnit, shortcut: true },
+			{ x: allow1right * pathUnit, y: middleX * pathUnit },
+			{ x: 25 * pathUnit, y: allow1top * pathUnit },
+			{ x: 12 * pathUnit, y: 22 * pathUnit },
+			{ x: 12 * pathUnit, y: 37 * pathUnit, shortcut: true },
+			{ x: 12 * pathUnit, y: 70 * pathUnit },
+		],
+		startGold: 250,
+		bgm: 'bgm2',
+		waveComposition: {
+			
+		},
+		unlock: { type: 'clearWave', map: 'map5', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
 
