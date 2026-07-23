@@ -269,9 +269,29 @@ export const TOWER_ROLES = {
 		range: 108, fireRate: 1.2, damage: 1.2,
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어
+		promotions: ['recycle', 'overload'],
+		boostsXp: true, // 사거리 내 타워 웨이브 종료 경험치 5배
+	},
+	// 쓸만한 타워 전직 — 재활용: 평범한 단일 공격, 대신 삭제 시 투입 금액 100% 환불. XP 강화 능력은 잃음.
+	recycle: {
+		name: 'tower.recycle.name', tagline: 'tower.recycle.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 특수 타워 계열 무채색 유지
+		range: 108, fireRate: 1.2, damage: 2,
+		attackTypes: ['ground', 'air'], splash: 0,
+		projectileSpeed: 320, // 2티어
 		promotions: [],
 		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
-		boostsXp: true, // 사거리 내 타워 웨이브 종료 경험치 5배
+		refundRate: 1, // 삭제 시 투입 금액(배치비 + 전직 비용 합) 100% 환불 (기본 10%)
+	},
+	// 쓸만한 타워 전직 — 과부하: 트랩과 동일한 사거리 내 일제 타격. XP 강화 능력은 잃음.
+	overload: {
+		name: 'tower.overload.name', tagline: 'tower.overload.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 특수 타워 계열 무채색 유지
+		range: 90, fireRate: 0.2, damage: 12,
+		attackTypes: ['ground', 'air'], splash: 0,
+		promotions: [],
+		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
+		areaSweep: true,
 	},
 };
 

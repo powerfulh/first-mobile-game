@@ -104,6 +104,10 @@ const STRINGS = {
 	'tower.broken.tagline': { ko: '맵에 버려진 채 겨우 작동 중 · 삭제 불가', ja: 'マップに放置されたままかろうじて稼働中 · 削除不可', en: 'Abandoned on the map, barely working · cannot be removed' },
 	'tower.usable.name': { ko: '쓸만한 타워', ja: '使えるタワー', en: 'Usable Tower' },
 	'tower.usable.tagline': { ko: '수리 완료 · 지상/공중 · 주변 아군 XP 강화', ja: '修理完了 · 地上/空中 · 周囲の味方のXP強化', en: "Repaired · Ground/Air · Boosts nearby allies' XP" },
+	'tower.recycle.name': { ko: '재활용', ja: 'リサイクル', en: 'Recycle' },
+	'tower.recycle.tagline': { ko: '단일 공격 · 삭제 시 100% 환불', ja: '単体攻撃 · 削除時100%払い戻し', en: 'Single target · 100% refund on removal' },
+	'tower.overload.name': { ko: '과부하', ja: '過負荷', en: 'Overload' },
+	'tower.overload.tagline': { ko: '사거리 내 일제 타격 · 지상/공중', ja: '射程内一斉攻撃 · 地上/空中', en: 'In-range volley · Ground/Air' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },

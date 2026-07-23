@@ -48,12 +48,12 @@ export function canAffordPromotion(tower) {
 	return game.gold >= tower.promotionCost;
 }
 
-// 삭제 환불액 — 이 타워 자체에 투입된 골드(배치비 + 자기 경로의 전직 비용 합)의 10%.
+// 삭제 환불액 — 이 타워 자체에 투입된 골드(배치비 + 자기 경로의 전직 비용 합)의 10% (역할이 refundRate로 오버라이드 가능).
 // 합체(4티어 이상)에서 소모된 재료 타워의 투입분은 포함하지 않음.
 export function getTowerRefund(tower) {
 	let spent = TOWER.cost;
 	for (let t = 0; t < tower.tier; t++) spent += TOWER.promotionCosts[t] || 0;
-	return Math.floor(spent * 0.1);
+	return Math.floor(spent * (tower.cfg.refundRate ?? 0.1));
 }
 
 // ============ Tier 4 helpers ============
