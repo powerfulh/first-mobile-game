@@ -28,6 +28,7 @@ const STRINGS = {
 	'map.map3.name': { ko: '사다리꼴', ja: '台形', en: 'Trapezoid' },
 	'map.map4.name': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'map.map5.name': { ko: '분산', ja: '分散', en: 'Split' },
+	'map.map6.name': { ko: '맵 6', ja: 'マップ6', en: 'Map 6' }, // placeholder — 고유 이름은 추후
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
@@ -99,6 +100,8 @@ const STRINGS = {
 	'tower.dragon.name': { ko: '드래곤', ja: 'ドラゴン', en: 'Dragon' },
 	'tower.dragon.tagline': { ko: '관통 연사 빔 · 지상/공중', ja: '貫通連射ビーム · 地上/空中', en: 'Piercing rapid beam · Ground/Air' },
 	'tower.dragon.desc1': { ko: '일직선상의 모든 적을 관통하는 빔을 초고속 연사합니다', ja: '直線上の敵を貫通するビームを高速連射します', en: 'Rapid-fires beams that pierce all enemies in a line' },
+	'tower.broken.name': { ko: '고장난 타워', ja: '故障タワー', en: 'Broken Tower' },
+	'tower.broken.tagline': { ko: '맵에 버려진 채 겨우 작동 중 · 삭제 불가', ja: 'マップに放置されたままかろうじて稼働中 · 削除不可', en: 'Abandoned on the map, barely working · cannot be removed' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },

@@ -340,7 +340,7 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 
 	drawPanelHeader(t('panel.settingsTitle', { name: cfg.name }));
 
-	drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon);
+	if (!cfg.undeletable) drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon); // 삭제 불가 타워는 삭제 버튼 미노출
 
 	// 우선순위 섹션 — 삭제 버튼 끝선 + 마진에서 시작. 컨테이너 높이는 내용에 맞춰 동적.
 	drawSection(t('panel.priority'), infoTopBtn.y + infoTopBtn.h + margin, () => {

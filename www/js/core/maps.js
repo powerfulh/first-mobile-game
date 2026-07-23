@@ -188,8 +188,9 @@ export const MAPS = {
 		startGold: 200,
 		bgm: 'bgm2',
 		waveComposition: {
-			
+
 		},
+		fixedTowers: [{ x: 176, y: 176, role: 'broken' }], // 고장난 타워 테스트 — 경로와 안 겹치는 좌중앙부
 		unlock: { type: 'clearWave', map: 'map5', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
 };

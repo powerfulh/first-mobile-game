@@ -24,10 +24,10 @@ function applyTierStats(tower) {
 	tower.canPromote = computeCanPromote(tower);
 }
 
-// 전직 가능 여부 (비공개). 전직 트리가 완결(모든 tier<4 역할이 다음 단계 보유)이라 현재는 tier만으로 충분.
-// 소비처는 tower.canPromote 필드. 향후 5티어 등 역할별 조건이 다시 필요하면 이 함수에서 확장.
+// 전직 가능 여부 (비공개). 전직 트리가 완결(모든 tier<4 역할이 다음 단계 보유)이라 tier + 역할 플래그로 판정.
+// 소비처는 tower.canPromote 필드. noPromotion: 특수 타워(고장난 타워 등) 전직 차단 — XP바·예약 버튼도 함께 숨겨짐.
 function computeCanPromote(tower) {
-	return tower.tier < TOWER.maxTier;
+	return !tower.cfg.noPromotion && tower.tier < TOWER.maxTier;
 }
 
 // role/tier 변경 단일 진입점 — 파생 스탯(cfg 포함)을 먼저 굽고 우선순위를 초기화(순서 보장).

@@ -251,6 +251,17 @@ export const TOWER_ROLES = {
 		body: 'condenser', // 육각 몸체 + 오목 응축 패널·집게 + 연속 응축 입자
 		description: ['tower.dragon.desc1'],
 	},
+
+	// ---- 특수 타워 — 사용자가 배치하지 않고 맵 특성(맵 정의의 fixedTowers)으로만 배치 ----
+	broken: {
+		name: 'tower.broken.name', tagline: 'tower.broken.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 고장 — 무채색
+		range: 90, fireRate: 1, damage: 1,
+		attackTypes: ['ground'], splash: 0,
+		promotions: [],
+		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
+		undeletable: true, // 삭제 불가 — 홀드 삭제·설정 카드 삭제 버튼 모두 차단
+	},
 };
 
 // 타워 표시 텍스트 다국어화 — name/tagline/description은 i18n 키, 정의 직후 1회 표시 문자열로 변환.
