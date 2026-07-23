@@ -617,6 +617,42 @@ function drawMissileSiloBody(tower, selected) {
 	}
 }
 
+// 환불 특성(refundRate 정의) 시각화 — 타워 반경 내 랜덤 좌표에서 1초 주기로 반짝이는 금빛 광택.
+// 위치는 1초 버킷 + 타워 좌표를 시드로 한 결정적 의사난수 — 상태 저장 없이 프레임 간 고정, 타워마다 다른 자리.
+function hash01(n) {
+	const s = Math.sin(n) * 43758.5453;
+	return s - Math.floor(s);
+}
+
+function drawRefundSparkle(seedX, seedY) {
+	const t = performance.now();
+	const cycle = Math.floor(t / 1000); // 1초마다 새 위치
+	const p = (t % 1000) / 1000; // 주기 내 진행률 — 페이드 인/아웃
+	const a = hash01(cycle * 12.9898 + seedX * 0.317 + seedY * 0.731) * Math.PI * 2;
+	const r = hash01(cycle * 78.233 + seedX * 0.113 + seedY * 0.527) * (TOWER.radius - 4);
+	const px = Math.cos(a) * r;
+	const py = Math.sin(a) * r;
+	const fade = Math.sin(p * Math.PI);
+	const s = 4 + 3 * fade; // 커졌다 작아지는 반짝임
+	const c = s * 0.22; // 오목 제어점 — 4면이 안으로 파인 다이아몬드 (반짝이 별)
+	ctx.globalAlpha = fade * 0.55; // 본체를 너무 가리지 않게 반투명
+	ctx.fillStyle = GOLD;
+	ctx.beginPath();
+	ctx.moveTo(px, py - s);
+	ctx.quadraticCurveTo(px + c, py - c, px + s, py);
+	ctx.quadraticCurveTo(px + c, py + c, px, py + s);
+	ctx.quadraticCurveTo(px - c, py + c, px - s, py);
+	ctx.quadraticCurveTo(px - c, py - c, px, py - s);
+	ctx.closePath();
+	ctx.fill();
+	ctx.globalAlpha = fade * 0.7;
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.globalAlpha = 1;
+}
+
 // 타워 외형(본체 + 레이더 안테나)의 유일한 렌더 진입점 — 게임·위키·카드·고스트 공용.
 // 인스턴스 전용 연출(4티어 후광·전직 펄스·XP 바)은 drawTower가 담당.
 // angle·cooldown 기본값은 그림용(위쪽 조준·발사 연출 없음), 실제 타워는 live 값을 전달.
@@ -651,5 +687,6 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 	}
 
 	if (cfg.marksEnemies) drawRadarAntenna(tower);
+	if (cfg.refundRate !== undefined) drawRefundSparkle(x, y);
 	ctx.restore();
 }
