@@ -195,6 +195,7 @@ export const MAPS = {
 			empStartWave: 41, // EMP 적: wave 41부터 0.4% (+0.4%/wave → wave 50에 상한 4%)
 			shockStartWave: 71, shockChanceCap: 0.08, // 충격 분산 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
 			countCapWave: 64, // 적 수 고정 wave 65 → 109마리 (+2→+1 완화는 기본 wave 40)
+			densityCeilWave: 100, // 조밀도 상한 추가 강화를 wave 101~110으로 (maxNarrow 0.90 @ wave 110)
 		},
 		fixedTowers: [
 			{ x: 248, y: 424, role: 'broken' },
