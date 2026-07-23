@@ -261,7 +261,6 @@ export const TOWER_ROLES = {
 		promotions: ['novice', 'usable'],
 		promotionsKeepTier: ['novice'], // '기본'으로 수리 — 티어 변경 없음 (0 유지, 이후 기본 트리 정상 진행)
 		undeletable: true, // 삭제 불가 — 홀드 삭제·설정 카드 삭제 버튼 모두 차단 (전직으로만 벗어남)
-		description: ['tower.broken.desc1', 'tower.broken.desc2'],
 	},
 	// 고장난 타워 전직 — 수리해서 '쓸만한 타워'로 (기존 흐름대로 티어 +1). 삭제 불가 속성 제거.
 	usable: {
@@ -273,7 +272,6 @@ export const TOWER_ROLES = {
 		promotions: [],
 		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
 		boostsXp: true, // 사거리 내 타워 웨이브 종료 경험치 5배
-		description: ['tower.usable.desc1', 'tower.usable.desc2'],
 	},
 };
 
