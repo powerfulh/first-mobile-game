@@ -57,14 +57,36 @@ export function getTowerRefund(tower) {
 }
 
 // ============ Tier 4 helpers ============
-// tower를 지금 탭하면 합체가 완성되는 분기인지 — 지정된 재료들 + tower가 정확히 한 레시피를 이룸(같은 티어·역할 중복 없음).
+// [트리거 + 선택 재료]에 대상 지정 실험실이 대행하는 역할을 더해 완성되는 합체 결과 role — 유일할 때만 인정.
+// 지정 실험실은 그 역할의 재료가 실제로 맵에 있는 것과 동일하게 취급 (선택 불필요·XP 무관).
+function fusionResultWithLabs(triggerRole, matRoles) {
+	const exact = fusionResultFor([...matRoles, triggerRole]);
+	if (exact) return exact;
+	const results = [];
+	for (const { others, result } of fusionRecipesWithMaterial(triggerRole)) {
+		if (!matRoles.every(r => others.includes(r))) continue; // 선택 재료가 모두 그 레시피의 재료여야 함
+		const missing = others.filter(r => !matRoles.includes(r));
+		// 부족 역할마다 서로 다른 지정 실험실이 대행 가능한지
+		const labs = new Set();
+		const ok = missing.every(need => {
+			const lab = game.entities.towers.find(x => x.consumable === need && !labs.has(x));
+			if (lab) labs.add(lab);
+			return !!lab;
+		});
+		if (ok) results.push(result);
+	}
+	return results.length === 1 ? results[0] : null;
+}
+
+// tower를 지금 탭하면 합체가 완성되는 분기인지 — 지정된 재료들(+지정 실험실 대행) + tower가
+// 정확히 한 레시피를 이룸(같은 티어·역할 중복 없음). 재료 미선택이어도 실험실만으로 완성될 수 있음.
 export function isFusionTriggerContext(tower) {
 	const mats = game.fusionMaterials;
-	if (!tower || mats.length === 0 || mats.includes(tower)) return false;
-	if (mats[0].tier !== tower.tier) return false;
+	if (!tower || mats.includes(tower)) return false;
+	if (mats.length > 0 && mats[0].tier !== tower.tier) return false;
 	const roles = mats.map(m => m.role);
 	if (roles.includes(tower.role)) return false;
-	return fusionResultFor([...roles, tower.role]) !== null;
+	return fusionResultWithLabs(tower.role, roles) !== null;
 }
 
 // 지정된 재료들에 tower를 재료로 더 추가할 수 있는지 — 같은 티어·역할 중복 없음·확장 가능한 부분집합.
@@ -325,16 +347,18 @@ export function promoteFusion(triggerTower) {
 	for (const m of materials) if (!isPromotionReady(m)) return false;
 	if (!canAffordPromotion(triggerTower)) return false;
 
-	const roles = materials.map(m => m.role);
-	const resultRole = fusionResultFor([...roles, triggerTower.role]);
+	const resultRole = fusionResultWithLabs(triggerTower.role, materials.map(m => m.role));
+	const needed = TOWER_ROLES[resultRole].recipe.filter(r => r !== triggerTower.role); // 트리거 제외 필요 재료 역할들
 
 	game.gold -= triggerTower.promotionCost;
 
-	// 재료 소모 — 재료 역할을 '대상 지정'(consumable)한 실험실이 있으면 그 실험실을 대신 소모 (지정 재료 타워는 생존).
+	// 재료 소모 — 역할마다 대상 지정 실험실을 우선 소모, 없으면 선택 재료 타워.
+	// (isFusionTriggerContext 보장 — 실험실이 없는 역할은 선택 재료가 반드시 존재)
 	const consumed = new Set();
-	for (const m of materials) {
-		const sub = game.entities.towers.find(x => !consumed.has(x) && x.consumable === m.role);
-		consumed.add(sub || m);
+	for (const role of needed) {
+		const lab = game.entities.towers.find(x => !consumed.has(x) && x.consumable === role);
+		const victim = lab || materials.find(x => !consumed.has(x) && x.role === role);
+		if (victim) consumed.add(victim);
 	}
 	// 소모 타워에 걸려 있던 예약 정리 (순번 압축 포함). 트리거 예약은 아래 전직 후 재조정.
 	for (const c of consumed) cancelReservation(c);
@@ -764,7 +788,7 @@ export function getPromotionState(tower) {
 export function getPromotionChoices(tower) {
 	if (isFusionTriggerContext(tower)) {
 		const roles = game.fusionMaterials.map(m => m.role);
-		return { tier4Cfg: TOWER_ROLES[fusionResultFor([...roles, tower.role])] };
+		return { tier4Cfg: TOWER_ROLES[fusionResultWithLabs(tower.role, roles)] };
 	}
 	return { cfgs: tower.cfg.promotions.map(r => TOWER_ROLES[r]) };
 }
