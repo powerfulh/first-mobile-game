@@ -339,6 +339,7 @@ function deselectTower() {
 // 타워 삭제 공통 — 홀드 삭제 완료와 설정 패널 삭제 버튼이 공유. 선택·전직 대상 참조도 정리.
 // 투입 골드 10% 환불(재료 타워 투입분 제외) + 토스트 안내.
 function deleteTower(dead) {
+	if (dead.cfg.undeletable) return; // 특수 타워(맵 특성 배치) — 삭제 불가
 	cancelReservation(dead); // 예약 큐에서 제거 + 뒤 순번 압축 (엔티티 제거 전에)
 	game.entities.towers = game.entities.towers.filter(x => x !== dead);
 	recomputeStats();
@@ -358,7 +359,7 @@ function selectTowerAt(p) {
 			game.selectedTower = tower;
 			game.selectedEnemy = null;
 			tower.panel = null; // 주석 처리하면 타워마다 패널 기억하는데 전직 패널은 다른 시점에 골드가 부족할 수 있어서 검토 중
-			game.holdDelete = { tower: tower, accumulated: 0 };
+			game.holdDelete = tower.cfg.undeletable ? null : { tower: tower, accumulated: 0 }; // 삭제 불가 타워는 홀드 삭제 미시작
 			playTowerSelect();
 			return true;
 		}
@@ -773,7 +774,7 @@ scenes.playing = {
 			return;
 		}
 		if (game.selectedTower?.panel === 'settings') {
-			if (hitButton(SETTINGS_DELETE_BTN, p)) {
+			if (!game.selectedTower.cfg.undeletable && hitButton(SETTINGS_DELETE_BTN, p)) { // 삭제 불가 타워는 버튼 미노출 — 히트도 무시
 				playButton();
 				deleteTower(game.selectedTower); // 홀드와 달리 즉시 삭제
 				return;

@@ -28,6 +28,7 @@ const STRINGS = {
 	'map.map3.name': { ko: '사다리꼴', ja: '台形', en: 'Trapezoid' },
 	'map.map4.name': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'map.map5.name': { ko: '분산', ja: '分散', en: 'Split' },
+	'map.map6.name': { ko: '맵 6', ja: 'マップ6', en: 'Map 6' }, // placeholder — 고유 이름은 추후
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
@@ -99,6 +100,10 @@ const STRINGS = {
 	'tower.dragon.name': { ko: '드래곤', ja: 'ドラゴン', en: 'Dragon' },
 	'tower.dragon.tagline': { ko: '관통 연사 빔 · 지상/공중', ja: '貫通連射ビーム · 地上/空中', en: 'Piercing rapid beam · Ground/Air' },
 	'tower.dragon.desc1': { ko: '일직선상의 모든 적을 관통하는 빔을 초고속 연사합니다', ja: '直線上の敵を貫通するビームを高速連射します', en: 'Rapid-fires beams that pierce all enemies in a line' },
+	'tower.broken.name': { ko: '고장난 타워', ja: '故障タワー', en: 'Broken Tower' },
+	'tower.broken.tagline': { ko: '맵에 버려진 채 겨우 작동 중 · 삭제 불가', ja: 'マップに放置されたままかろうじて稼働中 · 削除不可', en: 'Abandoned on the map, barely working · cannot be removed' },
+	'tower.usable.name': { ko: '쓸만한 타워', ja: '使えるタワー', en: 'Usable Tower' },
+	'tower.usable.tagline': { ko: '수리 완료 · 지상/공중 · 주변 아군 XP 강화', ja: '修理完了 · 地上/空中 · 周囲の味方のXP強化', en: "Repaired · Ground/Air · Boosts nearby allies' XP" },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },
@@ -253,6 +258,9 @@ const STRINGS = {
 	'intro.stats.title': { ko: '통계', ja: '統計', en: 'Stats' },
 	'intro.stats.line1': { ko: '실시간으로 현재 웨이브에서', ja: 'リアルタイムで現在のウェーブで', en: 'See in real time which towers' },
 	'intro.stats.line2': { ko: '기여도가 높은 타워를 확인할 수 있습니다', ja: '貢献度の高いタワーを確認できます', en: 'contribute most in the current wave.' },
+	'intro.fixedTower.title': { ko: '버려진 타워', ja: '放置されたタワー', en: 'Abandoned Towers' },
+	'intro.fixedTower.line1': { ko: '이 맵에는 버려진 타워가 있습니다', ja: 'このマップには放置されたタワーがあります', en: 'This map has abandoned towers.' },
+	'intro.fixedTower.line2': { ko: '이들을 활용할 방법이 있을까요?', ja: 'これらを活用する方法はあるでしょうか？', en: 'Could there be a way to make use of them?' },
 	'intro.underpass.title': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'intro.underpass.line1': { ko: '이 맵의 길 일부는 지하로 지나갑니다', ja: 'このマップの道の一部は地下を通ります', en: 'Part of this map\'s road runs underground.' },
 	'intro.underpass.line2': { ko: '지하 구간의 지상 적은 타워가 볼 수 없습니다', ja: '地下区間の地上の敵はタワーから見えません', en: 'Towers can\'t see ground enemies underground.' },
@@ -282,6 +290,7 @@ const STRINGS = {
 	'wiki.groupLine': { ko: '{name} 계열', ja: '{name}系統', en: '{name} line' },
 	'wiki.groupTier4': { ko: '4티어 합체', ja: 'ティア4合体', en: 'Tier-4 fusion' },
 	'wiki.groupTier5': { ko: '5티어 합체', ja: 'ティア5合体', en: 'Tier-5 fusion' },
+	'wiki.groupSpecial': { ko: '특수 타워', ja: '特殊タワー', en: 'Special towers' },
 	'wiki.range': { ko: '사거리 {range}', ja: '射程 {range}', en: 'Range {range}' },
 	'wiki.rangeMin': { ko: '  (최소 {min})', ja: '  (最小 {min})', en: '  (min {min})' },
 	'wiki.dmgRate': { ko: '데미지 {dmg}  ·  공속 {rate}/s', ja: 'ダメージ {dmg}  ·  攻速 {rate}/s', en: 'DMG {dmg}  ·  Rate {rate}/s' },

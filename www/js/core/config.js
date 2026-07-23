@@ -251,6 +251,28 @@ export const TOWER_ROLES = {
 		body: 'condenser', // 육각 몸체 + 오목 응축 패널·집게 + 연속 응축 입자
 		description: ['tower.dragon.desc1'],
 	},
+
+	// ---- 특수 타워 — 사용자가 배치하지 않고 맵 특성(맵 정의의 fixedTowers)으로만 배치 ----
+	broken: {
+		name: 'tower.broken.name', tagline: 'tower.broken.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 고장 — 무채색
+		range: 90, fireRate: 1, damage: 1,
+		attackTypes: ['ground'], splash: 0,
+		promotions: ['novice', 'usable'],
+		promotionsKeepTier: ['novice'], // '기본'으로 수리 — 티어 변경 없음 (0 유지, 이후 기본 트리 정상 진행)
+		undeletable: true, // 삭제 불가 — 홀드 삭제·설정 카드 삭제 버튼 모두 차단 (전직으로만 벗어남)
+	},
+	// 고장난 타워 전직 — 수리해서 '쓸만한 타워'로 (기존 흐름대로 티어 +1). 삭제 불가 속성 제거.
+	usable: {
+		name: 'tower.usable.name', tagline: 'tower.usable.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 고장난 타워와 동일 무채색 — 구분은 외형(서포트 몸체)으로
+		range: 108, fireRate: 1.2, damage: 1.2,
+		attackTypes: ['ground', 'air'], splash: 0,
+		projectileSpeed: 300, // 1티어
+		promotions: [],
+		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
+		boostsXp: true, // 사거리 내 타워 웨이브 종료 경험치 5배
+	},
 };
 
 // 타워 표시 텍스트 다국어화 — name/tagline/description은 i18n 키, 정의 직후 1회 표시 문자열로 변환.
@@ -359,6 +381,7 @@ export const PARALLEL_INTRO_KEY = 'td_seen_parallel_intro'; // 추가 웨이브(
 export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 안내 모달 (airShortcut 맵 최초 진입)
 export const UNDERPASS_INTRO_KEY = 'td_seen_underpass_intro'; // 지하도 안내 모달 (underpass 맵 최초 진입)
 export const STATS_INTRO_KEY = 'td_seen_stats_intro'; // 통계 레이어 안내 모달 (통계 버튼 최초 탭)
+export const FIXED_TOWER_INTRO_KEY = 'td_seen_fixed_tower_intro'; // 맵 특성 고정 타워 안내 모달 (fixedTowers 맵 최초 진입)
 
 // 인트로 플래그 키 전체. resetLocalData가 이 배열을 spread 해 초기화 누락을 막는다.
 // 새 인트로 추가 시 위 상수 정의와 이 배열에 함께 등록할 것.
@@ -366,7 +389,7 @@ export const INTRO_KEYS = [
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
 	TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY, QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY,
-	STATS_INTRO_KEY,
+	STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY,
 ];
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.

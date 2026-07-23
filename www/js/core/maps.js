@@ -6,6 +6,7 @@ const pathUnit = 8
 const bottom = 80
 const rightX = 45
 const rightSide = 42 // 길은 다 보이게
+const leftSide = 3 // 길은 다 보이게
 const allow1top = 9
 const allow1left = 7
 const allow1right = 38
@@ -151,7 +152,7 @@ export const MAPS = {
 			{ x: rightX * pathUnit, y: 70 * pathUnit },
 		],
 		startGold: 250,
-		bgm: 'normal',
+		bgm: 'bgm5',
 		waveComposition: {
 			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달
 			densityFloorWave: 30, // 조밀도 하한 추가 강화를 wave 31~40으로 (minNarrow 0.30 @ wave 40)
@@ -164,7 +165,36 @@ export const MAPS = {
 			shockStartWave: 141, shockChanceCap: 0.08, // 충격 분산 적: wave 141부터 0.4% (+0.4%/wave → wave 160에 상한 8%)
 			shieldBoostWave: Infinity, // 방어막 데미지 감소 강화(기본 130~145) 없음 — 최종 -3.0 유지
 		},
-		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 3번 맵 200웨이브 돌파(=201 진입) 시 해금
+		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
+	},
+	map6: {
+		id: 'map6',
+		name: 'map.map6.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: rightX * pathUnit, y: 0 * pathUnit },
+			{ x: 36 * pathUnit, y: allow1top * pathUnit },
+			{ x: 20 * pathUnit, y: allow1top * pathUnit },
+			{ x: allow1left * pathUnit, y: 15 * pathUnit },
+			{ x: allow1left * pathUnit, y: 30 * pathUnit },
+			{ x: allow1right * pathUnit, y: 30 * pathUnit },
+			{ x: allow1right * pathUnit, y: 35 * pathUnit, underpass: true },
+			{ x: allow1right * pathUnit, y: 55 * pathUnit, underpass: true },
+			{ x: allow1right * pathUnit, y: 60 * pathUnit },
+			{ x: middleX * pathUnit, y: 63 * pathUnit },
+			{ x: leftSide * pathUnit, y: 60 * pathUnit },
+			{ x: leftSide * pathUnit, y: 45 * pathUnit },
+			{ x: rightX * pathUnit, y: 45 * pathUnit },
+		],
+		startGold: 200,
+		bgm: 'bgm2',
+		waveComposition: {
+
+		},
+		fixedTowers: [
+			{ x: 248, y: 424, role: 'broken' },
+			{ x: 136, y: 544, role: 'usable', tier: 1 }, // 전직 산물 역할 — 해당 티어로 배치
+		],
+		unlock: { type: 'clearWave', map: 'map5', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
 
