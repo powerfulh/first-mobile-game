@@ -106,8 +106,8 @@ export function resetGame(mapId = 'map1') {
 	game.gold = getActiveMap().startGold; // 시작 돈은 맵별
 	game.wave = 1;
 	game.entities.enemies = [];
-	// 맵 특성 고정 타워 (사용자 배치 아님 — 예: 고장난 타워) — 맵 정의 fixedTowers: [{ x, y, role }] 에서 스폰.
-	// 일반 타워와 같은 인스턴스라 이후 저장/로드도 일반 경로를 그대로 탄다.
+	// 맵 특성 고정 타워 (사용자 배치 아님 — 예: 고장난 타워) — 맵 정의 fixedTowers: [{ x, y, role, tier? }] 에서 스폰.
+	// tier 기본 0 (쓸만한 타워처럼 전직 산물 역할은 해당 티어 명시). 일반 타워와 같은 인스턴스라 저장/로드도 일반 경로.
 	game.entities.towers = (getActiveMap().fixedTowers || []).map(ft => {
 		const tw = {
 			x: ft.x, y: ft.y,
@@ -115,7 +115,7 @@ export function resetGame(mapId = 'map1') {
 			totalDamage: 0, waveDamage: 0,
 			reservation: null,
 		};
-		setTowerTier(tw, ft.role, 0);
+		setTowerTier(tw, ft.role, ft.tier || 0);
 		return tw;
 	});
 	recomputeStats();

@@ -190,7 +190,10 @@ export const MAPS = {
 		waveComposition: {
 
 		},
-		fixedTowers: [{ x: 176, y: 176, role: 'broken' }], // 고장난 타워 테스트 — 경로와 안 겹치는 좌중앙부
+		fixedTowers: [
+			{ x: 248, y: 424, role: 'broken' },
+			{ x: 136, y: 544, role: 'usable', tier: 1 }, // 전직 산물 역할 — 해당 티어로 배치
+		],
 		unlock: { type: 'clearWave', map: 'map5', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
