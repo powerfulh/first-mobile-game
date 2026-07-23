@@ -189,6 +189,7 @@ export const MAPS = {
 		bgm: 'bgm2',
 		waveComposition: {
 			airStartWave: Infinity, // 일반 공중 적 미출현 (맵6 구성에서 제외). 다른 공중 타입(수송 등)은 별개
+			regenStartWave: Infinity, // 재생 적 미출현 (맵6 구성에서 제외)
 		},
 		fixedTowers: [
 			{ x: 248, y: 424, role: 'broken' },
