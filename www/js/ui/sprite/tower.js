@@ -617,6 +617,25 @@ function drawMissileSiloBody(tower, selected) {
 	}
 }
 
+// 실험실(consumable 정의) 본체 — 포대 없는 오각형. 공격하지 않고 합체 재료를 대행하는 특수성을 형태로 구분.
+function drawConsumableBody(tower, selected) {
+	const cfg = tower.cfg;
+	const r = TOWER.radius;
+	ctx.fillStyle = cfg.color;
+	ctx.beginPath();
+	for (let i = 0; i < 5; i++) {
+		const a = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+		const px = Math.cos(a) * r;
+		const py = Math.sin(a) * r;
+		if (i === 0) ctx.moveTo(px, py);
+		else ctx.lineTo(px, py);
+	}
+	ctx.closePath();
+	ctx.fill();
+	applyBodyStrokeStyle(selected, cfg.color2);
+	ctx.stroke();
+}
+
 // 환불 특성(refundRate 정의) 시각화 — 타워 반경 내 랜덤 좌표에서 1초 주기로 반짝이는 금빛 광택.
 // 위치는 1초 버킷 + 타워 좌표를 시드로 한 결정적 의사난수 — 상태 저장 없이 프레임 간 고정, 타워마다 다른 자리.
 function hash01(n) {
@@ -674,6 +693,8 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {
 		drawBeamEmitterBody(tower, selected);
+	} else if (cfg.consumable) {
+		drawConsumableBody(tower, selected);
 	} else if (cfg.buffsRange || cfg.boostsXp) {
 		drawSupportBody(tower, selected);
 	} else if (cfg.areaSweep) {

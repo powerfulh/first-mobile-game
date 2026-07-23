@@ -12,7 +12,7 @@ import {
 import { isBlockedByBarrier, isEmpStunned, isInUnderpass } from './enemy.js';
 import { drawTier4Halo, drawTier5Halo, drawHourglassIcon } from './ui/sprite.js';
 import { drawEnergyBall, drawTowerSprite } from './ui/sprite/tower.js';
-import { SETTINGS_GA, SETTINGS_PRIORITY_BTN } from './ui/panel.js';
+import { SETTINGS_GA, SETTINGS_PRIORITY_BTN, getConsumableLayout } from './ui/panel.js';
 
 // ============ Promotion / XP helpers ============
 // tier 파생 스탯(목표 XP·전직 비용)을 인스턴스에 구움 — tier가 바뀌는 모든 지점에서 호출.
@@ -330,11 +330,16 @@ export function promoteFusion(triggerTower) {
 
 	game.gold -= triggerTower.promotionCost;
 
-	// 재료 소모 — 걸려 있던 예약 정리 (순번 압축 포함). 트리거 예약은 아래 전직 후 재조정.
-	for (const m of materials) cancelReservation(m);
+	// 재료 소모 — 재료 역할을 '대상 지정'(consumable)한 실험실이 있으면 그 실험실을 대신 소모 (지정 재료 타워는 생존).
+	const consumed = new Set();
+	for (const m of materials) {
+		const sub = game.entities.towers.find(x => !consumed.has(x) && x.consumable === m.role);
+		consumed.add(sub || m);
+	}
+	// 소모 타워에 걸려 있던 예약 정리 (순번 압축 포함). 트리거 예약은 아래 전직 후 재조정.
+	for (const c of consumed) cancelReservation(c);
 
-	// 재료 타워들 제거 (트리거는 남아서 결과로 변환)
-	const consumed = new Set(materials);
+	// 소모 타워들 제거 (트리거는 남아서 결과로 변환)
 	game.entities.towers = game.entities.towers.filter(x => !consumed.has(x));
 	game.fusionMaterials = [];
 
@@ -698,9 +703,9 @@ export function updateTower(tower, dt) {
 
 export function drawTower(tower) {
 	const selected = (tower === game.selectedTower);
-	const isTarget = game.fusionMaterials.includes(tower);
+	const isTarget = game.fusionMaterials.includes(tower) || !!tower.consumable; // 대상 지정된 실험실도 재료 대기 표시
 
-	if (isPromotionReady(tower)) {
+	if (isPromotionReady(tower) || tower.consumable) {
 		const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 200);
 		ctx.globalAlpha = 0.35 + 0.45 * pulse;
 		ctx.strokeStyle = isTarget ? '#1abc9c' : GOLD;
@@ -795,6 +800,16 @@ export function towerDualCapable(cfg) {
 // 설정 카드 탭 처리 — 소비 시 true. 공통 우선순위 순회 / 지상·공중 토글·우선 순회.
 export function handleTowerSettingsTap(tower, p) {
 	const cfg = tower.cfg;
+	// 실험실 — '대상 지정' 셀 탭: 지정 역할 설정, 지정된 역할 재탭은 해제.
+	if (cfg.consumable) {
+		for (const cell of getConsumableLayout() || []) {
+			if (hitButton(cell, p)) {
+				tower.consumable = tower.consumable === cell.role ? null : cell.role;
+				return true;
+			}
+		}
+		return false;
+	}
 	if (!hasItems(cfg.attackTypes)) return false;
 	if (!cfg.areaSweep && hitButton(SETTINGS_PRIORITY_BTN, p)) {
 		const i = PRIORITY_CYCLE.indexOf(tower.targetPriority);

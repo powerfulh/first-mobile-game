@@ -1,6 +1,6 @@
 // 플레잉 신 정보 패널 그리기. 데이터는 도메인 모듈의 뷰모델로 받음 (game 의존 없음).
 import { ctx } from '../core/canvas.js';
-import { ACCENT_RED, GOLD, INFO_BLUE, LOGICAL_H, SLATE } from '../core/config.js';
+import { ACCENT_RED, GOLD, INFO_BLUE, LOGICAL_H, SLATE, TOWER_ROLES } from '../core/config.js';
 import { drawPanel, roundRect, hasItems, round1 } from '../core/helpers.js';
 import { drawEnemySprite, drawProhibition, drawGearIcon, drawBookIcon, drawTrashIcon, drawHourglassIcon, drawNewBadge } from './sprite.js';
 import { drawTowerSprite } from './sprite/tower.js';
@@ -332,6 +332,43 @@ function drawGaCell(cell, type, enabled) {
 	if (!enabled) drawProhibition(cx, cy, 12);
 }
 
+// 마지막 draw 기준 '대상 지정' 셀 rect — 설정 탭 hit-test와 공유 (실험실 설정 카드가 그려진 뒤에만 유효).
+// cells: [{ x, y, w, h, role }]
+let consumableLayout = null;
+export function getConsumableLayout() {
+	return consumableLayout;
+}
+
+// 실험실(consumable 정의) 설정 카드 — '우선순위' 대신 '대상 지정' 섹션.
+// cfg.consumable의 역할들을 4개마다 줄바꿈으로 나열 (예약 패널 셀과 동일 모티프), 지정된 역할은 금색 강조.
+function drawConsumableSection(tower) {
+	const cfg = tower.cfg;
+	const cells = [];
+	drawSection(t('panel.consumable'), infoTopBtn.y + infoTopBtn.h + margin, (boxY) => {
+		const cellW = 48, cellH = 32, perRow = 4;
+		const rows = Math.ceil(cfg.consumable.length / perRow);
+		const startX = infoPanel.x + (infoPanel.w - (cellW * perRow + margin * (perRow - 1))) / 2;
+		cfg.consumable.forEach((role, i) => {
+			const cell = {
+				x: startX + (i % perRow) * (cellW + margin),
+				y: boxY + PAD + Math.floor(i / perRow) * (cellH + margin),
+				w: cellW, h: cellH, role,
+			};
+			drawCellButton(cell);
+			drawTowerSprite(TOWER_ROLES[role], cell.x + cellW / 2, cell.y + cellH / 2, { radius: 12 });
+			if (tower.consumable === role) {
+				ctx.strokeStyle = GOLD; // 지정된 대상 — 강조 테두리
+				ctx.lineWidth = 2;
+				roundRect(cell.x, cell.y, cell.w, cell.h, 6);
+				ctx.stroke();
+			}
+			cells.push(cell);
+		});
+		return rows * cellH + (rows - 1) * margin;
+	});
+	consumableLayout = cells;
+}
+
 // dualCapable: 지상/공중 우선 행 표시 여부 (호출부가 towerDualCapable로 도출해 전달).
 export function drawTowerSettingsCard(tower, dualCapable) {
 	const cfg = tower.cfg;
@@ -341,6 +378,11 @@ export function drawTowerSettingsCard(tower, dualCapable) {
 	drawPanelHeader(t('panel.settingsTitle', { name: cfg.name }));
 
 	if (!cfg.undeletable) drawTopIconButton(SETTINGS_DELETE_BTN, drawTrashIcon); // 삭제 불가 타워는 삭제 버튼 미노출
+
+	if (cfg.consumable) {
+		drawConsumableSection(tower);
+		return;
+	}
 
 	// 우선순위 섹션 — 삭제 버튼 끝선 + 마진에서 시작. 컨테이너 높이는 내용에 맞춰 동적.
 	drawSection(t('panel.priority'), infoTopBtn.y + infoTopBtn.h + margin, () => {

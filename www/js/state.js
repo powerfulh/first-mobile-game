@@ -163,6 +163,7 @@ export function saveGame() {
 			canGround: t.canGround, canAir: t.canAir,
 			gaPriority: t.gaPriority, targetPriority: t.targetPriority,
 			reservation: t.reservation || null, // 전직 예약 { role, order }
+			consumable: t.consumable || null, // 실험실 대상 지정 (합체 재료 대행 역할)
 		})),
 	};
 	try {
@@ -237,6 +238,7 @@ export function loadGame(data) {
 			if (td.canAir !== undefined) tw.canAir = td.canAir;
 			if (td.gaPriority) tw.gaPriority = td.gaPriority;
 			if (td.targetPriority) tw.targetPriority = td.targetPriority;
+			if (td.consumable) tw.consumable = td.consumable;
 			if (td.reservation && TOWER_ROLES[td.reservation.role]) tw.reservation = td.reservation;
 			return tw;
 		});

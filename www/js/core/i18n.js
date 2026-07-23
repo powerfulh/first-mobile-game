@@ -106,6 +106,8 @@ const STRINGS = {
 	'tower.usable.tagline': { ko: '수리 완료 · 지상/공중 · 주변 아군 XP 강화', ja: '修理完了 · 地上/空中 · 周囲の味方のXP強化', en: "Repaired · Ground/Air · Boosts nearby allies' XP" },
 	'tower.recycle.name': { ko: '재활용', ja: 'リサイクル', en: 'Recycle' },
 	'tower.recycle.tagline': { ko: '단일 공격 · 삭제 시 100% 환불', ja: '単体攻撃 · 削除時100%払い戻し', en: 'Single target · 100% refund on removal' },
+	'tower.lab.name': { ko: '실험실', ja: '実験室', en: 'Laboratory' },
+	'tower.lab.tagline': { ko: '지정한 타워의 합체 재료 대행 · 비공격', ja: '指定タワーの合体素材を代行 · 非攻撃', en: 'Stand-in fusion material · Non-attacking' },
 	'tower.overload.name': { ko: '과부하', ja: '過負荷', en: 'Overload' },
 	'tower.overload.tagline': { ko: '사거리 내 일제 타격 · 지상/공중', ja: '射程内一斉攻撃 · 地上/空中', en: 'In-range volley · Ground/Air' },
 
@@ -169,6 +171,7 @@ const STRINGS = {
 	'panel.totalDamage': { ko: '누적 데미지: {dmg}', ja: '累計ダメージ: {dmg}', en: 'Total damage: {dmg}' },
 	'panel.settingsTitle': { ko: '{name} 설정', ja: '{name}の設定', en: '{name} settings' },
 	'panel.priority': { ko: '우선순위', ja: '優先順位', en: 'Priority' },
+	'panel.consumable': { ko: '대상 지정', ja: '対象指定', en: 'Designate target' },
 	'panel.nonAttacking': { ko: '공격하지 않는 타워', ja: '攻撃しないタワー', en: 'Non-attacking tower' },
 	'panel.target': { ko: '표적: {p}', ja: '標的: {p}', en: 'Target: {p}' },
 	'panel.priority.closest': { ko: '가장 가까움', ja: '最も近い', en: 'Closest' },
