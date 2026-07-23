@@ -102,8 +102,12 @@ const STRINGS = {
 	'tower.dragon.desc1': { ko: '일직선상의 모든 적을 관통하는 빔을 초고속 연사합니다', ja: '直線上の敵を貫通するビームを高速連射します', en: 'Rapid-fires beams that pierce all enemies in a line' },
 	'tower.broken.name': { ko: '고장난 타워', ja: '故障タワー', en: 'Broken Tower' },
 	'tower.broken.tagline': { ko: '맵에 버려진 채 겨우 작동 중 · 삭제 불가', ja: 'マップに放置されたままかろうじて稼働中 · 削除不可', en: 'Abandoned on the map, barely working · cannot be removed' },
+	'tower.broken.desc1': { ko: '사용자가 배치할 수 없으며 일부 맵에 처음부터 놓여 있습니다', ja: 'ユーザーは配置できず、一部のマップに最初から置かれています', en: 'Cannot be placed by the player; found on some maps from the start' },
+	'tower.broken.desc2': { ko: '삭제할 수 없고, 전직(수리)으로만 온전해집니다', ja: '削除できず、転職(修理)でのみ元に戻せます', en: 'Cannot be removed — only repairing (promotion) restores it' },
 	'tower.usable.name': { ko: '쓸만한 타워', ja: '使えるタワー', en: 'Usable Tower' },
 	'tower.usable.tagline': { ko: '수리 완료 · 지상/공중 · 주변 타워 경험치 5배', ja: '修理完了 · 地上/空中 · 周囲タワー経験値5倍', en: 'Repaired · Ground/Air · 5x XP for nearby towers' },
+	'tower.usable.desc1': { ko: '고장난 타워를 수리한 모습입니다', ja: '故障タワーを修理した姿です', en: 'A repaired broken tower' },
+	'tower.usable.desc2': { ko: '사거리 내 타워의 웨이브 종료 경험치를 5배로 늘립니다', ja: '射程内タワーのウェーブ終了経験値を5倍にします', en: 'Grants 5x wave-end XP to towers in range' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },
@@ -290,6 +294,7 @@ const STRINGS = {
 	'wiki.groupLine': { ko: '{name} 계열', ja: '{name}系統', en: '{name} line' },
 	'wiki.groupTier4': { ko: '4티어 합체', ja: 'ティア4合体', en: 'Tier-4 fusion' },
 	'wiki.groupTier5': { ko: '5티어 합체', ja: 'ティア5合体', en: 'Tier-5 fusion' },
+	'wiki.groupSpecial': { ko: '특수 타워', ja: '特殊タワー', en: 'Special towers' },
 	'wiki.range': { ko: '사거리 {range}', ja: '射程 {range}', en: 'Range {range}' },
 	'wiki.rangeMin': { ko: '  (최소 {min})', ja: '  (最小 {min})', en: '  (min {min})' },
 	'wiki.dmgRate': { ko: '데미지 {dmg}  ·  공속 {rate}/s', ja: 'ダメージ {dmg}  ·  攻速 {rate}/s', en: 'DMG {dmg}  ·  Rate {rate}/s' },

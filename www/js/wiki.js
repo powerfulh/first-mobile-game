@@ -46,6 +46,14 @@ const TOWER_GROUPS = [
 	})),
 	{ label: t('wiki.groupTier4'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe?.length === 2) },
 	{ label: t('wiki.groupTier5'), roles: Object.keys(TOWER_ROLES).filter(r => TOWER_ROLES[r].recipe?.length === 3) },
+	// 특수 타워 — 전직 트리(루트에서 도달)에도 합체(recipe)에도 속하지 않는 역할 (맵 특성 배치 등)
+	{
+		label: t('wiki.groupSpecial'),
+		roles: (() => {
+			const treeRoles = new Set(collectTree(TREE_ROOT));
+			return Object.keys(TOWER_ROLES).filter(r => !treeRoles.has(r) && !TOWER_ROLES[r].recipe);
+		})(),
+	},
 ];
 
 // 적 명단 (사용자 결정: 일반/공중/재생 3종, 방어막·보스 제외)
