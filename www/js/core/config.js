@@ -270,6 +270,7 @@ export const TOWER_ROLES = {
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어
 		promotions: ['recycle', 'overload'],
+		promotionsKeepTier: ['recycle'], // 재활용은 티어 변경 없음 (1 유지) — 과부하는 기존 흐름대로 +1
 		boostsXp: true, // 사거리 내 타워 웨이브 종료 경험치 5배
 	},
 	// 쓸만한 타워 전직 — 재활용: 평범한 단일 공격, 대신 삭제 시 투입 금액 100% 환불. XP 강화 능력은 잃음.
@@ -278,7 +279,7 @@ export const TOWER_ROLES = {
 		color: '#7f8c8d', color2: '#4d5656', // 특수 타워 계열 무채색 유지
 		range: 108, fireRate: 1.2, damage: 2,
 		attackTypes: ['ground', 'air'], splash: 0,
-		projectileSpeed: 320, // 2티어
+		projectileSpeed: 300, // 1티어 (티어 유지 전직)
 		promotions: [],
 		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
 		refundRate: 1, // 삭제 시 투입 금액(배치비 + 전직 비용 합) 100% 환불 (기본 10%)
