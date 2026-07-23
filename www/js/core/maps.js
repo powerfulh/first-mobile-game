@@ -152,7 +152,7 @@ export const MAPS = {
 			{ x: rightX * pathUnit, y: 70 * pathUnit },
 		],
 		startGold: 250,
-		bgm: 'normal',
+		bgm: 'bgm5',
 		waveComposition: {
 			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달
 			densityFloorWave: 30, // 조밀도 하한 추가 강화를 wave 31~40으로 (minNarrow 0.30 @ wave 40)
