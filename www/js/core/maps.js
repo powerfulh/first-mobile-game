@@ -6,6 +6,7 @@ const pathUnit = 8
 const bottom = 80
 const rightX = 45
 const rightSide = 42 // 길은 다 보이게
+const leftSide = 3 // 길은 다 보이게
 const allow1top = 9
 const allow1left = 7
 const allow1right = 38
@@ -170,22 +171,21 @@ export const MAPS = {
 		id: 'map6',
 		name: 'map.map6.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
-			{ x: 0 * pathUnit, y: 0 * pathUnit },
-			{ x: middleX * pathUnit, y: middleX * pathUnit },
-			{ x: middleX * pathUnit, y: 30 * pathUnit, underpass: true },
-			{ x: middleX * pathUnit, y: 45 * pathUnit, underpass: true },
-			{ x: middleX * pathUnit, y: 55 * pathUnit },
-			{ x: 27 * pathUnit, y: 60 * pathUnit },
-			{ x: 33 * pathUnit, y: 60 * pathUnit },
-			{ x: allow1right * pathUnit, y: 55 * pathUnit },
-			{ x: allow1right * pathUnit, y: 37 * pathUnit, shortcut: true },
-			{ x: allow1right * pathUnit, y: middleX * pathUnit },
-			{ x: 25 * pathUnit, y: allow1top * pathUnit },
-			{ x: 12 * pathUnit, y: 22 * pathUnit },
-			{ x: 12 * pathUnit, y: 37 * pathUnit, shortcut: true },
-			{ x: 12 * pathUnit, y: 70 * pathUnit },
+			{ x: rightX * pathUnit, y: 0 * pathUnit },
+			{ x: 36 * pathUnit, y: allow1top * pathUnit },
+			{ x: 20 * pathUnit, y: allow1top * pathUnit },
+			{ x: allow1left * pathUnit, y: 15 * pathUnit },
+			{ x: allow1left * pathUnit, y: 30 * pathUnit },
+			{ x: allow1right * pathUnit, y: 30 * pathUnit },
+			{ x: allow1right * pathUnit, y: 35 * pathUnit, underpass: true },
+			{ x: allow1right * pathUnit, y: 55 * pathUnit, underpass: true },
+			{ x: allow1right * pathUnit, y: 60 * pathUnit },
+			{ x: middleX * pathUnit, y: 63 * pathUnit },
+			{ x: leftSide * pathUnit, y: 60 * pathUnit },
+			{ x: leftSide * pathUnit, y: 45 * pathUnit },
+			{ x: rightX * pathUnit, y: 45 * pathUnit },
 		],
-		startGold: 250,
+		startGold: 200,
 		bgm: 'bgm2',
 		waveComposition: {
 			
