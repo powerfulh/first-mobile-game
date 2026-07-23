@@ -193,6 +193,7 @@ export const MAPS = {
 			regenStartWave: Infinity, // 재생 적 미출현 (맵6 구성에서 제외)
 			transportStartWave: 16, transportChanceCap: 0.12, // 수송 적: wave 16부터 0.4% (+0.4%/wave, 30웨이브 램프 → wave 45에 상한 12%)
 			empStartWave: 41, // EMP 적: wave 41부터 0.4% (+0.4%/wave → wave 50에 상한 4%)
+			shockStartWave: 71, shockChanceCap: 0.08, // 충격 분산 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
 			countCapWave: 64, // 적 수 고정 wave 65 → 109마리 (+2→+1 완화는 기본 wave 40)
 		},
 		fixedTowers: [
