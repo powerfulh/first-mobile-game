@@ -281,7 +281,7 @@ export const TOWER_ROLES = {
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어 (티어 유지 전직)
 		promotions: ['lab'],
-		refundRate: 1, // 삭제 시 투입 금액(배치비 + 전직 비용 합) 100% 환불 (기본 10%)
+		refundRate: 2, // 삭제 시 투입 금액(배치비 + 전직 비용 합) 200% 환불 (기본 10%)
 	},
 	// 재활용 전직 — 실험실: 공격 능력 상실, 삭제 환불 50%. 설정 패널에서 '대상 지정'한
 	// 3티어 역할의 4티어 합체 때 지정 재료 타워 대신 소모됨 (consumable = 대체 가능 역할 8종).
@@ -292,7 +292,7 @@ export const TOWER_ROLES = {
 		attackTypes: [], splash: 0,
 		promotions: [],
 		noPromotion: true, // 전직 없음 — 합체 재료로 소모되는 것이 종착
-		refundRate: 0.5, // 삭제 시 투입 금액 50% 환불
+		refundRate: 1, // 삭제 시 투입 금액 100% 환불
 		consumable: ['beacon', 'trap', 'dealman', 'demon', 'whale', 'skydoom', 'master', 'interceptor'], // 4티어 레시피의 3티어 재료 8종
 	},
 	// 쓸만한 타워 전직 — 과부하: 트랩과 동일한 사거리 내 일제 타격. XP 강화 능력은 잃음.

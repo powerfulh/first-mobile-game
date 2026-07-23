@@ -105,7 +105,7 @@ const STRINGS = {
 	'tower.usable.name': { ko: '쓸만한 타워', ja: '使えるタワー', en: 'Usable Tower' },
 	'tower.usable.tagline': { ko: '수리 완료 · 지상/공중 · 주변 아군 XP 강화', ja: '修理完了 · 地上/空中 · 周囲の味方のXP強化', en: "Repaired · Ground/Air · Boosts nearby allies' XP" },
 	'tower.recycle.name': { ko: '재활용', ja: 'リサイクル', en: 'Recycle' },
-	'tower.recycle.tagline': { ko: '단일 공격 · 삭제 시 100% 환불', ja: '単体攻撃 · 削除時100%払い戻し', en: 'Single target · 100% refund on removal' },
+	'tower.recycle.tagline': { ko: '단일 공격 · 삭제 시 200% 환불', ja: '単体攻撃 · 削除時200%払い戻し', en: 'Single target · 200% refund on removal' },
 	'tower.lab.name': { ko: '실험실', ja: '実験室', en: 'Laboratory' },
 	'tower.lab.tagline': { ko: '지정한 타워의 합체 재료 대행 · 비공격', ja: '指定タワーの合体素材を代行 · 非攻撃', en: 'Stand-in fusion material · Non-attacking' },
 	'tower.overload.name': { ko: '과부하', ja: '過負荷', en: 'Overload' },
