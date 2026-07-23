@@ -15,6 +15,11 @@ const SRC = {
 	bgm5: 'assets/audio/m5-jeff.mp3',
 };
 
+// 트랙별 꼬리 트림(초) — 파일 끝의 빈 공간을 루프에서 제외 (loopEnd = 전체 길이 - 트림).
+const TRIM_END = {
+	bgm5: 0.4,
+};
+
 let ctx = null;          // AudioContext (첫 playBgm에서 생성)
 let gain = null;         // 마스터 볼륨 GainNode
 const buffers = {};      // name → 디코드된 AudioBuffer
@@ -71,6 +76,8 @@ function startSource(name) {
 	const s = ctx.createBufferSource();
 	s.buffer = buffers[name];
 	s.loop = true; // 샘플 단위 무이음 반복
+	const trim = TRIM_END[name];
+	if (trim) s.loopEnd = Math.max(0, s.buffer.duration - trim); // 꼬리 무음 제외 — 여기서 바로 처음으로 순환
 	s.connect(gain);
 	s.start();
 	source = s;
