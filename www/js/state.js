@@ -1,6 +1,6 @@
 import {
 	SAVE_KEY, BEST_WAVE_KEY,
-	INTRO_KEYS, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY,
+	INTRO_KEYS, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, FIXED_TOWER_INTRO_KEY,
 	ONE_TOUCH_KEY, INTERMISSION_KEY,
 	TOWER_ROLES, INITIAL, UNLOCKED_MAPS_KEY,
 } from './core/config.js';
@@ -70,18 +70,19 @@ function persistBestWave(wave) {
 	} catch (e) {}
 }
 
-// 맵 지형 인트로 — path 마커(지름길/지하도 등) 보유 맵 최초 진입 시 1회 안내 모달.
-// resetGame/loadGame 끝에서 호출. 새 지형 마커 추가 시 이 테이블에 항목 하나만 추가.
+// 맵 특성 인트로 — 특성(지름길/지하도 마커, 고정 타워 등) 보유 맵 최초 진입 시 1회 안내 모달.
+// resetGame/loadGame 끝에서 호출. 새 특성 추가 시 이 테이블에 { when(map), key, modal } 항목 하나만 추가.
 const MAP_FEATURE_INTROS = [
-	{ marker: 'shortcut', key: SHORTCUT_INTRO_KEY, modal: 'shortcutIntro' },
-	{ marker: 'underpass', key: UNDERPASS_INTRO_KEY, modal: 'underpassIntro' },
+	{ when: map => map.path?.some(p => p.shortcut), key: SHORTCUT_INTRO_KEY, modal: 'shortcutIntro' },
+	{ when: map => map.path?.some(p => p.underpass), key: UNDERPASS_INTRO_KEY, modal: 'underpassIntro' },
+	{ when: map => (map.fixedTowers || []).length > 0, key: FIXED_TOWER_INTRO_KEY, modal: 'fixedTowerIntro' },
 ];
 function maybeShowMapFeatureIntro() {
 	if (game.modal) return;
 	for (const f of MAP_FEATURE_INTROS) {
-		if (getActiveMap().path?.some(p => p[f.marker]) && !hasSeenIntro(f.key)) {
+		if (f.when(getActiveMap()) && !hasSeenIntro(f.key)) {
 			game.modal = { type: f.modal };
-			return; // 모달은 한 번에 하나 — 남은 지형 인트로는 다음 진입 때
+			return; // 모달은 한 번에 하나 — 남은 특성 인트로는 다음 진입 때
 		}
 	}
 }

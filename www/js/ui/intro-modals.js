@@ -6,11 +6,13 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY,
+	MAP_BG_COLOR, TOWER_ROLES,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
 import { roundRect, drawButton, drawPanel } from '../core/helpers.js';
 import { drawEnemySprite, drawHourglassIcon, drawBarChartIcon } from './sprite.js';
+import { drawTowerSprite } from './sprite/tower.js';
 import { t } from '../core/i18n.js';
 
 // 표준 모달 레이아웃 (대부분 공유, tier4만 별도)
@@ -371,6 +373,14 @@ export const INTRO_MODALS = {
 		title: 'intro.underpass.title',
 		lines: ['intro.underpass.line1', 'intro.underpass.line2'],
 		lineSize: 12, lineStart: 150, lineGap: 26,
+	}),
+
+	// 맵 특성 고정 타워(고장난 타워 등) 최초 진입 안내 — 아이콘은 실제 타워 스프라이트 재사용
+	fixedTowerIntro: makeIntro({
+		key: FIXED_TOWER_INTRO_KEY, accent: '#7f8c8d',
+		drawIcon: (cx, cy) => drawTowerSprite(TOWER_ROLES.broken, cx, cy),
+		title: 'intro.fixedTower.title',
+		lines: ['intro.fixedTower.line1', 'intro.fixedTower.line2'],
 	}),
 
 	statsIntro: makeIntro({
