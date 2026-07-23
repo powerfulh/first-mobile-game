@@ -305,7 +305,9 @@ export function promoteTower(tower, role) {
 	const prevRole = tower.role;
 	tower.cooldown = 0;
 	tower.xp = 0;
-	setTowerTier(tower, role, tower.tier + 1, prevRole);
+	// promotionsKeepTier: 티어 유지 전직 (고장난 타워 → 기본 수리 등) — 그 외엔 기존 흐름대로 +1
+	const nextTier = tower.cfg.promotionsKeepTier?.includes(role) ? tower.tier : tower.tier + 1;
+	setTowerTier(tower, role, nextTier, prevRole);
 	recomputeStats();
 
 	if (cfg.buffsRange && !game.modal && !hasSeenIntro(BUFF_INTRO_KEY)) {

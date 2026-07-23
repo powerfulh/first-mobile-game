@@ -102,6 +102,8 @@ const STRINGS = {
 	'tower.dragon.desc1': { ko: '일직선상의 모든 적을 관통하는 빔을 초고속 연사합니다', ja: '直線上の敵を貫通するビームを高速連射します', en: 'Rapid-fires beams that pierce all enemies in a line' },
 	'tower.broken.name': { ko: '고장난 타워', ja: '故障タワー', en: 'Broken Tower' },
 	'tower.broken.tagline': { ko: '맵에 버려진 채 겨우 작동 중 · 삭제 불가', ja: 'マップに放置されたままかろうじて稼働中 · 削除不可', en: 'Abandoned on the map, barely working · cannot be removed' },
+	'tower.usable.name': { ko: '쓸만한 타워', ja: '使えるタワー', en: 'Usable Tower' },
+	'tower.usable.tagline': { ko: '수리 완료 · 지상/공중 · 주변 타워 경험치 5배', ja: '修理完了 · 地上/空中 · 周囲タワー経験値5倍', en: 'Repaired · Ground/Air · 5x XP for nearby towers' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },

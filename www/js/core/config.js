@@ -258,9 +258,20 @@ export const TOWER_ROLES = {
 		color: '#7f8c8d', color2: '#4d5656', // 고장 — 무채색
 		range: 90, fireRate: 1, damage: 1,
 		attackTypes: ['ground'], splash: 0,
+		promotions: ['novice', 'usable'],
+		promotionsKeepTier: ['novice'], // '기본'으로 수리 — 티어 변경 없음 (0 유지, 이후 기본 트리 정상 진행)
+		undeletable: true, // 삭제 불가 — 홀드 삭제·설정 카드 삭제 버튼 모두 차단 (전직으로만 벗어남)
+	},
+	// 고장난 타워 전직 — 수리해서 '쓸만한 타워'로 (기존 흐름대로 티어 +1). 삭제 불가 속성 제거.
+	usable: {
+		name: 'tower.usable.name', tagline: 'tower.usable.tagline',
+		color: '#95a5a6', color2: '#5f6a6a', // 수리됨 — 밝아진 무채색
+		range: 108, fireRate: 1.2, damage: 1.2,
+		attackTypes: ['ground', 'air'], splash: 0,
+		projectileSpeed: 300, // 1티어
 		promotions: [],
 		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
-		undeletable: true, // 삭제 불가 — 홀드 삭제·설정 카드 삭제 버튼 모두 차단
+		boostsXp: true, // 사거리 내 타워 웨이브 종료 경험치 5배
 	},
 };
 
