@@ -19,7 +19,8 @@ const DEFAULT_WAVE = {
 	regenStartWave: 111, regenChanceStep: 0.002, regenChanceCap: 0.04, // 시작 웨이브에 step, 이후 +step/wave (cap까지)
 	regenBoostWave: 190, // 재생 적 강화(회복률 +1%/wave, 출현 +0.4%/wave) 시작 직전 웨이브 — 기본 191~200 에 10웨이브 램프
 	regenChanceBoost2Wave: Infinity, // 재생 출현 확률 2차 강화(+0.4%/wave, 10웨이브 누적 +4%) 시작 직전 웨이브 — 기본 미적용
-	barrierStartWave: 151, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (10웨이브 누적 4% 상한)
+	barrierStartWave: 151, barrierChanceCap: 0.04, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (cap까지)
+	barrierBoostWave: 170, // 이 웨이브 이후 장벽 출현 확률 +0.4%/wave (10웨이브 누적 +4%) — 기본 171~180
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	transportStartWave: Infinity, transportChanceStep: 0.004, transportChanceCap: 0.04, // 신규 적(transport) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	shockStartWave: Infinity, shockChanceStep: 0.004, shockChanceCap: 0.04, // 신규 적(shockDisperser) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
@@ -104,9 +105,9 @@ export function getShockDisperserChance(wave) {
 export function getBarrierSpawnerChance(wave) {
 	const p = wparams();
 	if (wave < p.barrierStartWave) return 0;
-	// 시작 웨이브부터 +0.4%/wave (10웨이브 누적 4% 상한) / Wave 171~180: +0.4%/wave 추가 (전 맵 공통, 최종 8%)
-	const base = Math.min(0.04, (wave - p.barrierStartWave + 1) * 0.004);
-	const lateBonus = clamp((wave - 170) * 0.004, 0, 0.04);
+	// 시작 웨이브부터 +0.4%/wave (cap까지) / barrierBoostWave 이후 10웨이브: +0.4%/wave 추가 (누적 +4%)
+	const base = Math.min(p.barrierChanceCap, (wave - p.barrierStartWave + 1) * 0.004);
+	const lateBonus = clamp((wave - p.barrierBoostWave) * 0.004, 0, 0.04);
 	return base + lateBonus;
 }
 

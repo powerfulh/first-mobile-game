@@ -194,6 +194,8 @@ export const MAPS = {
 			transportStartWave: 16, transportChanceCap: 0.12, // 수송 적: wave 16부터 0.4% (+0.4%/wave, 30웨이브 램프 → wave 45에 상한 12%)
 			empStartWave: 41, // EMP 적: wave 41부터 0.4% (+0.4%/wave → wave 50에 상한 4%)
 			shockStartWave: 71, shockChanceCap: 0.08, // 충격 분산 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
+			barrierStartWave: 121, barrierChanceCap: 0.08, // 장벽 적: wave 121부터 0.4% (+0.4%/wave → wave 140에 상한 8%)
+			barrierBoostWave: 150, // 장벽 확률 상향을 wave 151~160으로 (+0.4%/wave 누적 +4% → 최종 12%)
 			countCapWave: 64, // 적 수 고정 wave 65 → 109마리 (+2→+1 완화는 기본 wave 40)
 			densityCeilWave: 100, // 조밀도 상한 추가 강화를 wave 101~110으로 (maxNarrow 0.90 @ wave 110)
 		},
