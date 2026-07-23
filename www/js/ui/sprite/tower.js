@@ -638,7 +638,7 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 		drawGatlingBody(tower, selected);
 	} else if (cfg.instantHit) {
 		drawBeamEmitterBody(tower, selected);
-	} else if (cfg.buffsRange) {
+	} else if (cfg.buffsRange || cfg.boostsXp) {
 		drawSupportBody(tower, selected);
 	} else if (cfg.areaSweep) {
 		drawAreaSweepBody(tower, selected);

@@ -265,7 +265,7 @@ export const TOWER_ROLES = {
 	// 고장난 타워 전직 — 수리해서 '쓸만한 타워'로 (기존 흐름대로 티어 +1). 삭제 불가 속성 제거.
 	usable: {
 		name: 'tower.usable.name', tagline: 'tower.usable.tagline',
-		color: '#95a5a6', color2: '#5f6a6a', // 수리됨 — 밝아진 무채색
+		color: '#7f8c8d', color2: '#4d5656', // 고장난 타워와 동일 무채색 — 구분은 외형(서포트 몸체)으로
 		range: 108, fireRate: 1.2, damage: 1.2,
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어
