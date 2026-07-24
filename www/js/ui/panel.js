@@ -136,7 +136,8 @@ function drawPromotionButton(tower, state) {
 
 // 선택된 타워 정보 카드. promotionState는 호출부(도메인)가 tower.getPromotionState로 도출해 전달.
 // queueBadge: 예약 안내를 아직 못 본 경우 true — 예약 버튼에 ? 배지 (호출부가 hasSeenIntro로 도출).
-export function drawTowerInfoPanel(tower, promotionState, queueBadge) {
+// settingsBadge: 실험실 설정 안내를 아직 못 본 경우 true — 설정 버튼에 ? 배지 (호출부가 hasSeenIntro로 도출).
+export function drawTowerInfoPanel(tower, promotionState, queueBadge, settingsBadge) {
 	const cfg = tower.cfg;
 	drawPanel(infoPanel.x, infoPanel.y, infoPanel.w, infoPanel.h, { stroke: cfg.color, alpha: 0.9 });
 
@@ -153,6 +154,7 @@ export function drawTowerInfoPanel(tower, promotionState, queueBadge) {
 	}
 	drawTopIconButton(infoWikiButton, drawBookIcon);
 	drawTopIconButton(infoSettingsButton, drawGearIcon);
+	if (settingsBadge) drawNewBadge(infoSettingsButton); // 실험실 설정 미열람 — 신규 기능 ? 배지
 
 	const specFontSize = 12
 	ctx.font = `${specFontSize}px sans-serif`;

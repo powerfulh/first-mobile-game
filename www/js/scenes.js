@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, STATS_INTRO_KEY, GOLD, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, STATS_INTRO_KEY, LAB_SETTINGS_INTRO_KEY, GOLD, MAP_BG_COLOR,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -645,7 +645,7 @@ scenes.playing = {
 			} else if (sel.panel === 'settings') {
 				drawTowerSettingsCard(sel, towerDualCapable(sel.cfg));
 			} else {
-				drawTowerInfoPanel(sel, getPromotionState(sel), !hasSeenIntro(QUEUE_INTRO_KEY));
+				drawTowerInfoPanel(sel, getPromotionState(sel), !hasSeenIntro(QUEUE_INTRO_KEY), sel.cfg.consumable && !hasSeenIntro(LAB_SETTINGS_INTRO_KEY));
 			}
 		} else if (game.selectedEnemy) {
 			// 둔화 표시 배율 — 속도 하한이 반영된 유효 속도 기준 (enemy.getEffectiveSpeed와 단일 기준)
@@ -880,7 +880,12 @@ scenes.playing = {
 			}
 			if (hitButton(infoSettingsButton, p)) {
 				playButton();
-				game.selectedTower.panel = 'settings';
+				// 실험실 설정 최초 탭(미열람)은 설정 패널 대신 안내 모달 (예약 버튼과 동일 패턴)
+				if (game.selectedTower.cfg.consumable && !hasSeenIntro(LAB_SETTINGS_INTRO_KEY)) {
+					game.modal = { type: 'labSettingsIntro' };
+				} else {
+					game.selectedTower.panel = 'settings';
+				}
 				return;
 			}
 		}
