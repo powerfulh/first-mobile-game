@@ -110,6 +110,8 @@ const STRINGS = {
 	'tower.lab.tagline': { ko: '지정한 타워의 합체 재료 대행 · 비공격', ja: '指定タワーの合体素材を代行 · 非攻撃', en: 'Stand-in fusion material · Non-attacking' },
 	'tower.overload.name': { ko: '과부하', ja: '過負荷', en: 'Overload' },
 	'tower.overload.tagline': { ko: '사거리 내 일제 타격 · 지상/공중', ja: '射程内一斉攻撃 · 地上/空中', en: 'In-range volley · Ground/Air' },
+	'tower.towerBomb.name': { ko: '타워 폭탄', ja: 'タワー爆弾', en: 'Tower Bomb' },
+	'tower.towerBomb.tagline': { ko: '2초 후 자폭 · 광역 폭격 + 기본 타워 고장', ja: '2秒後に自爆 · 広域爆撃 + 基本タワー故障化', en: 'Self-destructs after 2s · area blast + breaks basic towers' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },
@@ -268,6 +270,9 @@ const STRINGS = {
 	'intro.fixedTower.title': { ko: '버려진 타워', ja: '放置されたタワー', en: 'Abandoned Towers' },
 	'intro.fixedTower.line1': { ko: '이 맵에는 버려진 타워가 있습니다', ja: 'このマップには放置されたタワーがあります', en: 'This map has abandoned towers.' },
 	'intro.fixedTower.line2': { ko: '이들을 활용할 방법이 있을까요?', ja: 'これらを活用する方法はあるでしょうか？', en: 'Could there be a way to make use of them?' },
+	'intro.labSettings.title': { ko: '실험실', ja: '実験室', en: 'Laboratory' },
+	'intro.labSettings.line1': { ko: '이 타워는 다른 타워의 합체 전직에 사용될 수 있습니다', ja: 'このタワーは他のタワーの合体転職に使えます', en: 'This tower can be used in another tower’s fusion promotion.' },
+	'intro.labSettings.line2': { ko: '설정에서 재료 역할을 수행할 타워를 선택하세요', ja: '設定で素材の役割を担うタワーを選んでください', en: 'In settings, choose the tower whose material role it fills.' },
 	'intro.underpass.title': { ko: '지하도', ja: '地下道', en: 'Underpass' },
 	'intro.underpass.line1': { ko: '이 맵의 길 일부는 지하로 지나갑니다', ja: 'このマップの道の一部は地下を通ります', en: 'Part of this map\'s road runs underground.' },
 	'intro.underpass.line2': { ko: '지하 구간의 지상 적은 타워가 볼 수 없습니다', ja: '地下区間の地上の敵はタワーから見えません', en: 'Towers can\'t see ground enemies underground.' },

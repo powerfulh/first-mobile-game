@@ -6,7 +6,7 @@ import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY, LAB_SETTINGS_INTRO_KEY,
 	MAP_BG_COLOR, TOWER_ROLES,
 } from '../core/config.js';
 import { MAPS } from '../core/maps.js';
@@ -381,6 +381,15 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawTowerSprite(TOWER_ROLES.broken, cx, cy),
 		title: 'intro.fixedTower.title',
 		lines: ['intro.fixedTower.line1', 'intro.fixedTower.line2'],
+	}),
+
+	// 실험실 설정(대상 지정) 최초 탭 안내 — 아이콘은 실제 실험실 스프라이트 재사용
+	labSettingsIntro: makeIntro({
+		key: LAB_SETTINGS_INTRO_KEY, accent: INFO_BLUE,
+		drawIcon: (cx, cy) => drawTowerSprite(TOWER_ROLES.lab, cx, cy),
+		title: 'intro.labSettings.title',
+		lines: ['intro.labSettings.line1', 'intro.labSettings.line2'],
+		lineSize: 12, lineStart: 150, lineGap: 26,
 	}),
 
 	statsIntro: makeIntro({

@@ -697,8 +697,8 @@ export function drawTowerSprite(cfg, x, y, { radius = TOWER.radius, angle = -Mat
 		drawConsumableBody(tower, selected);
 	} else if (cfg.buffsRange || cfg.boostsXp) {
 		drawSupportBody(tower, selected);
-	} else if (cfg.areaSweep) {
-		drawAreaSweepBody(tower, selected);
+	} else if (cfg.areaSweep || cfg.towerBomb) {
+		drawAreaSweepBody(tower, selected); // 타워 폭탄은 과부하(areaSweep)와 동일 외형 공유
 	} else if (cfg.ballistic) {
 		drawSiloBody(tower, selected);
 	} else if ((cfg.attackTypes || []).length === 1 && cfg.attackTypes[0] === 'air') {

@@ -301,9 +301,20 @@ export const TOWER_ROLES = {
 		color: '#7f8c8d', color2: '#4d5656', // 특수 타워 계열 무채색 유지
 		range: 90, fireRate: 0.2, damage: 12,
 		attackTypes: ['ground', 'air'], splash: 0,
-		promotions: [],
-		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
+		promotions: ['towerBomb'],
 		areaSweep: true,
+	},
+	// 과부하 전직 — 타워 폭탄: 공격 기능을 잃는 대신 전직 2초 후 자폭한다. 외형은 과부하와 동일.
+	// 자폭 = 사거리 내 광역 스윕 10연타 + 사거리 내 '기본(novice)'을 '고장난 타워(broken)'로 강제 replace.
+	towerBomb: {
+		name: 'tower.towerBomb.name', tagline: 'tower.towerBomb.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 과부하와 동일 무채색 (외형 공유)
+		range: 90, fireRate: 0, damage: 16,
+		attackTypes: [], splash: 0, // 공격 기능 상실 — 평상시 무공격, damage는 자폭 스윕에만 사용
+		promotions: [],
+		noPromotion: true,  // 종착 — 전직 없음 (canPromote 차단: XP바·예약 버튼 숨김)
+		undeletable: true,  // 타워 삭제 불가 (도화선 도중 수동 삭제 차단)
+		towerBomb: true,    // 2초 도화선 → 자폭 트리거 (tower.updateTower 특수 분기)
 	},
 };
 
@@ -387,6 +398,11 @@ export const EMP_STUN_SECONDS = 2; // EMP 장치 유지 = 대상 타워 스턴 �
 
 export const RESOLVER_BUFF_SECONDS = 11; // 리솔버 버프(공격력·공속 2배) 지속 시간
 
+// 타워 폭탄(과부하 전직) — 전직 즉시 도화선 시작, 도달 시 자폭: 사거리 내 광역 스윕 연타 + 사거리 내 '기본'을 '고장난 타워'로 강제 replace.
+export const TOWER_BOMB_FUSE_SECONDS = 2;    // 자폭까지의 도화선 (파이 타이머로 표시)
+export const TOWER_BOMB_SWEEP_COUNT = 10;    // 자폭 시 발생하는 광역 스윕 횟수
+export const TOWER_BOMB_SWEEP_INTERVAL = 0.1; // 스윕 간 간격(초)
+
 // 충격 분산 적 — 피격 시 분산 횟수 1 소모, 들어온 데미지를 고정값으로 치환.
 export const SHOCK_HP_RATIO = 0.75; // 체력 배율 (일반 지상 적 대비)
 export const SHOCK_CHARGES_MAX = 3; // 분산 횟수 최대치 (= 공전 플라즈마 실드 수)
@@ -414,6 +430,7 @@ export const SHORTCUT_INTRO_KEY = 'td_seen_shortcut_intro'; // 공중 지름길 
 export const UNDERPASS_INTRO_KEY = 'td_seen_underpass_intro'; // 지하도 안내 모달 (underpass 맵 최초 진입)
 export const STATS_INTRO_KEY = 'td_seen_stats_intro'; // 통계 레이어 안내 모달 (통계 버튼 최초 탭)
 export const FIXED_TOWER_INTRO_KEY = 'td_seen_fixed_tower_intro'; // 맵 특성 고정 타워 안내 모달 (fixedTowers 맵 최초 진입)
+export const LAB_SETTINGS_INTRO_KEY = 'td_seen_lab_settings_intro'; // 실험실 설정(대상 지정) 안내 모달 (실험실 설정 버튼 최초 탭)
 
 // 인트로 플래그 키 전체. resetLocalData가 이 배열을 spread 해 초기화 누락을 막는다.
 // 새 인트로 추가 시 위 상수 정의와 이 배열에 함께 등록할 것.
@@ -421,7 +438,7 @@ export const INTRO_KEYS = [
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
 	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY,
 	TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY, QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY,
-	STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY,
+	STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY, LAB_SETTINGS_INTRO_KEY,
 ];
 
 // 볼륨(0~1) — 게임 진행과 무관한 사용자 선호라 resetLocalData 대상에서 제외.

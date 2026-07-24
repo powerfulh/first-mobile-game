@@ -1,7 +1,7 @@
 import { ctx, hudEl } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, EMP_STUN_RANGE, HOLD_DELETE_SECONDS, TIER4_INTRO_KEY, TIER5_INTRO_KEY,
-	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, STATS_INTRO_KEY, GOLD, MAP_BG_COLOR,
+	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, STATS_INTRO_KEY, LAB_SETTINGS_INTRO_KEY, GOLD, MAP_BG_COLOR,
 } from './core/config.js';
 import {
 	game, resetGame, loadGame, loadSaveData,
@@ -16,7 +16,7 @@ import {
 } from './enemy.js';
 import {
 	placeTower, createGhostTower, moveGhostTower, canPlaceTower,
-	promoteTower, updateTower, drawTower,
+	promoteTower, updateTower, updateTowerBomb, drawTower,
 	getPromotionState, getPromotionChoices, towerDualCapable, handleTowerSettingsTap, canAffordPromotion, getTowerRefund,
 	grantWaveEndXp, recomputeStats,
 	handlePromotionButton, promoteFusion, hasReadyTier4Candidate, hasReadyTier5Candidate, isFusionTriggerContext,
@@ -462,6 +462,11 @@ scenes.playing = {
 		// 패시브 오라(감속·회복차단) 리셋 — 아래 updateTower들이 다시 push, 적은 다음 프레임 소비
 		for (const e of game.entities.enemies) { e.slowFactor = 1; e.regenDisabled = false; }
 		for (const tower of game.entities.towers) updateTower(tower, dt);
+		// 자폭한 타워 폭탄 제거 — updateTower가 detonated 표시. 타워 집합 변경이므로 버프 재계산.
+		if (game.entities.towers.some(t => t.detonated)) {
+			game.entities.towers = game.entities.towers.filter(t => !t.detonated);
+			recomputeStats();
+		}
 		if (processReservations()) playPromote(); // 1순위 예약의 전직 조건 달성 시 즉시 전직 (+효과음)
 		for (const p of game.entities.projectiles) updateProjectile(p, dt);
 		for (const b of game.effects.beams) updateBeam(b, dt);
@@ -472,6 +477,7 @@ scenes.playing = {
 		for (const fx of game.effects.shieldBreakFx) updateShieldBreakFx(fx, dt);
 		for (const fx of game.effects.parachuteFx) updateParachuteFx(fx, dt);
 		for (const d of game.effects.empDevices) updateEmpDevice(d, dt);
+		for (const b of game.effects.towerBombs) updateTowerBomb(b, dt);
 
 		game.entities.enemies = game.entities.enemies.filter(e => !e.dead);
 		game.entities.projectiles = game.entities.projectiles.filter(p => !p.dead);
@@ -483,6 +489,7 @@ scenes.playing = {
 		game.effects.shieldBreakFx = game.effects.shieldBreakFx.filter(fx => !fx.dead);
 		game.effects.parachuteFx = game.effects.parachuteFx.filter(fx => !fx.dead);
 		game.effects.empDevices = game.effects.empDevices.filter(d => !d.dead);
+		game.effects.towerBombs = game.effects.towerBombs.filter(b => !b.dead);
 
 		// 게임오버 판정을 웨이브 완료·저장보다 먼저 — 마지막 적이 골인하며 hp가 0이 된 프레임에
 		// 다음 웨이브가 setup·저장되면 hp 0 상태가 저장돼 불러올 때 즉시 게임오버가 됨.
@@ -638,7 +645,7 @@ scenes.playing = {
 			} else if (sel.panel === 'settings') {
 				drawTowerSettingsCard(sel, towerDualCapable(sel.cfg));
 			} else {
-				drawTowerInfoPanel(sel, getPromotionState(sel), !hasSeenIntro(QUEUE_INTRO_KEY));
+				drawTowerInfoPanel(sel, getPromotionState(sel), !hasSeenIntro(QUEUE_INTRO_KEY), sel.cfg.consumable && !hasSeenIntro(LAB_SETTINGS_INTRO_KEY));
 			}
 		} else if (game.selectedEnemy) {
 			// 둔화 표시 배율 — 속도 하한이 반영된 유효 속도 기준 (enemy.getEffectiveSpeed와 단일 기준)
@@ -873,7 +880,12 @@ scenes.playing = {
 			}
 			if (hitButton(infoSettingsButton, p)) {
 				playButton();
-				game.selectedTower.panel = 'settings';
+				// 실험실 설정 최초 탭(미열람)은 설정 패널 대신 안내 모달 (예약 버튼과 동일 패턴)
+				if (game.selectedTower.cfg.consumable && !hasSeenIntro(LAB_SETTINGS_INTRO_KEY)) {
+					game.modal = { type: 'labSettingsIntro' };
+				} else {
+					game.selectedTower.panel = 'settings';
+				}
 				return;
 			}
 		}

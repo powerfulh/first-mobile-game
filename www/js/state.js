@@ -30,6 +30,7 @@ export const game = {
 		shieldBreakFx: [],
 		parachuteFx: [], // 수송 적이 일반 적을 투하할 때의 낙하산 연출 { x, y, life, maxLife }
 		empDevices: [], // EMP 적 처치 지점의 스턴 장치 { x, y, target, life } — 대상 타워 스턴 유지
+		towerBombs: [], // 타워 폭탄 자폭 컨트롤러 { x, y, range, damage, allowed, color, sweepsLeft, sweepTimer } — 0.1초 간격 광역 스윕
 	},
 	// 동시 진행 웨이브 스포너 목록 (평소 1개, 추가 웨이브 호출 시 2개).
 	// 초기엔 빈 배열 — 게임 시작 시 resetGame/loadGame/setupWave가 채움 (그 전엔 활성 스포너 없음).
@@ -97,6 +98,7 @@ export function clearEffects() {
 	game.effects.shieldBreakFx = [];
 	game.effects.parachuteFx = [];
 	game.effects.empDevices = [];
+	game.effects.towerBombs = [];
 }
 
 export function resetGame(mapId = 'map1') {
