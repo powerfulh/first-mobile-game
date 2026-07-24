@@ -301,9 +301,20 @@ export const TOWER_ROLES = {
 		color: '#7f8c8d', color2: '#4d5656', // 특수 타워 계열 무채색 유지
 		range: 90, fireRate: 0.2, damage: 12,
 		attackTypes: ['ground', 'air'], splash: 0,
-		promotions: [],
-		noPromotion: true, // 전직 todo — 전직 열리면 제거 (canPromote 차단: XP바·예약 버튼도 숨김)
+		promotions: ['towerBomb'],
 		areaSweep: true,
+	},
+	// 과부하 전직 — 타워 폭탄: 공격 기능을 잃는 대신 전직 2초 후 자폭한다. 외형은 과부하와 동일.
+	// 자폭 = 사거리 내 광역 스윕 10연타 + 사거리 내 '기본(novice)'을 '고장난 타워(broken)'로 강제 replace.
+	towerBomb: {
+		name: 'tower.towerBomb.name', tagline: 'tower.towerBomb.tagline',
+		color: '#7f8c8d', color2: '#4d5656', // 과부하와 동일 무채색 (외형 공유)
+		range: 90, fireRate: 0, damage: 16,
+		attackTypes: [], splash: 0, // 공격 기능 상실 — 평상시 무공격, damage는 자폭 스윕에만 사용
+		promotions: [],
+		noPromotion: true,  // 종착 — 전직 없음 (canPromote 차단: XP바·예약 버튼 숨김)
+		undeletable: true,  // 타워 삭제 불가 (도화선 도중 수동 삭제 차단)
+		towerBomb: true,    // 2초 도화선 → 자폭 트리거 (tower.updateTower 특수 분기)
 	},
 };
 
@@ -386,6 +397,11 @@ export const EMP_COLOR = '#1a5276'; // EMP 테마색 (짙은 파랑) — 적 결
 export const EMP_STUN_SECONDS = 2; // EMP 장치 유지 = 대상 타워 스턴 시간
 
 export const RESOLVER_BUFF_SECONDS = 11; // 리솔버 버프(공격력·공속 2배) 지속 시간
+
+// 타워 폭탄(과부하 전직) — 전직 즉시 도화선 시작, 도달 시 자폭: 사거리 내 광역 스윕 연타 + 사거리 내 '기본'을 '고장난 타워'로 강제 replace.
+export const TOWER_BOMB_FUSE_SECONDS = 2;    // 자폭까지의 도화선 (파이 타이머로 표시)
+export const TOWER_BOMB_SWEEP_COUNT = 10;    // 자폭 시 발생하는 광역 스윕 횟수
+export const TOWER_BOMB_SWEEP_INTERVAL = 0.1; // 스윕 간 간격(초)
 
 // 충격 분산 적 — 피격 시 분산 횟수 1 소모, 들어온 데미지를 고정값으로 치환.
 export const SHOCK_HP_RATIO = 0.75; // 체력 배율 (일반 지상 적 대비)

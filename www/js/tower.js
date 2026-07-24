@@ -1,7 +1,8 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER, TOWER_ROLES, fusionResultFor, fusionCandidatesFor, isFusionMaterialRole, fusionRecipesWithMaterial,
-	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR, RESOLVER_BUFF_SECONDS,
+	PATH_WIDTH, HUD_RESERVED_TOP, WAVE_END_XP_MULTIPLIER, BUFF_INTRO_KEY, GOLD, INFO_BLUE, EMP_COLOR, RESOLVER_BUFF_SECONDS, ACCENT_RED,
+	TOWER_BOMB_FUSE_SECONDS, TOWER_BOMB_SWEEP_COUNT, TOWER_BOMB_SWEEP_INTERVAL,
 } from './core/config.js';
 import { game, hasSeenIntro } from './state.js';
 import { pointToSegmentDist, hitButton, hasItems, round1, clamp, shortcutCutSegments, underpassSegments } from './core/helpers.js';
@@ -542,11 +543,33 @@ function updateResolver(tower) {
 	tower.cooldown = 1 / tower.fireRate;
 }
 
+// (x,y) 중심 반경 radius 광역 스윕 — allowed 타입의 유효 적에 damage. air 포함 시 장벽 뒤 적은 가려짐(장벽 자체는 피격).
+// 지하도 안 적도 범위에 있으면 맞음(조준만 불가, 비조준 광역은 유효). shooter는 데미지·XP 귀속 대상 —
+// 귀속 타워가 없는 자폭 폭발은 null. 트랩류 areaSweep과 타워 폭탄 자폭이 공용.
+function areaSweepAt(x, y, radius, allowed, damage, shooter) {
+	const sweepBlocked = allowed.includes('air');
+	for (const e of game.entities.enemies) {
+		if (e.dead) continue;
+		if (!allowed.includes(e.ga)) continue;
+		if (Math.hypot(e.x - x, e.y - y) > radius) continue;
+		if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(x, y, e)) continue;
+		applyTowerHit(shooter, e, damage);
+	}
+}
+
 export function updateTower(tower, dt) {
 	tower.cooldown = Math.max(0, tower.cooldown - dt);
 	if (tower.resolverBuff > 0) {
 		tower.resolverBuff = Math.max(0, tower.resolverBuff - dt);
 		if (tower.resolverBuff === 0) recomputeStats(); // 버프 만료 → 스탯 캐시 갱신
+	}
+
+	// 타워 폭탄 — 도화선은 EMP 스턴과 무관하게 진행(쿨다운·버프 타이머처럼 계속 카운트다운). 0 도달 시 자폭.
+	if (tower.cfg.towerBomb) {
+		if (tower.bombFuse === undefined) tower.bombFuse = TOWER_BOMB_FUSE_SECONDS;
+		tower.bombFuse = Math.max(0, tower.bombFuse - dt);
+		if (tower.bombFuse === 0) detonateTowerBomb(tower);
+		return;
 	}
 
 	// EMP 스턴 — 활성 EMP 장치의 대상이면 행동 정지 (쿨다운·버프 타이머는 진행, 오라 push도 정지)
@@ -626,19 +649,8 @@ export function updateTower(tower, dt) {
 		if (tower.cooldown <= 0) {
 			const damage = tower.damage;
 			if (cfg.areaSweep) {
-				// 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer)
-				// areaSweep은 광선 형태라 장벽이 적을 가려주는 효과 유지 (장벽 자체는 데미지 받음)
-				const hitRange = range + 10;
-				const sweepBlocked = allowed.includes('air');
-				for (const e of game.entities.enemies) {
-					if (e.dead) continue;
-					if (!allowed.includes(e.ga)) continue;
-					// 지하도 안 적도 범위에 있으면 맞음 — 조준만 불가, 비조준 광역은 유효
-					const d = Math.hypot(e.x - tower.x, e.y - tower.y);
-					if (d > hitRange) continue;
-					if (e.kind !== 'barrier' && sweepBlocked && isBlockedByBarrier(tower.x, tower.y, e)) continue;
-					applyTowerHit(tower, e, damage);
-				}
+				// 트랩: 사거리 내 모든 유효 적에 즉시 데미지 (+10 buffer). 광선 형태라 장벽이 적을 가려줌(장벽 자체는 피격).
+				areaSweepAt(tower.x, tower.y, range + 10, allowed, damage, tower);
 				spawnZap(tower.x, tower.y, range, cfg.color);
 			} else if (cfg.instantHit) {
 				if (cfg.pierces) {
@@ -725,6 +737,57 @@ export function updateTower(tower, dt) {
 	}
 }
 
+// 타워 폭탄 자폭 — 사거리 내 광역 스윕 연타 컨트롤러를 스폰하고, 사거리 내 '기본(novice)'을 '고장난 타워(broken)'로
+// 강제 replace한 뒤, 자신은 제거 대상으로 표시(detonated). 실제 제거·스탯 재계산은 scenes 프레임 말미에서 일괄.
+function detonateTowerBomb(tower) {
+	const { x, y } = tower;
+	const range = tower.range;   // 도화선 도중 캐시된 (버프 반영) 사거리
+	const damage = tower.damage; // cfg.damage(16)에 위치 버프 반영된 캐시
+
+	// 사거리 내 '기본' → '고장난 타워' 강제 교체. 기존 예약은 도달 불가가 되므로 해제.
+	for (const other of game.entities.towers) {
+		if (other.role !== 'novice') continue;
+		if (Math.hypot(other.x - x, other.y - y) > range) continue;
+		cancelReservation(other);
+		other.xp = 0;
+		other.cooldown = 0;
+		setTowerTier(other, 'broken', 0);
+	}
+
+	// 자폭 폭발 — 0.1초 간격 스윕 연타 컨트롤러(타워 삭제 후에도 지속). 폭발이라 지상/공중 모두 타격.
+	game.effects.towerBombs.push({
+		x, y, range,
+		damage,
+		allowed: ['ground', 'air'],
+		color: tower.cfg.color,
+		sweepsLeft: TOWER_BOMB_SWEEP_COUNT,
+		sweepTimer: 0,
+		dead: false,
+	});
+	// 초기 폭발 링 — 기존 splash 이펙트 재사용(붉은 경고색)
+	game.effects.splashes.push({ x, y, radius: range, life: 0.4, maxLife: 0.4, color: ACCENT_RED });
+
+	// 자신은 제거 대상 — 참조 정리 후 detonated 표시 (undeletable이라 deleteTower를 못 타므로 직접 정리)
+	cancelReservation(tower);
+	if (game.selectedTower === tower) game.selectedTower = null;
+	if (game.holdDelete?.tower === tower) game.holdDelete = null;
+	game.fusionMaterials = game.fusionMaterials.filter(m => m !== tower);
+	tower.detonated = true;
+}
+
+// 타워 폭탄 자폭 컨트롤러 — 0.1초 간격으로 사거리 내 광역 스윕을 정해진 횟수만큼 발생. 소진되면 소멸.
+// dt가 커도(프레임 드랍) while로 밀린 스윕을 따라잡음.
+export function updateTowerBomb(b, dt) {
+	b.sweepTimer -= dt;
+	while (b.sweepTimer <= 0 && b.sweepsLeft > 0) {
+		areaSweepAt(b.x, b.y, b.range + 10, b.allowed, b.damage, null);
+		spawnZap(b.x, b.y, b.range, b.color);
+		b.sweepsLeft--;
+		b.sweepTimer += TOWER_BOMB_SWEEP_INTERVAL;
+	}
+	if (b.sweepsLeft <= 0) b.dead = true;
+}
+
 export function drawTower(tower) {
 	const selected = (tower === game.selectedTower);
 	const isTarget = game.fusionMaterials.includes(tower) || !!tower.consumable; // 대상 지정된 실험실도 재료 대기 표시
@@ -752,6 +815,24 @@ export function drawTower(tower) {
 	// EMP 스턴 중엔 본체 메인 컬러를 EMP 테마색으로 대체 — 무력화 상태가 본체 색으로 드러남
 	const cfg = isEmpStunned(tower) ? { ...tower.cfg, color: EMP_COLOR } : tower.cfg;
 	drawTowerSprite(cfg, tower.x, tower.y, { angle: tower.angle, cooldown: tower.cooldown, selected });
+
+	// 타워 폭탄 도화선 — 스프라이트 위에 파이 타이머. 반지름 선이 360° 돌며 부채꼴을 채워 자폭 임박을 표시.
+	if (tower.cfg.towerBomb) {
+		const fuse = tower.bombFuse ?? TOWER_BOMB_FUSE_SECONDS;
+		const prog = clamp(1 - fuse / TOWER_BOMB_FUSE_SECONDS, 0, 1);
+		const start = -Math.PI / 2; // 12시 방향에서 시작
+		ctx.fillStyle = 'rgba(192, 57, 43, 0.55)'; // ACCENT_RED 반투명 채움
+		ctx.beginPath();
+		ctx.moveTo(tower.x, tower.y);
+		ctx.arc(tower.x, tower.y, TOWER.radius, start, start + prog * Math.PI * 2);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = ACCENT_RED; // 외곽 링 (타이머 경계)
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(tower.x, tower.y, TOWER.radius, 0, Math.PI * 2);
+		ctx.stroke();
+	}
 
 	if (tower.canPromote) {
 		const xpMax = tower.xpMax;

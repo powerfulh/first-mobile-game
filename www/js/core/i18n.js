@@ -110,6 +110,8 @@ const STRINGS = {
 	'tower.lab.tagline': { ko: '지정한 타워의 합체 재료 대행 · 비공격', ja: '指定タワーの合体素材を代行 · 非攻撃', en: 'Stand-in fusion material · Non-attacking' },
 	'tower.overload.name': { ko: '과부하', ja: '過負荷', en: 'Overload' },
 	'tower.overload.tagline': { ko: '사거리 내 일제 타격 · 지상/공중', ja: '射程内一斉攻撃 · 地上/空中', en: 'In-range volley · Ground/Air' },
+	'tower.towerBomb.name': { ko: '타워 폭탄', ja: 'タワー爆弾', en: 'Tower Bomb' },
+	'tower.towerBomb.tagline': { ko: '2초 후 자폭 · 광역 폭격 + 기본 타워 고장', ja: '2秒後に自爆 · 広域爆撃 + 基本タワー故障化', en: 'Self-destructs after 2s · area blast + breaks basic towers' },
 
 	// ---- 적 이름 (enemy.js) / 적 명단 (wiki.js가 키를 참조) ----
 	'enemy.boss': { ko: '보스', ja: 'ボス', en: 'Boss' },
