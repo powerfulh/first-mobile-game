@@ -281,7 +281,7 @@ export const TOWER_ROLES = {
 		attackTypes: ['ground', 'air'], splash: 0,
 		projectileSpeed: 300, // 1티어 (티어 유지 전직)
 		promotions: ['lab'],
-		refundRate: 2, // 삭제 시 투입 금액(배치비 + 전직 비용 합) 200% 환불 (기본 10%)
+		refundRate: 2.5, // 삭제 시 투입 금액(배치비 + 전직 비용 합) 250% 환불 (기본 10%)
 	},
 	// 재활용 전직 — 실험실: 공격 능력 상실, 삭제 환불 50%. 설정 패널에서 '대상 지정'한
 	// 3티어 역할의 4티어 합체 때 지정 재료 타워 대신 소모됨 (consumable = 대체 가능 역할 8종).
