@@ -493,8 +493,9 @@ export function processReservations() {
 	if (step) {
 		return promoteTower(first, step);
 	} else if (isFusionTriggerContext(first)) {
+		// 결과 판정도 지정 실험실 대행 포함 — isFusionTriggerContext와 동일 기준 (실험실만으로 재료가 채워진 경우 포함)
 		const roles = game.fusionMaterials.map(m => m.role);
-		if (fusionResultFor([...roles, first.role]) === target) return promoteFusion(first);
+		if (fusionResultWithLabs(first.role, roles) === target) return promoteFusion(first);
 	}
 	return false;
 }
