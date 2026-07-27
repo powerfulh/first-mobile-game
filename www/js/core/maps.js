@@ -240,7 +240,9 @@ export const MAPS = {
 			
 		},
 		fixedTowers: [
-			
+			{ x: 240, y: 224, role: 'broken' },
+			{ x: 100, y: 136, role: 'broken' },
+			{ x: 100, y: 372, role: 'broken' },
 		],
 		unlock: { type: 'clearWave', map: 'map6', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
