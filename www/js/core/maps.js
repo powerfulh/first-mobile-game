@@ -11,6 +11,7 @@ const allow1top = 9
 const allow1left = 7
 const allow1right = 38
 const middleX = 22
+const middleY = 40
 
 export const MAPS = {
 	map1: {
@@ -204,6 +205,44 @@ export const MAPS = {
 			{ x: 136, y: 544, role: 'usable', tier: 1 }, // 전직 산물 역할 — 해당 티어로 배치
 		],
 		unlock: { type: 'clearWave', map: 'map5', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
+	},
+	map6: {
+		id: 'map7',
+		name: 'map.map7.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: middleX * pathUnit, y: middleY * pathUnit },
+			{ x: middleX * pathUnit, y: 30 * pathUnit },
+			{ x: 24 * pathUnit, y: 23 * pathUnit },
+			{ x: 27 * pathUnit, y: 19 * pathUnit },
+			{ x: 31 * pathUnit, y: 18 * pathUnit },
+			{ x: 36 * pathUnit, y: 20 * pathUnit },
+			{ x: allow1right * pathUnit, y: 25 * pathUnit },
+			{ x: allow1right * pathUnit, y: 30 * pathUnit },
+			{ x: 36 * pathUnit, y: 35 * pathUnit },
+			{ x: 32 * pathUnit, y: 40 * pathUnit },
+			{ x: 22 * pathUnit, y: 48 * pathUnit },
+			{ x: 17 * pathUnit, y: 43 * pathUnit },
+			{ x: 13 * pathUnit, y: 33 * pathUnit, shortcut: true },
+			{ x: 13 * pathUnit, y: 25 * pathUnit },
+			{ x: 20 * pathUnit, y: 18 * pathUnit },
+			{ x: 25 * pathUnit, y: allow1top * pathUnit },
+			{ x: 15 * pathUnit, y: allow1top * pathUnit },
+			{ x: 10 * pathUnit, y: 12 * pathUnit },
+			{ x: 6 * pathUnit, y: 16 * pathUnit },
+			{ x: 4 * pathUnit, y: 35 * pathUnit, shortcut: true },
+			{ x: allow1left * pathUnit, y: 50 * pathUnit },
+			{ x: 22 * pathUnit, y: 65 * pathUnit },
+			{ x: rightX * pathUnit, y: 65 * pathUnit },
+		],
+		startGold: 100,
+		bgm: 'bgm3',
+		waveComposition: {
+			
+		},
+		fixedTowers: [
+			
+		],
+		unlock: { type: 'clearWave', map: 'map6', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
 };
 
