@@ -206,7 +206,7 @@ export const MAPS = {
 		],
 		unlock: { type: 'clearWave', map: 'map5', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
-	map6: {
+	map7: {
 		id: 'map7',
 		name: 'map.map7.name', // i18n 키 — 표시 시 사용처가 t()로 변환
 		path: [
