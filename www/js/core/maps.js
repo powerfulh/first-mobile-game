@@ -237,7 +237,7 @@ export const MAPS = {
 		startGold: 100,
 		bgm: 'bgm3',
 		waveComposition: {
-			
+			spawnIntervalStart: 0.72, spawnIntervalStep: 0.025, // 스폰 간격: wave 1에 0.72초, -0.025/wave → wave 10에 하한 0.5초 도달
 		},
 		fixedTowers: [
 			{ x: 240, y: 224, role: 'broken' },
