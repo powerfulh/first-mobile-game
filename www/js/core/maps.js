@@ -240,6 +240,7 @@ export const MAPS = {
 			spawnIntervalStart: 0.72, spawnIntervalStep: 0.025, // 스폰 간격: wave 1에 0.72초, -0.025/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적 등장을 wave 21~40으로 (기본 111~130 → 90웨이브 앞당김). 회복률 강화(161~170)·후반(191~200)은 기본 유지
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (기본 101~110 → minNarrow 0.30 @ wave 50)
+			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (기본 121~130 → maxNarrow 0.90 @ wave 70)
 			shieldCapRampWave: 70, // 방어막 출현 확률 상한 확장을 wave 71~80으로 (기본 81~90 → 10웨이브 앞당김)
 		},
 		fixedTowers: [
