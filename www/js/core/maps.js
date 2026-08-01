@@ -238,6 +238,7 @@ export const MAPS = {
 		bgm: 'bgm3',
 		waveComposition: {
 			spawnIntervalStart: 0.72, spawnIntervalStep: 0.025, // 스폰 간격: wave 1에 0.72초, -0.025/wave → wave 10에 하한 0.5초 도달
+			shieldCapRampWave: 70, // 방어막 출현 확률 상한 확장을 wave 71~80으로 (기본 81~90 → 10웨이브 앞당김)
 		},
 		fixedTowers: [
 			{ x: 240, y: 224, role: 'broken' },
