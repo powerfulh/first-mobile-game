@@ -242,6 +242,7 @@ export const MAPS = {
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (기본 101~110 → minNarrow 0.30 @ wave 50)
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (기본 121~130 → maxNarrow 0.90 @ wave 70)
 			shieldCapRampWave: 70, // 방어막 출현 확률 상한 확장을 wave 71~80으로 (기본 81~90 → 10웨이브 앞당김)
+			shieldCapRamp2Wave: 80, // 방어막 출현 확률 상한 추가 확장을 wave 81~90으로 (기본 101~110 → 40%→50%)
 		},
 		fixedTowers: [
 			{ x: 240, y: 224, role: 'broken' },
