@@ -21,9 +21,9 @@ export const MAPS = {
 		path: [
 			{ x: 8 * pathUnit, y: 0 },
 			{ x: 8 * pathUnit, y: 19 * pathUnit },
-			{ x: 280, y: 19 * pathUnit },
-			{ x: 280, y: 350 },
-			{ x: 80, y: 350 },
+			{ x: 35 * pathUnit, y: 19 * pathUnit },
+			{ x: 35 * pathUnit, y: 44 * pathUnit },
+			{ x: 80, y: 44 * pathUnit },
 			{ x: 80, y: 540 },
 			{ x: 300, y: 540 },
 			{ x: 300, y: 640 },
