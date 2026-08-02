@@ -464,7 +464,7 @@ export function updateEnemy(e, dt) {
 		if (target) {
 			if (e.stunTimer > 0) {
 				e.stunTimer = Math.max(0, e.stunTimer - dt); // 스턴 중엔 치료도 정지 (락온은 유지)
-			} else {
+			} else if (!target.regenDisabled) { // 염라 회복 차단 — 대상이 차단 중이면 락온만 유지, 치료 없음
 				target.hp = Math.min(target.hpMax, target.hp + target.hpMax * e.healRate * dt);
 				if (target.hp >= target.hpMax) e.healTarget = null;
 			}
@@ -678,24 +678,74 @@ function drawAirBoss(e) {
 	ctx.restore();
 }
 
-// 치료 빔 — 치료 적 → 대상. 재생 테마색 외곽 광채 + 밝은 코어 선, 대상에는 재생 오라.
-function drawHealBeam(x, y, target) {
+// 치료 빔 선분 — 재생 테마색 외곽 광채 + 밝은 코어 (alphaScale: 굴절 산란 가지 감쇠용).
+function healStroke(x1, y1, x2, y2, alphaScale) {
 	ctx.strokeStyle = '#2ecc71';
-	ctx.globalAlpha = 0.35;
+	ctx.globalAlpha = 0.35 * alphaScale;
 	ctx.lineWidth = 4;
 	ctx.beginPath();
-	ctx.moveTo(x, y);
-	ctx.lineTo(target.x, target.y);
+	ctx.moveTo(x1, y1);
+	ctx.lineTo(x2, y2);
 	ctx.stroke();
 	ctx.strokeStyle = '#d5f5e3';
-	ctx.globalAlpha = 0.9;
+	ctx.globalAlpha = 0.9 * alphaScale;
 	ctx.lineWidth = 1.5;
 	ctx.beginPath();
-	ctx.moveTo(x, y);
-	ctx.lineTo(target.x, target.y);
+	ctx.moveTo(x1, y1);
+	ctx.lineTo(x2, y2);
 	ctx.stroke();
 	ctx.globalAlpha = 1;
+}
+
+// 치료 빔 — 치료 적 → 대상. 대상에는 재생 오라.
+function drawHealBeam(x, y, target) {
+	healStroke(x, y, target.x, target.y, 1);
 	drawRegenAura(target.x, target.y, target.radius + 4);
+}
+
+// 대상을 차단 중인 염라(blocksRegen 타워) — 대상과 가장 가까운 것.
+function findRegenBlocker(target) {
+	let best = null;
+	let bestD = Infinity;
+	for (const tw of game.entities.towers) {
+		if (!tw.cfg.blocksRegen) continue;
+		const d = Math.hypot(target.x - tw.x, target.y - tw.y);
+		if (d <= tw.range && d < bestD) {
+			bestD = d;
+			best = tw;
+		}
+	}
+	return best;
+}
+
+// 선분 A→B가 원(C, r) 경계로 진입하는 첫 교점 — A가 원 밖일 때만 유효, 없으면 null.
+function segmentCircleEntry(ax, ay, bx, by, cx, cy, r) {
+	const dx = bx - ax, dy = by - ay;
+	const fx = ax - cx, fy = ay - cy;
+	const a = dx * dx + dy * dy;
+	const b = 2 * (fx * dx + fy * dy);
+	const c = fx * fx + fy * fy - r * r;
+	const disc = b * b - 4 * a * c;
+	if (a === 0 || disc < 0) return null;
+	const t = (-b - Math.sqrt(disc)) / (2 * a);
+	if (t < 0 || t > 1) return null; // A가 이미 원 안이거나 선분이 경계에 못 미침
+	return { x: ax + dx * t, y: ay + dy * t };
+}
+
+// 염라 차단 중 치료 빔 — 차단 밖의 치료 적이 차단 안 대상을 락온한 경우.
+// 빔이 염라 사거리 경계에서 끊기고, 매 프레임 난수 각도로 굴절되어 밖으로 흩어짐. 대상 오라 없음.
+function drawBlockedHealBeam(x, y, target) {
+	const blocker = findRegenBlocker(target);
+	if (!blocker) return;
+	const hit = segmentCircleEntry(x, y, target.x, target.y, blocker.x, blocker.y, blocker.range);
+	if (!hit) return;
+	healStroke(x, y, hit.x, hit.y, 1);
+	const inAngle = Math.atan2(target.y - y, target.x - x);
+	for (const sign of [-1, 1]) {
+		const a = inAngle + sign * (0.6 + Math.random() * 0.7); // 굴절 각 — 프레임마다 난수로 흩어짐
+		const len = 10 + Math.random() * 8;
+		healStroke(hit.x, hit.y, hit.x + Math.cos(a) * len, hit.y + Math.sin(a) * len, 0.5);
+	}
 }
 
 function drawRegenAura(cx, cy, baseR) {
@@ -852,8 +902,13 @@ function drawEnemyBody(e) {
 	if (e.kind === 'transport') opts.cargo = 2 - (e.transportSpawned || 0); // 방출한 만큼 빨간 원 감소
 	if (e.kind === 'shockDisperser') opts.shockCharges = e.shockCharges; // 공전 실드 = 남은 분산 횟수
 	if (e.kind === 'healer') {
-		opts.healing = !!e.healTarget; // 능력 발동 중 — 재생 적처럼 테두리 글로우
-		if (e.healTarget && !e.healTarget.dead) drawHealBeam(e.x, bobY, e.healTarget); // 빔은 본체 아래 레이어
+		const ht = e.healTarget;
+		opts.healing = !!ht; // 능력 발동 중(락온) — 재생 적처럼 테두리 글로우
+		if (ht && !ht.dead) {
+			// 염라 회복 차단 중 빔 분기 — 대상 미차단: 정상 빔 / 치료 적만 차단 밖: 경계 굴절 / 둘 다 차단: 빔 생략
+			if (!ht.regenDisabled) drawHealBeam(e.x, bobY, ht); // 빔은 본체 아래 레이어
+			else if (!e.regenDisabled) drawBlockedHealBeam(e.x, bobY, ht);
+		}
 	}
 	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, opts);
 	if (e.kind === 'shockDisperser' && e.shockFxLife > 0) {
