@@ -308,7 +308,7 @@ export const TOWER_ROLES = {
 	// 자폭 = 사거리 내 광역 스윕 10연타 + 사거리 내 '기본(novice)'을 '고장난 타워(broken)'로 강제 replace.
 	towerBomb: {
 		name: 'tower.towerBomb.name', tagline: 'tower.towerBomb.tagline',
-		color: '#7f8c8d', color2: '#4d5656', // 과부하와 동일 무채색 (외형 공유)
+		color: '#4d5656', color2: '#4d5656',
 		range: 90, fireRate: 0, damage: 16,
 		attackTypes: [], splash: 0, // 공격 기능 상실 — 평상시 무공격, damage는 자폭 스윕에만 사용
 		promotions: [],
