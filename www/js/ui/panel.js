@@ -649,6 +649,9 @@ export function drawEnemyInfoPanel(e, factor, wikiAvailable) {
 	if (e.kind === 'regen') {
 		ctx.fillText(t('panel.heal', { pct: Math.round(e.regenRate * 100) }), sx, rowY());
 	}
+	if (e.kind === 'healer') {
+		ctx.fillText(t('panel.healOthers', { pct: Math.round(e.healRate * 100) }), sx, rowY());
+	}
 	if (e.kind === 'barrierSpawner') {
 		ctx.fillText(t('panel.barrierHp', { hp: fmtHp(e.barrierHp) }), sx, rowY());
 	}

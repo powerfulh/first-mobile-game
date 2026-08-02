@@ -164,6 +164,7 @@ const STRINGS = {
 	'panel.speed': { ko: '이동 속도: {spd}', ja: '移動速度: {spd}', en: 'Speed: {spd}' },
 	'panel.speedSlowed': { ko: '이동 속도: {spd} (둔화 {pct}%)', ja: '移動速度: {spd} (減速 {pct}%)', en: 'Speed: {spd} (slowed {pct}%)' },
 	'panel.heal': { ko: '초당 회복: {pct}%', ja: '毎秒回復: {pct}%', en: 'Heal: {pct}%/s' },
+	'panel.healOthers': { ko: '치료 회복률: 초당 {pct}%', ja: '治療回復率: 毎秒{pct}%', en: 'Heals allies: {pct}%/s' },
 	'panel.barrierHp': { ko: '장벽 체력: {hp}', ja: 'バリアHP: {hp}', en: 'Barrier HP: {hp}' },
 	'panel.armor': { ko: '방어력: {n}', ja: '防御力: {n}', en: 'Armor: {n}' },
 	'panel.dmgBuffed': { ko: '데미지: {dmg} (+{pct}%, {dps}/초)', ja: 'ダメージ: {dmg} (+{pct}%, {dps}/秒)', en: 'DMG: {dmg} (+{pct}%, {dps}/s)' },
