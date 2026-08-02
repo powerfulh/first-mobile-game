@@ -237,6 +237,7 @@ export const MAPS = {
 		startGold: 100,
 		bgm: 'bgm3',
 		waveComposition: {
+			barrierStartWave: Infinity, // 장벽 적 미출현
 			spawnIntervalStart: 0.72, spawnIntervalStep: 0.025, // 스폰 간격: wave 1에 0.72초, -0.025/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적 등장을 wave 21~40으로 (기본 111~130 → 90웨이브 앞당김)
 			regenHealRampWave: 30, // 재생 회복률 강화를 wave 31~40으로 (기본 161~170 → 12%→22%). 후반 강화(191~200)는 기본 유지
@@ -244,7 +245,7 @@ export const MAPS = {
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (기본 121~130 → maxNarrow 0.90 @ wave 70)
 			shieldCapRampWave: 70, // 방어막 출현 확률 상한 확장을 wave 71~80으로 (기본 81~90 → 10웨이브 앞당김)
 			shieldCapRamp2Wave: 80, // 방어막 출현 확률 상한 추가 확장을 wave 81~90으로 (기본 101~110 → 40%→50%)
-			barrierStartWave: Infinity, // 장벽 적 미출현 (맵7 구성에서 제외)
+			transportStartWave: 81, transportChanceStep: 0.008, transportChanceCap: 0.16, // 수송 적: wave 81부터 0.8% (+0.8%/wave → wave 100에 상한 16%)
 		},
 		fixedTowers: [
 			{ x: 240, y: 224, role: 'broken' },
