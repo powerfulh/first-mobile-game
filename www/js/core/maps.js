@@ -241,6 +241,7 @@ export const MAPS = {
 			spawnIntervalStart: 0.72, spawnIntervalStep: 0.025, // 스폰 간격: wave 1에 0.72초, -0.025/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적 등장을 wave 21~40으로 (기본 111~130 → 90웨이브 앞당김)
 			regenHealRampWave: 30, // 재생 회복률 강화를 wave 31~40으로 (기본 161~170 → 12%→22%)
+			countRampWave: 36, // 적 수 +2→+1 완화를 wave 36으로 앞당김 (기본 40 → 고정 적 수 124→120)
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (기본 101~110 → minNarrow 0.30 @ wave 50)
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (기본 121~130 → maxNarrow 0.90 @ wave 70)
 			densityLateWave: 90, // 조밀도 상하한 추가 강화를 wave 91~100으로 (기본 171~180 → narrow 0.20~0.80 @ wave 100)
