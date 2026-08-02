@@ -5,7 +5,7 @@ import { ctx } from '../core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, AIR_COLOR, ACCENT_RED, GOLD, INFO_BLUE,
 	AIR_INTRO_KEY, BUFF_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY,
-	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY,
+	TIER4_INTRO_KEY, TIER5_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY, HEALER_INTRO_KEY,
 	QUEUE_INTRO_KEY, PARALLEL_INTRO_KEY, SHORTCUT_INTRO_KEY, UNDERPASS_INTRO_KEY, STATS_INTRO_KEY, FIXED_TOWER_INTRO_KEY, LAB_SETTINGS_INTRO_KEY,
 	MAP_BG_COLOR, TOWER_ROLES,
 } from '../core/config.js';
@@ -330,6 +330,13 @@ export const INTRO_MODALS = {
 		drawIcon: (cx, cy) => drawEnemySprite('shockDisperser', cx, cy, 14),
 		title: 'intro.shock.title',
 		lines: ['intro.shock.line1', 'intro.shock.line2', 'intro.shock.line3'],
+	}),
+
+	healerIntro: makeIntro({
+		key: HEALER_INTRO_KEY, accent: '#2ecc71', // 재생·치료 테마색
+		drawIcon: (cx, cy) => drawEnemySprite('healer', cx, cy, 14),
+		title: 'intro.healer.title',
+		lines: ['intro.healer.line1', 'intro.healer.line2', 'intro.healer.line3'],
 	}),
 
 	parallelIntro: makeIntro({
