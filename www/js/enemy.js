@@ -391,14 +391,16 @@ export function spawnBoss() {
 // ============ Update ============
 // 감속 디버프 반영 유효 이동 속도 — 하한 ENEMY_SLOW_SPEED_FLOOR(자연 속도가 그보다 낮으면 자연 속도 유지).
 // 이동 계산·적 정보 패널(둔화 표시)이 공용.
-// 치료 대상 탐색 — 사거리 내 체력 90% 이하의 공중 타입 중 가장 가까운 적 (치료 적 자신·동족 제외).
+// 치료 대상 탐색 — 사거리 내 체력 90% 이하의 공중 타입 중 가장 가까운 적 (치료 적 자신·동족·장벽 제외).
 function findHealTarget(e) {
 	let best = null;
 	let bestD = Infinity;
 	for (const o of game.entities.enemies) {
 		if (o === e || o.dead) continue;
-		if (o.ga !== 'air' || o.kind === 'healer') continue;
+		if (o.ga !== 'air' || o.kind === 'healer' || o.kind === 'barrier') continue;
 		if (o.hp > o.hpMax * HEALER_HP_THRESHOLD) continue;
+		// 이미 다른 치료 적이 락온한 대상 제외 — 중복 치료 방지
+		if (game.entities.enemies.some(h => h !== e && h.kind === 'healer' && h.healTarget === o)) continue;
 		const d = Math.hypot(o.x - e.x, o.y - e.y);
 		if (d <= HEALER_RANGE && d < bestD) {
 			bestD = d;

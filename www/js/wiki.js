@@ -1,7 +1,7 @@
 import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, LOGICAL_H, TOWER_ROLES, fusionRecipesWithMaterial, ACCENT_RED, INFO_BLUE, SLATE,
-	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FIXED_DAMAGE,
+	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FIXED_DAMAGE, HEALER_RANGE, HEALER_HP_THRESHOLD,
 } from './core/config.js';
 import { roundRect, hitButton, clamp } from './core/helpers.js';
 import { changeScene } from './scenes.js';
@@ -120,6 +120,17 @@ const ENEMY_ENTRIES = [
 			max: SHOCK_CHARGES_MAX,
 			sec: SHOCK_REGEN_SECONDS,
 			dmg: SHOCK_FIXED_DAMAGE,
+		},
+	},
+	{
+		key: 'healer',
+		name: 'enemy.healer.name',
+		tagline: 'enemy.healer.tagline',
+		description: ['enemy.healer.desc1', 'enemy.healer.desc2', 'enemy.healer.desc3'],
+		// 실제 게임 상수와 연동 — 밸런스 수치가 바뀌면 위키도 자동 반영
+		descriptionParams: {
+			range: HEALER_RANGE,
+			hp: HEALER_HP_THRESHOLD * 100,
 		},
 	},
 ];
