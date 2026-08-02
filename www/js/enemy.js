@@ -740,9 +740,10 @@ function drawBlockedHealBeam(x, y, target) {
 	const hit = segmentCircleEntry(x, y, target.x, target.y, blocker.x, blocker.y, blocker.range);
 	if (!hit) return;
 	healStroke(x, y, hit.x, hit.y, 1);
-	const inAngle = Math.atan2(target.y - y, target.x - x);
+	// 굴절 가지 — 교점의 바깥쪽 법선(염라 중심 → 교점) 기준 ±난수 각으로, 항상 경계 밖을 향해 흩어짐
+	const outAngle = Math.atan2(hit.y - blocker.y, hit.x - blocker.x);
 	for (const sign of [-1, 1]) {
-		const a = inAngle + sign * (0.6 + Math.random() * 0.7); // 굴절 각 — 프레임마다 난수로 흩어짐
+		const a = outAngle + sign * (0.2 + Math.random() * 0.7); // 법선에서 약 11°~52° 벌어짐 + 프레임 난수
 		const len = 10 + Math.random() * 8;
 		healStroke(hit.x, hit.y, hit.x + Math.cos(a) * len, hit.y + Math.sin(a) * len, 0.5);
 	}
