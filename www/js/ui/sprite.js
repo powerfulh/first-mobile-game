@@ -143,6 +143,40 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = strokeW;
 		ctx.stroke();
+	} else if (type === 'healer') {
+		// 치료 적 — 공중 적(삼각형) 기반 + 몸체 중앙에 재생 테마색 코어.
+		// 능력 발동 중(opts.healing)엔 재생 적처럼 테두리 글로우가 맥동.
+		if (opts.healing) {
+			const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
+			ctx.globalAlpha = 0.25 + 0.25 * pulse;
+			ctx.fillStyle = '#2ecc71';
+			const gr = r + 4;
+			ctx.beginPath();
+			ctx.moveTo(cx, cy - gr);
+			ctx.lineTo(cx - gr * 0.9, cy + gr * 0.6);
+			ctx.lineTo(cx + gr * 0.9, cy + gr * 0.6);
+			ctx.closePath();
+			ctx.fill();
+			ctx.globalAlpha = 1;
+		}
+		ctx.fillStyle = AIR_COLOR;
+		ctx.beginPath();
+		ctx.moveTo(cx, cy - r);
+		ctx.lineTo(cx - r * 0.9, cy + r * 0.6);
+		ctx.lineTo(cx + r * 0.9, cy + r * 0.6);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = strokeW;
+		ctx.stroke();
+		// 코어 — 재생 테마색 (몸체 무게중심 부근)
+		ctx.fillStyle = '#2ecc71';
+		ctx.beginPath();
+		ctx.arc(cx, cy + r * 0.1, r * 0.35, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.strokeStyle = '#1e8449';
+		ctx.lineWidth = 1;
+		ctx.stroke();
 	} else if (type === 'transport') {
 		// 수송 적 — 공중 적(삼각형) 기반. 각 변이 바깥으로 살짝 볼록해 통통한 느낌 + 몸체 중앙에 작은 빨간 원 두 개.
 		const verts = [

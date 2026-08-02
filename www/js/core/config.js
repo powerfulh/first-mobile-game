@@ -410,6 +410,10 @@ export const SHOCK_REGEN_SECONDS = 0.5; // 횟수가 최대 미만일 때 1 회�
 export const SHOCK_FIXED_DAMAGE = 0.1; // 분산 발동 시 실제로 들어가는 고정 데미지
 export const SHOCK_FX_SECONDS = 0.35; // 분산 발동 시 적 위에 겹치는 방패 이펙트 수명
 
+// 치료 적 — 아군 공중 타입에 락온해 회복시키는 지원 유닛. 락온 중엔 제자리 정지.
+export const HEALER_RANGE = 80; // 능력 발동 사거리 — 락온 이후에는 사거리 무관 유지
+export const HEALER_HP_THRESHOLD = 0.9; // 체력이 이 비율 이하인 공중 타입만 치료 대상
+
 export const SAVE_KEY = 'td_save_v1';
 export const BEST_WAVE_KEY = 'td_best_wave';
 export const UNLOCKED_MAPS_KEY = 'td_unlocked_maps';

@@ -142,6 +142,7 @@ const STRINGS = {
 	'enemy.transport.tagline': { ko: '{map}맵 최초 등장 · 이동 중 일반 적 투하', ja: '{map}マップ初登場 · 移動中に通常の敵を投下', en: '{map} map debut · drops enemies en route' },
 	'enemy.transport.desc1': { ko: '공중 타입, 속도는 일반 적의 75%', ja: '空中タイプ、速度は通常の敵の75%', en: 'Air type; moves at 75% of normal speed' },
 	'enemy.transport.desc2': { ko: '이동 중 최대 2회, 체력이 40% 이상이면 33%를 소모해 일반 적(체력 40%)을 그 자리에 투하', ja: '移動中最大2回、HPが40%以上なら33%を消費して通常の敵(HP40%)をその場に投下', en: 'Up to twice en route, if HP ≥ 40%, spends 33% HP to drop a normal enemy (40% HP)' },
+	'enemy.healer.name': { ko: '치료 적', ja: '治療の敵', en: 'Healer' },
 	'enemy.shockDisperser.name': { ko: '충격 분산 적', ja: '衝撃分散の敵', en: 'Shock Disperser' },
 	'enemy.shockDisperser.tagline': { ko: '{map}맵 최초 등장 · 들어온 피해를 분산', ja: '{map}マップ初登場 · 受けたダメージを分散', en: '{map} map debut · disperses incoming damage' },
 	'enemy.shockDisperser.desc1': { ko: '지상 타입, 체력은 일반 적의 {hp}%', ja: '地上タイプ、HPは通常の敵の{hp}%', en: 'Ground type; {hp}% HP of a normal enemy' },

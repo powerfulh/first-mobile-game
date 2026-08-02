@@ -2,7 +2,7 @@ import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, ENEMY_SLOW_SPEED_FLOOR, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY,
-	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FX_SECONDS,
+	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FX_SECONDS, HEALER_RANGE, HEALER_HP_THRESHOLD,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
@@ -24,6 +24,7 @@ const DEFAULT_WAVE = {
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	transportStartWave: Infinity, transportChanceStep: 0.004, transportChanceCap: 0.04, // 신규 적(transport) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	shockStartWave: Infinity, shockChanceStep: 0.004, shockChanceCap: 0.04, // 신규 적(shockDisperser) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
+	healerStartWave: Infinity, healerChanceStep: 0.004, healerChanceCap: 0.04, // 신규 적(healer) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	regenHealRampWave: 160, // 이 웨이브 이후 재생 회복률 +1%/wave (10웨이브 누적 +10%)
 	shieldBoostWave: 130, // 이 웨이브 이후 방어막 데미지 감소 +0.1/wave (15웨이브 누적 +1.5) — Infinity면 강화 없음
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 shieldCapRampWave 이후 10웨이브 램프로 0.4까지 확장
@@ -102,6 +103,13 @@ export function getShockDisperserChance(wave) {
 	const p = wparams();
 	if (wave < p.shockStartWave) return 0;
 	return Math.min(p.shockChanceCap, (wave - p.shockStartWave + 1) * p.shockChanceStep);
+}
+
+// 신규 적(healer) 출현 확률 — 시작 웨이브에 step, 이후 +step/wave 누적 (cap까지). 기본은 미출현.
+export function getHealerChance(wave) {
+	const p = wparams();
+	if (wave < p.healerStartWave) return 0;
+	return Math.min(p.healerChanceCap, (wave - p.healerStartWave + 1) * p.healerChanceStep);
 }
 
 export function getBarrierSpawnerChance(wave) {
@@ -190,7 +198,8 @@ export function spawnEnemy(spawner) {
 	// 정체성(kind) 결정: 나중에 정의된 종부터 배타적으로 확률 굴림. kind가 GA까지 식별.
 	//  barrierSpawner/air=공중, regen/basic=지상.
 	let kind, spriteType, ga;
-	if (Math.random() < getShockDisperserChance(wave)) { kind = 'shockDisperser'; spriteType = 'shockDisperser'; ga = 'ground'; }
+	if (Math.random() < getHealerChance(wave)) { kind = 'healer'; spriteType = 'healer'; ga = 'air'; }
+	else if (Math.random() < getShockDisperserChance(wave)) { kind = 'shockDisperser'; spriteType = 'shockDisperser'; ga = 'ground'; }
 	else if (Math.random() < getTransportChance(wave)) { kind = 'transport'; spriteType = 'transport'; ga = 'air'; }
 	else if (Math.random() < getEmpChance(wave)) { kind = 'emp'; spriteType = 'emp'; ga = 'ground'; }
 	else if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
@@ -203,6 +212,7 @@ export function spawnEnemy(spawner) {
 	let hp = isAir ? round1(baseHp * getAirHpRatio(wave)) : baseHp;
 	if (kind === 'emp') hp = round1(baseHp * 0.5); // EMP 적 — 일반 적의 절반
 	if (kind === 'shockDisperser') hp = round1(baseHp * SHOCK_HP_RATIO); // 충격 분산 적 — 일반 적의 75%
+	if (kind === 'healer') hp = baseHp; // 치료 적 — 공중이지만 HP는 일반 적과 동일 (공중 비율 미적용)
 	const baseSpeed = getEnemyBaseSpeed(wave);
 	const speed = kind === 'regen' ? baseSpeed * 0.5
 		: kind === 'transport' ? baseSpeed * 0.75
@@ -241,6 +251,9 @@ export function spawnEnemy(spawner) {
 		shockCharges: kind === 'shockDisperser' ? SHOCK_CHARGES_MAX : 0,
 		shockRegenTimer: 0,
 		shockFxLife: 0, // 분산 발동 시 방패 이펙트 잔여 수명 (초)
+		// 치료 적 — 사거리 내 다친 공중 타입에 락온해 회복 (updateEnemy). 회복률은 재생 적과 동일 기준.
+		healRate: kind === 'healer' ? getRegenHealRate(wave) : 0,
+		healTarget: null,
 		waveNum: wave, // 소속 웨이브 — 병렬 웨이브 완료 추적 + 스폰 시 스펙 고정 기준
 	});
 	// 출현 요약 카운트 — 분류 키 = 스프라이트 종류 (요약이 스프라이트로 표시)
@@ -378,6 +391,23 @@ export function spawnBoss() {
 // ============ Update ============
 // 감속 디버프 반영 유효 이동 속도 — 하한 ENEMY_SLOW_SPEED_FLOOR(자연 속도가 그보다 낮으면 자연 속도 유지).
 // 이동 계산·적 정보 패널(둔화 표시)이 공용.
+// 치료 대상 탐색 — 사거리 내 체력 90% 이하의 공중 타입 중 가장 가까운 적 (치료 적 자신·동족 제외).
+function findHealTarget(e) {
+	let best = null;
+	let bestD = Infinity;
+	for (const o of game.entities.enemies) {
+		if (o === e || o.dead) continue;
+		if (o.ga !== 'air' || o.kind === 'healer') continue;
+		if (o.hp > o.hpMax * HEALER_HP_THRESHOLD) continue;
+		const d = Math.hypot(o.x - e.x, o.y - e.y);
+		if (d <= HEALER_RANGE && d < bestD) {
+			bestD = d;
+			best = o;
+		}
+	}
+	return best;
+}
+
 export function getEffectiveSpeed(e) {
 	const factor = e.slowFactor ?? 1;
 	if (factor >= 1) return e.speed;
@@ -418,6 +448,22 @@ export function updateEnemy(e, dt) {
 				startParachuteFx(e.x, e.y);
 				e.transportSpawned++;
 			}
+		}
+	}
+	// 치료 적 — 사거리 내 체력 90% 이하의 아군 공중 타입에 락온해 회복. 락온 후에는 사거리 무관,
+	// 대상이 완쾌하거나 죽을 때까지 유지되며 그동안 제자리 정지.
+	if (e.kind === 'healer') {
+		if (e.healTarget && (e.healTarget.dead || e.healTarget.hp >= e.healTarget.hpMax)) e.healTarget = null;
+		if (!e.healTarget) e.healTarget = findHealTarget(e);
+		const target = e.healTarget;
+		if (target) {
+			if (e.stunTimer > 0) {
+				e.stunTimer = Math.max(0, e.stunTimer - dt); // 스턴 중엔 치료도 정지 (락온은 유지)
+			} else {
+				target.hp = Math.min(target.hpMax, target.hp + target.hpMax * e.healRate * dt);
+				if (target.hp >= target.hpMax) e.healTarget = null;
+			}
+			return; // 능력 발동 중 — 이동하지 않음
 		}
 	}
 	const path = e.path || getActiveMap().path;
@@ -627,6 +673,26 @@ function drawAirBoss(e) {
 	ctx.restore();
 }
 
+// 치료 빔 — 치료 적 → 대상. 재생 테마색 외곽 광채 + 밝은 코어 선, 대상에는 재생 오라.
+function drawHealBeam(x, y, target) {
+	ctx.strokeStyle = '#2ecc71';
+	ctx.globalAlpha = 0.35;
+	ctx.lineWidth = 4;
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.lineTo(target.x, target.y);
+	ctx.stroke();
+	ctx.strokeStyle = '#d5f5e3';
+	ctx.globalAlpha = 0.9;
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.lineTo(target.x, target.y);
+	ctx.stroke();
+	ctx.globalAlpha = 1;
+	drawRegenAura(target.x, target.y, target.radius + 4);
+}
+
 function drawRegenAura(cx, cy, baseR) {
 	// 사방으로 + 파티클이 흩어지며 페이드아웃 (각 파티클이 서로 다른 페이즈)
 	const count = 6;
@@ -668,6 +734,7 @@ function enemyName(kind) {
 		case 'barrierSpawner': return t('enemy.barrierSpawner.name');
 		case 'transport': return t('enemy.transport.name');
 		case 'shockDisperser': return t('enemy.shockDisperser.name');
+		case 'healer': return t('enemy.healer.name');
 		case 'emp': return t('enemy.emp.name');
 		case 'regen': return t('enemy.regen.name');
 		case 'air': return t('enemy.air.name');
@@ -779,6 +846,10 @@ function drawEnemyBody(e) {
 	const opts = { shielded: e.shielded };
 	if (e.kind === 'transport') opts.cargo = 2 - (e.transportSpawned || 0); // 방출한 만큼 빨간 원 감소
 	if (e.kind === 'shockDisperser') opts.shockCharges = e.shockCharges; // 공전 실드 = 남은 분산 횟수
+	if (e.kind === 'healer') {
+		opts.healing = !!e.healTarget; // 능력 발동 중 — 재생 적처럼 테두리 글로우
+		if (e.healTarget && !e.healTarget.dead) drawHealBeam(e.x, bobY, e.healTarget); // 빔은 본체 아래 레이어
+	}
 	drawEnemySprite(e.spriteType, e.x, bobY, e.radius, opts);
 	if (e.kind === 'shockDisperser' && e.shockFxLife > 0) {
 		drawShockShieldFx(e.x, bobY, e.radius, e.shockFxLife / SHOCK_FX_SECONDS); // 분산 발동 — 방패가 몸체에 겹쳐짐
