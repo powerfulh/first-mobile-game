@@ -246,6 +246,7 @@ export const MAPS = {
 			shieldCapRampWave: 70, // 방어막 출현 확률 상한 확장을 wave 71~80으로 (기본 81~90 → 10웨이브 앞당김)
 			shieldCapRamp2Wave: 80, // 방어막 출현 확률 상한 추가 확장을 wave 81~90으로 (기본 101~110 → 40%→50%)
 			transportStartWave: 81, transportChanceStep: 0.008, transportChanceCap: 0.16, // 수송 적: wave 81부터 0.8% (+0.8%/wave → wave 100에 상한 16%)
+			healerStartWave: 141, healerChanceCap: 0.08, // 치료 적: wave 141부터 0.4% (+0.4%/wave → wave 160에 상한 8%)
 		},
 		fixedTowers: [
 			{ x: 240, y: 224, role: 'broken' },
