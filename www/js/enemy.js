@@ -30,6 +30,7 @@ const DEFAULT_WAVE = {
 	shieldStartCap: 0.2, // 방어막 등장(51) 시점 출현 확률 상한 — 0.4 미만이면 shieldCapRampWave 이후 10웨이브 램프로 0.4까지 확장
 	shieldCapRampWave: 80, // 이 웨이브 이후 방어막 출현 확률 상한 +2%/wave (10웨이브 누적, 0.4 상한) — 기본 81~90
 	shieldCapRamp2Wave: 100, // 이 웨이브 이후 방어막 출현 확률 상한 +1%/wave (10웨이브 누적, +0.1) — 기본 101~110
+	shieldCapRamp3Wave: 180, // 이 웨이브 이후 방어막 출현 확률 상한 +3%/wave (10웨이브 누적, +0.3) — 기본 181~190
 	spawnIntervalStart: 1.2, spawnIntervalStep: 0.08, // 스폰 간격: wave 1 시작값에서 -step/wave (하한 0.5초 공통)
 	countRampWave: 40, countCapWave: 79, // < rampWave: +2/wave, [rampWave..capWave]: +1/wave, 이후 고정
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
@@ -132,11 +133,11 @@ export function getShieldChance(wave, spawnInterval) {
 	const ratio = span > 0
 		? clamp((currentNarrow - minN) / span, 0, 1)
 		: 1;
-	// 상한 누적: shieldCapRampWave 이후 10웨이브 +2%/wave (기본 81~90, 시작 상한 → 40%; 이미 40%면 없음), shieldCapRamp2Wave 이후 +1%/wave (기본 101~110), 181~190 +3%/wave
+	// 상한 누적: shieldCapRampWave 이후 10웨이브 +2%/wave (기본 81~90, 시작 상한 → 40%; 이미 40%면 없음), shieldCapRamp2Wave 이후 +1%/wave (기본 101~110), shieldCapRamp3Wave 이후 +3%/wave (기본 181~190)
 	const p = wparams();
 	const bonus = clamp((wave - p.shieldCapRampWave) * 0.02, 0, Math.max(0, 0.4 - p.shieldStartCap));
 	const extraBonus = clamp((wave - p.shieldCapRamp2Wave) * 0.01, 0, 0.10);
-	const lateBonus = clamp((wave - 180) * 0.03, 0, 0.30);
+	const lateBonus = clamp((wave - p.shieldCapRamp3Wave) * 0.03, 0, 0.30);
 	return 0.01 + ratio * ((p.shieldStartCap - 0.01) + bonus + extraBonus + lateBonus);
 }
 

@@ -246,6 +246,7 @@ export const MAPS = {
 			densityLateWave: 90, // 조밀도 상하한 추가 강화를 wave 91~100으로 (기본 171~180 → narrow 0.20~0.80 @ wave 100)
 			shieldCapRampWave: 70, // 방어막 출현 확률 상한 확장을 wave 71~80으로 (기본 81~90 → 10웨이브 앞당김)
 			shieldCapRamp2Wave: 80, // 방어막 출현 확률 상한 추가 확장을 wave 81~90으로 (기본 101~110 → 40%→50%)
+			shieldCapRamp3Wave: 100, // 방어막 출현 확률 상한 3차 확장을 wave 101~110으로 (기본 181~190 → 50%→80%)
 			transportStartWave: 81, transportChanceStep: 0.008, transportChanceCap: 0.16, // 수송 적: wave 81부터 0.8% (+0.8%/wave → wave 100에 상한 16%)
 			healerStartWave: 141, healerChanceCap: 0.08, // 치료 적: wave 141부터 0.4% (+0.4%/wave → wave 160에 상한 8%)
 			regenBoostWave: 170, // 재생/치료 후반 강화를 wave 171~180으로 (기본 191~200 → 회복률 22%→32%, 재생 출현 4%→8%)
