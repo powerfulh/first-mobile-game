@@ -150,7 +150,7 @@ export function drawEnemySprite(type, cx, cy, r, opts = {}) {
 			const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 600);
 			ctx.globalAlpha = 0.25 + 0.25 * pulse;
 			ctx.fillStyle = '#2ecc71';
-			const gr = r + 4;
+			const gr = r + 6;
 			ctx.beginPath();
 			ctx.moveTo(cx, cy - gr);
 			ctx.lineTo(cx - gr * 0.9, cy + gr * 0.6);
