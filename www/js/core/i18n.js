@@ -89,7 +89,7 @@ const STRINGS = {
 	'tower.yeomra.name': { ko: '염라', ja: '閻魔', en: 'Yama' },
 	'tower.yeomra.tagline': { ko: '적 감속 + 재생 차단 · 비공격', ja: '敵減速 + 再生阻止 · 非攻撃', en: 'Slow + anti-regen · Non-attacking' },
 	'tower.yeomra.desc1': { ko: '사거리 내 적의 이동 속도를 25%로 늦춥니다', ja: '射程内の敵の移動速度を25%に落とします', en: 'Slows enemies in range to 25% speed' },
-	'tower.yeomra.desc2': { ko: '사거리 내 재생 적의 회복을 차단합니다', ja: '射程内の再生する敵の回復を阻止します', en: 'Blocks regenerating enemies from healing in range' },
+	'tower.yeomra.desc2': { ko: '사거리 내 적의 모든 체력 회복을 차단합니다', ja: '射程内の敵のあらゆるHP回復を阻止します', en: 'Blocks all HP recovery of enemies in range' },
 	'tower.yeomra.desc3': { ko: '사거리 내 아군 타워의 사거리를 강화합니다', ja: '射程内の味方タワーの射程を強化します', en: 'Boosts the range of allied towers in range' },
 	'tower.resolver.name': { ko: '리솔버', ja: 'リゾルバー', en: 'Resolver' },
 	'tower.resolver.tagline': { ko: '아군 강화 · 지원형', ja: '味方強化 · 支援型', en: 'Ally empower · Support' },

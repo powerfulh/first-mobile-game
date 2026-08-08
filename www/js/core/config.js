@@ -210,7 +210,7 @@ export const TOWER_ROLES = {
 		recipe: ['radar', 'assassin', 'silo'], // 제외: gatling
 		buffsRange: true, // 배이스와 동일한 사거리 버프 (외형도 base 계열 분기로 감)
 		slowsEnemies: true, slowFactor: 0.25, // 사거리 내 적 이동속도 25%로
-		blocksRegen: true, // 사거리 내 재생 적 회복 차단
+		blocksRegen: true, // 사거리 내 적 회복 차단 (재생 자가 회복 + 치료 적에게 받는 치료)
 		description: ['tower.yeomra.desc1', 'tower.yeomra.desc2', 'tower.yeomra.desc3'],
 	},
 	resolver: {
