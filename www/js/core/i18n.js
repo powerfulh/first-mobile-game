@@ -30,6 +30,7 @@ const STRINGS = {
 	'map.map5.name': { ko: '분산', ja: '分散', en: 'Split' },
 	'map.map6.name': { ko: '폐허', ja: '廃墟', en: 'Ruins' },
 	'map.map7.name': { ko: '이탈', ja: '離脱', en: 'Breakaway' },
+	'map.map8.name': { ko: '근원', ja: '根源', en: 'Origin' },
 	'common.ground': { ko: '지상', ja: '地上', en: 'Ground' },
 	'common.air': { ko: '공중', ja: '空中', en: 'Air' },
 	'common.none': { ko: '없음', ja: 'なし', en: 'None' },
