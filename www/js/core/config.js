@@ -413,6 +413,7 @@ export const SHOCK_FX_SECONDS = 0.35; // 분산 발동 시 적 위에 겹치는 
 // 치료 적 — 아군 공중 타입에 락온해 회복시키는 지원 유닛. 락온 중엔 제자리 정지.
 export const HEALER_RANGE = 80; // 능력 발동 사거리 — 락온 이후에는 사거리 무관 유지
 export const HEALER_HP_THRESHOLD = 0.9; // 체력이 이 비율 이하인 공중 타입만 치료 대상
+export const HEALER_BOSS_RATE_CAP = 0.1; // 공중 보스가 받는 치료 회복률 상한 (일반 대상은 무제한)
 
 export const SAVE_KEY = 'td_save_v1';
 export const BEST_WAVE_KEY = 'td_best_wave';

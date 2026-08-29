@@ -2,7 +2,7 @@ import { ctx } from './core/canvas.js';
 import {
 	LOGICAL_W, REGEN_HEAL_RATE, BARRIER_RADIUS, EMP_STUN_RANGE, EMP_STUN_SECONDS, ENEMY_SPEED_CAP_WAVE, ENEMY_SLOW_SPEED_FLOOR, AIR_COLOR, ACCENT_RED,
 	AIR_INTRO_KEY, BOSS_INTRO_KEY, SHIELD_INTRO_KEY, REGEN_INTRO_KEY, BARRIER_INTRO_KEY, EMP_INTRO_KEY, TRANSPORT_INTRO_KEY, SHOCK_INTRO_KEY,
-	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FX_SECONDS, HEALER_RANGE, HEALER_HP_THRESHOLD, HEALER_INTRO_KEY,
+	SHOCK_HP_RATIO, SHOCK_CHARGES_MAX, SHOCK_REGEN_SECONDS, SHOCK_FX_SECONDS, HEALER_RANGE, HEALER_HP_THRESHOLD, HEALER_BOSS_RATE_CAP, HEALER_INTRO_KEY,
 } from './core/config.js';
 import { getActiveMap } from './core/maps.js';
 import { game, hasSeenIntro } from './state.js';
@@ -467,7 +467,8 @@ export function updateEnemy(e, dt) {
 			if (e.stunTimer > 0) {
 				e.stunTimer = Math.max(0, e.stunTimer - dt); // 스턴 중엔 치료도 정지 (락온은 유지)
 			} else if (!target.regenDisabled) { // 염라 회복 차단 — 대상이 차단 중이면 락온만 유지, 치료 없음
-				target.hp = Math.min(target.hpMax, target.hp + target.hpMax * e.healRate * dt);
+				const rate = isBoss(target) ? Math.min(e.healRate, HEALER_BOSS_RATE_CAP) : e.healRate; // 보스는 회복률 상한 적용
+				target.hp = Math.min(target.hpMax, target.hp + target.hpMax * rate * dt);
 				if (target.hp >= target.hpMax) e.healTarget = null;
 			}
 			return; // 능력 발동 중 — 이동하지 않음
