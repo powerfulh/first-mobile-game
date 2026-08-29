@@ -88,9 +88,9 @@ export const MAPS = {
 		startGold: 200,
 		bgm: 'bgm3',
 		waveComposition: {
+			barrierStartWave: Infinity, // 장벽 적 미출현 (맵3 구성에서 제외)
 			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05, // 스폰 간격: wave 1에 0.95초, -0.05/wave → wave 10에 하한 0.5초 도달
 			regenStartWave: 21, // 재생 적: wave 21부터 0.2% (+0.2%/wave → wave 40에 상한 4%)
-			barrierStartWave: Infinity, // 장벽 적 미출현 (맵3 구성에서 제외)
 			empStartWave: 111, // EMP 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
 			transportStartWave: 151, // 수송 적: wave 151부터 0.4% (+0.4%/wave → wave 160에 상한 4%)
 			regenBoostWave: 60, // 재생 강화를 wave 61~70으로 — 70에 회복률 22%·출현 8% 도달 (2차 회복 강화는 기본 161~170 → 32%)
@@ -122,8 +122,8 @@ export const MAPS = {
 		startGold: 200,
 		bgm: 'bgm4',
 		waveComposition: {
-			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05,
 			regenStartWave: Infinity, // 재생 적 미출현 (맵4 구성에서 제외). 장벽 적은 기본값(151~160) 그대로 출현
+			spawnIntervalStart: 0.95, spawnIntervalStep: 0.05,
 			densityFloorWave: 40, // 조밀도 하한 추가 강화를 wave 41~50으로 (minNarrow 0.30 @ wave 50)
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70). 방어막 상한 확장(101~110)은 공통 유지
 			countCapWave: 70, // 적 수 고정 wave 70 → 115마리 (+2→+1 완화는 기본 wave 40)
@@ -155,6 +155,8 @@ export const MAPS = {
 		startGold: 250,
 		bgm: 'bgm5',
 		waveComposition: {
+			barrierStartWave: Infinity, // 장벽 적 미출현 (맵5 구성에서 제외)
+			shieldBoostWave: Infinity, // 방어막 데미지 감소 강화(기본 130~145) 없음 — 최종 -3.0 유지
 			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달
 			densityFloorWave: 30, // 조밀도 하한 추가 강화를 wave 31~40으로 (minNarrow 0.30 @ wave 40)
 			regenStartWave: 41, regenChanceStep: 0.004, // 재생 적: wave 41부터 0.4% (+0.4%/wave → wave 50에 상한 4%)
@@ -162,9 +164,7 @@ export const MAPS = {
 			densityCeilWave: 70, // 조밀도 상한 추가 강화를 wave 71~80으로 (maxNarrow 0.90 @ wave 80)
 			regenHealRampWave: 90, // 재생 회복률 강화를 wave 91~100으로 (12% → 22%)
 			densityLateWave: 110, // 조밀도 상하한 추가 강화를 wave 111~120으로 (narrow 0.20~0.80 @ wave 120 — 조밀도 최종)
-			barrierStartWave: Infinity, // 장벽 적 미출현 (맵5 구성에서 제외)
 			shockStartWave: 141, shockChanceCap: 0.08, // 충격 분산 적: wave 141부터 0.4% (+0.4%/wave → wave 160에 상한 8%)
-			shieldBoostWave: Infinity, // 방어막 데미지 감소 강화(기본 130~145) 없음 — 최종 -3.0 유지
 		},
 		unlock: { type: 'clearWave', map: 'map4', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
@@ -189,9 +189,9 @@ export const MAPS = {
 		startGold: 200,
 		bgm: 'bgm2',
 		waveComposition: {
-			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달 (맵5와 동일)
 			airStartWave: Infinity, // 일반 공중 적 미출현 (맵6 구성에서 제외). 다른 공중 타입(수송 등)은 별개
 			regenStartWave: Infinity, // 재생 적 미출현 (맵6 구성에서 제외)
+			spawnIntervalStart: 0.8, spawnIntervalStep: 0.034, // 스폰 간격: wave 1에 0.8초, -0.034/wave → wave 10에 하한 0.5초 도달 (맵5와 동일)
 			transportStartWave: 16, transportChanceCap: 0.12, // 수송 적: wave 16부터 0.4% (+0.4%/wave, 30웨이브 램프 → wave 45에 상한 12%)
 			empStartWave: 41, // EMP 적: wave 41부터 0.4% (+0.4%/wave → wave 50에 상한 4%)
 			shockStartWave: 71, shockChanceCap: 0.08, // 충격 분산 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
