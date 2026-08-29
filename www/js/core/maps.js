@@ -56,10 +56,10 @@ export const MAPS = {
 		bgm: 'bgm2',
 		// 맵1 기본값에서 아래만 오버라이드 (나머지 미지정은 맵1과 동일).
 		waveComposition: {
-			airStartWave: 4, airStartChance: 0.04, airChanceStep: 0.016, // 공중 적: wave 4부터, 시작 4% (+1.6%/wave, 상한 50% → wave 33)
 			airHpBase: 0.4,    // 공중 HP 비율 시작 0.4 (wave 31부터 +0.02/wave → wave 60에 1.0)
-			regenStartWave: 71, regenChanceStep: 0.004, // 재생 적: wave 71부터 0.4% (+0.4%/wave → wave 80에 상한 4%)
 			shieldStartCap: 0.4, // 방어막 상한: 81~90 확장 없이 등장(51)부터 1~40% (101~110 → 50%는 공통)
+			airStartWave: 4, airStartChance: 0.04, airChanceStep: 0.016, // 공중 적: wave 4부터, 시작 4% (+1.6%/wave, 상한 50% → wave 33)
+			regenStartWave: 71, regenChanceStep: 0.004, // 재생 적: wave 71부터 0.4% (+0.4%/wave → wave 80에 상한 4%)
 			barrierStartWave: 111, // 장벽 적: wave 111부터 0.4% (+0.4%/wave → wave 120에 상한 4%)
 			empStartWave: 161, // 신규 적(emp): wave 161부터 0.4% (+0.4%/wave → wave 170에 상한 4%)
 
@@ -287,6 +287,7 @@ export const MAPS = {
 		bgm: 'bgm4',
 		waveComposition: {
 			regenStartWave: Infinity, // 재생 적 미출현
+			spawnIntervalStart: 0.72, spawnIntervalStep: 0.025, // 스폰 간격: wave 1에 0.72초, -0.025/wave → wave 10에 하한 0.5초 도달 (맵7과 동일)
 			basicKind: 'emp', // 일반 적 대신 EMP 적이 지상 적 자리를 차지 (wave 1부터). 공중 롤(wave 6+)은 기본대로
 			hpSlopeInterval: 40, // HP 슬로프 상승 간격 40웨이브 (wave 200 상한 → 40·80·120·160·200, 5단계 — 기본보다 1단계 많음)
 			shieldStartCap: 0.4, // 방어막 상한 0.4 (맵2와 동일) — 등장(51)부터 1~40%, 81~90 확장 없음 (101~110→50%·181~190→80%는 공통)
