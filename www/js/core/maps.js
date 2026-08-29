@@ -289,7 +289,7 @@ export const MAPS = {
 
 		},
 		fixedTowers: [
-			{ x: 100, y: 372, role: 'usable', tier: 1 },
+			{ x: 116, y: 260, role: 'usable', tier: 1 },
 		],
 		unlock: { type: 'clearWave', map: 'map7', wave: 201 }, // 맵7 200웨이브 돌파(=201 진입) 시 해금
 	},
