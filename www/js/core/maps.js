@@ -259,6 +259,40 @@ export const MAPS = {
 		],
 		unlock: { type: 'clearWave', map: 'map6', wave: 201 }, // 200웨이브 돌파(=201 진입) 시 해금
 	},
+	map8: {
+		id: 'map8',
+		name: 'map.map8.name', // i18n 키 — 표시 시 사용처가 t()로 변환
+		path: [
+			{ x: middleX * pathUnit, y: bottom * pathUnit },
+			{ x: middleX * pathUnit, y: 70 * pathUnit },
+			{ x: 32 * pathUnit, y: 70 * pathUnit },
+			{ x: 32 * pathUnit, y: 60 * pathUnit },
+			{ x: middleX * pathUnit, y: 60 * pathUnit, shortcut: true },
+			{ x: 12 * pathUnit, y: 60 * pathUnit },
+			{ x: 12 * pathUnit, y: 50 * pathUnit },
+			{ x: 16 * pathUnit, y: 50 * pathUnit, underpass: true },
+			{ x: 34 * pathUnit, y: 50 * pathUnit, underpass: true },
+			{ x: allow1right * pathUnit, y: 50 * pathUnit },
+			{ x: allow1right * pathUnit, y: 40 * pathUnit },
+			{ x: middleX * pathUnit, y: 40 * pathUnit, shortcut: true },
+			{ x: allow1left * pathUnit, y: 40 * pathUnit },
+			{ x: allow1left * pathUnit, y: 25 * pathUnit },
+			{ x: middleX * pathUnit, y: 25 * pathUnit, shortcut: true },
+			{ x: 35 * pathUnit, y: 25 * pathUnit },
+			{ x: 35 * pathUnit, y: 15 * pathUnit },
+			{ x: middleX * pathUnit, y: 15 * pathUnit },
+			{ x: middleX * pathUnit, y: 0 * pathUnit },
+		],
+		startGold: 150,
+		bgm: 'bgm4',
+		waveComposition: {
+
+		},
+		fixedTowers: [
+			{ x: 100, y: 372, role: 'usable', tier: 1 },
+		],
+		unlock: { type: 'clearWave', map: 'map7', wave: 201 }, // 맵7 200웨이브 돌파(=201 진입) 시 해금
+	},
 };
 
 let activeMapId = 'map1';
