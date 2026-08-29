@@ -294,6 +294,7 @@ export const MAPS = {
 			densityFloorWave: 20, // 조밀도 하한 추가 강화를 wave 21~30으로 (minNarrow 0.30 @ wave 30)
 			shockStartWave: 41, shockChanceCap: 0.12, // 충격 분산 적: wave 41부터 0.4% (+0.4%/wave → wave 70에 상한 12%)
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70)
+			healerStartWave: 71, healerChanceCap: 0.08, // 치료 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
 		},
 		fixedTowers: [
 			{ x: 116, y: 260, role: 'usable', tier: 1 },
