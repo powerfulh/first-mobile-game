@@ -288,6 +288,7 @@ export const MAPS = {
 		waveComposition: {
 			regenStartWave: Infinity, // 재생 적 미출현
 			basicKind: 'emp', // 일반 적 대신 EMP 적이 지상 적 자리를 차지 (wave 1부터). 공중 롤(wave 6+)은 기본대로
+			hpSlopeInterval: 40, // HP 슬로프 상승 간격 40웨이브 (기본 50 → 40·80·120·160 단계 상승)
 		},
 		fixedTowers: [
 			{ x: 116, y: 260, role: 'usable', tier: 1 },
