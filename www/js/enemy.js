@@ -37,7 +37,7 @@ const DEFAULT_WAVE = {
 	densityFloorWave: 100, // 이 웨이브 이후 minNarrow 추가 -0.01/wave (10웨이브 누적 -0.10)
 	densityCeilWave: 120, // 이 웨이브 이후 maxNarrow -0.01/wave (10웨이브 누적 -0.10)
 	densityLateWave: 170, // 이 웨이브 이후 minNarrow·maxNarrow 각각 -0.01/wave (10웨이브 누적 -0.10)
-	hpSlopeInterval: 50, // HP 슬로프(+0.1/wave) 상승 간격 — 기본 50웨이브(50·100·150·200에 단계 상승, 4단계)
+	hpSlopeInterval: 50, // HP 슬로프(+0.1/wave) 상승 간격 — wave 200까지 이 간격마다 단계 상승 (기본 50 → 50·100·150·200, 4단계). 간격 작을수록 단계 수↑
 };
 
 export function wparams() {
@@ -48,7 +48,8 @@ export function wparams() {
 export function computeBaseHpAt(wave) {
 	const slopeStep = wparams().hpSlopeInterval; // HP 슬로프 상승 간격 (기본 50웨이브 — 맵별 오버라이드 가능)
 	let hpExtra = 0;
-	for (let i = 1; i <= 4; i++) {
+	// HP 슬로프는 wave 200까지 slopeStep 간격마다 +0.1/wave 단계 상승 (전 맵 공통 상한). 간격이 작을수록 단계 수가 늘어남.
+	for (let i = 1; i * slopeStep <= 200; i++) {
 		hpExtra += Math.max(0, wave - i * slopeStep) * 0.1;
 	}
 	// 1~10웨이브는 완만하게(+0.4/wave), 11웨이브부터 기존 +0.6/wave (10웨이브 값에서 연속). 모든 맵 공통.
