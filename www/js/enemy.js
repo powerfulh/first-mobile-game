@@ -22,6 +22,7 @@ const DEFAULT_WAVE = {
 	barrierStartWave: 151, barrierChanceCap: 0.04, // 장벽 적 첫 등장 — 시작 웨이브에 0.4%, 이후 +0.4%/wave (cap까지)
 	barrierBoostWave: 170, // 이 웨이브 이후 장벽 출현 확률 +0.4%/wave (10웨이브 누적 +4%) — 기본 171~180
 	empStartWave: Infinity, empChanceStep: 0.004, empChanceCap: 0.04, // 신규 적(emp) — 기본(맵1) 미출현, 출현 맵이 시작 웨이브를 오버라이드
+	basicKind: 'basic', // fallback 지상 적 종류 — 기본 'basic'. 'emp' 등으로 오버라이드하면 그 종이 1웨이브부터 일반 적 자리를 대체 (공중 롤은 그대로)
 	transportStartWave: Infinity, transportChanceStep: 0.004, transportChanceCap: 0.04, // 신규 적(transport) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	shockStartWave: Infinity, shockChanceStep: 0.004, shockChanceCap: 0.04, // 신규 적(shockDisperser) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
 	healerStartWave: Infinity, healerChanceStep: 0.004, healerChanceCap: 0.04, // 신규 적(healer) — 기본 미출현, 출현 맵이 시작 웨이브를 오버라이드
@@ -206,7 +207,7 @@ export function spawnEnemy(spawner) {
 	else if (Math.random() < getBarrierSpawnerChance(wave)) { kind = 'barrierSpawner'; spriteType = 'barrierSpawner'; ga = 'air'; }
 	else if (Math.random() < getRegenChance(wave)) { kind = 'regen'; spriteType = 'regen'; ga = 'ground'; }
 	else if (Math.random() < getAirChance(wave)) { kind = 'air'; spriteType = 'air'; ga = 'air'; }
-	else { kind = 'basic'; spriteType = 'ground'; ga = 'ground'; }
+	else { kind = wparams().basicKind; spriteType = kind === 'basic' ? 'ground' : kind; ga = 'ground'; }
 	const isAir = ga === 'air';
 	const shieldsAllowed = !game.sandbox || game.sandboxShieldsEnabled;
 	const shielded = shieldsAllowed && Math.random() < getShieldChance(wave, spawner.spawnInterval);
