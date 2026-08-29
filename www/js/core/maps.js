@@ -293,6 +293,7 @@ export const MAPS = {
 			shieldStartCap: 0.4, // 방어막 상한 0.4 (맵2와 동일) — 등장(51)부터 1~40%, 81~90 확장 없음 (101~110→50%·181~190→80%는 공통)
 			densityFloorWave: 20, // 조밀도 하한 추가 강화를 wave 21~30으로 (minNarrow 0.30 @ wave 30)
 			shockStartWave: 41, shockChanceCap: 0.12, // 충격 분산 적: wave 41부터 0.4% (+0.4%/wave → wave 70에 상한 12%)
+			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70)
 		},
 		fixedTowers: [
 			{ x: 116, y: 260, role: 'usable', tier: 1 },
