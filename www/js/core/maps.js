@@ -298,6 +298,7 @@ export const MAPS = {
 			regenHealRampWave: 80, // 회복률 강화를 wave 81~90으로 (12%→22%). 맵8은 재생 없어 치료 적 회복률에만 적용
 			shieldCapRamp2Wave: 90, // 방어막 출현 확률 상한 +1%/wave 확장을 wave 91~100으로 (기본 101~110 → 40%→50%)
 			densityLateWave: 100, // 조밀도 상하한 추가 강화를 wave 101~110으로 (narrow 0.20~0.80 @ wave 110 — 조밀도 최종)
+			regenBoostWave: 110, // 회복률 후반 강화를 wave 111~120으로 (22%→32%). 맵8은 재생 없어 치료 적 회복률에만 적용 (재생 출현 강화는 무효)
 		},
 		fixedTowers: [
 			{ x: 116, y: 260, role: 'usable', tier: 1 },
