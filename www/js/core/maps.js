@@ -299,6 +299,7 @@ export const MAPS = {
 			shieldCapRamp2Wave: 90, // 방어막 출현 확률 상한 +1%/wave 확장을 wave 91~100으로 (기본 101~110 → 40%→50%)
 			densityLateWave: 100, // 조밀도 상하한 추가 강화를 wave 101~110으로 (narrow 0.20~0.80 @ wave 110 — 조밀도 최종)
 			regenBoostWave: 110, // 회복률 후반 강화를 wave 111~120으로 (22%→32%). 맵8은 재생 없어 치료 적 회복률에만 적용 (재생 출현 강화는 무효)
+			barrierStartWave: 121, // 장벽 적: wave 121부터 0.4% (+0.4%/wave → wave 130에 상한 4%). 기본 171~180 상향으로 최종 8%
 		},
 		fixedTowers: [
 			{ x: 116, y: 260, role: 'usable', tier: 1 },
