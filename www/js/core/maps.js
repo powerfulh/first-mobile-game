@@ -296,6 +296,7 @@ export const MAPS = {
 			densityCeilWave: 60, // 조밀도 상한 추가 강화를 wave 61~70으로 (maxNarrow 0.90 @ wave 70)
 			healerStartWave: 71, healerChanceCap: 0.08, // 치료 적: wave 71부터 0.4% (+0.4%/wave → wave 90에 상한 8%)
 			regenHealRampWave: 80, // 회복률 강화를 wave 81~90으로 (12%→22%). 맵8은 재생 없어 치료 적 회복률에만 적용
+			shieldCapRamp2Wave: 90, // 방어막 출현 확률 상한 +1%/wave 확장을 wave 91~100으로 (기본 101~110 → 40%→50%)
 		},
 		fixedTowers: [
 			{ x: 116, y: 260, role: 'usable', tier: 1 },
